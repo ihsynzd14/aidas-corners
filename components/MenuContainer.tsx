@@ -5,13 +5,6 @@ import { ThemedView } from './ThemedView';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { GradientBackground } from './ui/GradientBackground';
 import { Colors, PastryColors } from '@/constants/Colors';
-import Animated, { 
-  FadeInDown, 
-  useAnimatedStyle, 
-  withSpring,
-  useSharedValue,
-  withSequence
-} from 'react-native-reanimated';
 
 interface MenuContainerProps {
   title: string;
@@ -27,39 +20,18 @@ export function MenuContainer({
   description, 
   iconName, 
   onPress, 
-  delay = 0,
   compact = false
 }: MenuContainerProps) {
   const colorScheme = useColorScheme();
-  const scale = useSharedValue(1);
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }]
-  }));
-
-  const handlePressIn = () => {
-    scale.value = withSpring(0.98, { damping: 15 }); // Subtle scale for better feedback
-  };
-
-  const handlePressOut = () => {
-    scale.value = withSequence(
-      withSpring(1.01, { damping: 15 }),
-      withSpring(1, { damping: 12 })
-    );
-  };
 
   return (
-    <View style={[styles.wrapper]}>
-      <Animated.View
-        entering={FadeInDown.delay(delay).springify()}
-        style={[styles.container, animatedStyle]}>
+    <View style={styles.wrapper}>
+      <View style={styles.container}>
         <GradientBackground intensity={compact ? 'light' : 'medium'} />
         <TouchableOpacity 
           onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
           style={styles.touchable}
-          activeOpacity={1}
+          activeOpacity={0.7}
         >
           <ThemedView style={styles.content}>
             <ThemedView style={styles.header}>
@@ -76,7 +48,7 @@ export function MenuContainer({
             </ThemedView>
           </ThemedView>
         </TouchableOpacity>
-      </Animated.View>
+      </View>
     </View>
   );
 }
@@ -86,16 +58,15 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 6,
   },
-
   container: {
     flex: 1,
     borderRadius: 24,
     overflow: 'hidden',
-    elevation: 4,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
+    elevation: 4,
   },
   touchable: {
     flex: 1,

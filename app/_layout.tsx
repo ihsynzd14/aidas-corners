@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { Platform } from 'react-native';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -28,15 +29,46 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView>
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="settings" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: Platform.select({
+              ios: 'default',
+              android: 'fade_from_bottom',
+              default: 'fade'
+            }),
+            animationDuration: 200,
+          }}>
+          <Stack.Screen 
+            name="(tabs)" 
+            options={{ 
+              headerShown: false,
+              animation: 'fade',
+            }} 
+          />
+          <Stack.Screen 
+            name="settings" 
+            options={{ 
+              presentation: 'card',
+              animation: Platform.select({
+                ios: 'default',
+                android: 'slide_from_right',
+                default: 'fade'
+              }),
+            }} 
+          />
+          <Stack.Screen 
+            name="+not-found" 
+            options={{
+              presentation: 'modal',
+              animation: 'slide_from_bottom',
+            }}
+          />
+        </Stack>
+        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }
