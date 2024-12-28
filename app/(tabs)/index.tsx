@@ -1,74 +1,132 @@
-import { Image, StyleSheet, Platform } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet, SafeAreaView } from 'react-native';
+import { TopBar } from '../../components/TopBar';
+import { MenuContainer } from '../../components/MenuContainer';
+import { ThemedView } from '../../components/ThemedView';
+import { useColorScheme } from '../../hooks/useColorScheme';
+import { IconSymbolName } from '../../components/ui/IconSymbol';
 
 export default function HomeScreen() {
+  const colorScheme = useColorScheme();
+
+  const handleSettingsPress = () => {
+    // Handle settings press
+  };
+
+  const menuItems: Array<{
+    title: string;
+    description: string;
+    iconName: IconSymbolName;
+    gradient?: string[];
+  }> = [
+    {
+      title: 'Yeni Sifarişlər',
+      description: 'Daxil olan sifarişləri və sorğuları idarə edin',
+      iconName: 'bell.fill',
+      gradient: ['#FF6B6B', '#EE5D5D'],
+    },
+    {
+      title: 'Stoklar və Hazırlıq',
+      description: 'İnventarı və mətbəx hazırlığını izləyin',
+      iconName: 'cart.fill',
+      gradient: ['#4ECDC4', '#45B7AF'],
+    },
+    {
+      title: 'Çatdırılma',
+      description: 'Aktiv çatdırılmaları və marşrutları izləyin',
+      iconName: 'box.truck.fill',
+      gradient: ['#FFD93D', '#F4C000'],
+    },
+    {
+      title: 'Məhsullar və Analiz',
+      description: 'Menyunu yeniləyin və məhsulları idarə edin',
+      iconName: 'list.clipboard.fill',
+      gradient: ['#95DAB6', '#7CC49E'],
+    },
+    {
+      title: 'İşçilər',
+      description: 'Komandanı və qrafikləri idarə edin',
+      iconName: 'person.2.fill',
+      gradient: ['#6C5CE7', '#5A4BD1'],
+    },
+  ];
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <SafeAreaView style={styles.safeArea}>
+      <ThemedView style={styles.container}>
+        <TopBar 
+          title="Aida's Corner" 
+          style={styles.topBar}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
+        
+        <ThemedView style={styles.content}>
+          <ThemedView style={styles.grid}>
+            <ThemedView style={styles.row}>
+              <MenuContainer
+                {...menuItems[0]}
+                onPress={() => {}}
+                delay={100}
+              />
+              <MenuContainer
+                {...menuItems[1]}
+                onPress={() => {}}
+                delay={200}
+              />
+            </ThemedView>
+
+            <ThemedView style={[styles.row, styles.centerRow]}>
+              <MenuContainer
+                {...menuItems[2]}
+                onPress={() => {}}
+                delay={300}
+                compact={true}
+              />
+            </ThemedView>
+
+            <ThemedView style={styles.row}>
+              <MenuContainer
+                {...menuItems[3]}
+                onPress={() => {}}
+                delay={400}
+              />
+              <MenuContainer
+                {...menuItems[4]}
+                onPress={() => {}}
+                delay={500}
+              />
+            </ThemedView>
+          </ThemedView>
+        </ThemedView>
       </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12'
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  safeArea: {
+    flex: 1,
+  },
+  container: {
+    flex: 1,
+  },
+  topBar: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+  },
+  content: {
+    flex: 1,
+    paddingTop: 12, // Add padding to prevent content from being hidden behind tab bar
+    paddingBottom: 80, // Add padding to prevent content from being hidden behind tab bar
+  },
+  grid: {
+    flex: 1,
+    padding: 8,
+    gap: 4,
+  },
+  row: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+    flex: 1,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  centerRow: {
+    paddingVertical: 12,
   },
 });

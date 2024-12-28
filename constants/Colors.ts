@@ -1,26 +1,27 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+export const PastryColors = {
+  primary: '#FF9494', // Soft pink for pastries
+  secondary: '#FFC3C3', // Light pink
+  accent: '#FFE3E1', // Very light pink
+  cream: '#FFF5E4', // Warm cream color
+  chocolate: '#4A3531', // Deep brown
+  vanilla: '#FFF8DC', // Warm vanilla
+};
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
-    tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    text: '#4A3531', // Chocolate brown for better readability
+    background: '#FFF5E4', // Warm cream background
+    tint: '#FF9494', // Soft pink tint
+    icon: '#4A3531', // Chocolate brown icons
+    tabIconDefault: '#FFC3C3', // Light pink for inactive tabs
+    tabIconSelected: '#FF9494', // Soft pink for active tabs
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
-    tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    text: '#FFFFFF', // Light pink text
+    background: '#151718', // Dark chocolate background
+    tint: '#FF9494', // Soft pink tint
+    icon: '#e4e4e4', // Light pink icons
+    tabIconDefault: '#715753', // Muted brown for inactive tabs
+    tabIconSelected: '#FF9494', // Soft pink for active tabs
   },
 };
