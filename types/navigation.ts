@@ -1,6 +1,6 @@
 import { IconSymbolName } from '@/components/ui/IconSymbol';
 
-export type TabRoute = 'index' | 'explore';
+export type TabRoute = 'index' | 'explore' | 'new_orders';
 
 export interface TabItem {
   name: TabRoute;

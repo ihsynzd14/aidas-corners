@@ -5,7 +5,7 @@ import { AnimatedIcon } from './AnimatedIcon';
 const AnimatedIconComponent = Animated.createAnimatedComponent(AnimatedIcon);
 
 interface TabIconProps {
-  name: 'house.fill' | 'paperplane.fill';
+  name: 'house.fill' | 'paperplane.fill'  | 'cart.fill' ;
   color: string;
   focused: boolean;
   size?: number;

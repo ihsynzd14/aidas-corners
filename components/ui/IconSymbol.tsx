@@ -15,6 +15,7 @@ const MAPPING = {
   'box.truck.fill': 'local-shipping',
   'list.clipboard.fill': 'assignment',
   'person.2.fill': 'people',
+  'save': 'save',
 } as const;
 
 export type IconSymbolName = keyof typeof MAPPING;

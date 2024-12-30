@@ -30,14 +30,26 @@ export default function TabLayout() {
         },
         tabBarIcon: ({ color, focused }) => (
           <TabIcon
-            name={route.name === 'index' ? 'house.fill' : 'paperplane.fill'}
+            name={
+              route.name === 'index' 
+                ? 'house.fill' 
+                : route.name === 'new_orders'
+                ? 'cart.fill'
+                : 'paperplane.fill'
+            }
             color={color}
             focused={focused}
           />
         ),
         tabBarLabel: ({ focused, color }) => (
           <TabLabel
-            label={route.name === 'index' ? 'Home' : 'Explore'}
+            label={
+              route.name === 'index' 
+                ? 'Home' 
+                : route.name === 'new_orders'
+                ? 'Sifarişlər'
+                : 'Explore'
+            }
             color={color}
             focused={focused}
           />
@@ -47,6 +59,12 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Home',
+        }}
+      />
+      <Tabs.Screen
+        name="new_orders"
+        options={{
+          title: 'Sifarişlər',
         }}
       />
       <Tabs.Screen
