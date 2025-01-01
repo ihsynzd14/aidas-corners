@@ -8,6 +8,8 @@ export const PastryColors = {
 };
 
 export const Colors = {
+  success:'#2E6F40',
+  danger:'#bb2124',
   light: {
     text: '#4A3531', // Chocolate brown for better readability
     background: '#FFF5E4', // Warm cream background

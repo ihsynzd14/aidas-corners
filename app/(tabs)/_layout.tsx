@@ -48,7 +48,7 @@ export default function TabLayout() {
                 ? 'Home' 
                 : route.name === 'new_orders'
                 ? 'Sifarişlər'
-                : 'Explore'
+                : 'Filiallar'
             }
             color={color}
             focused={focused}
@@ -65,12 +65,6 @@ export default function TabLayout() {
         name="new_orders"
         options={{
           title: 'Sifarişlər',
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
         }}
       />
     </Tabs>

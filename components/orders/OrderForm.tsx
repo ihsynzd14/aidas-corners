@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   Platform,
   Animated,
   Keyboard,
   ViewStyle,
   TextStyle,
+  TextInput,
 } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -15,18 +15,10 @@ import { Colors, PastryColors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Ionicons } from '@expo/vector-icons';
 import { LocationSelectionModal } from './LocationSelectionModal';
-
-interface Location {
-  id: string;
-  name: string;
-  icon: keyof typeof Ionicons.glyphMap;
-}
-
-const LOCATIONS: Location[] = [
-  { id: 'nerimanov', name: 'Nərimanov', icon: 'location' },
-  { id: 'deniz_mall', name: 'Dəniz Mall', icon: 'business' },
-  { id: 'city_mall', name: 'City Mall', icon: 'storefront' },
-];
+import { CorrectionModal } from './CorrectionModal';
+import { correctOrderText } from '@/utils/orderCorrection';
+import { getBranches } from '@/utils/firebase';
+import { Branch } from '@/types/branch';
 
 export function OrderForm() {
   const colorScheme = useColorScheme();
@@ -39,6 +31,23 @@ export function OrderForm() {
   const [overlayAnimation] = useState(new Animated.Value(0));
   const [keyboardHeight, setKeyboardHeight] = useState<number>(0);
   const [isFocused, setIsFocused] = useState<boolean>(false);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadBranches = async () => {
+      try {
+        const branchesData = await getBranches();
+        setBranches(branchesData);
+      } catch (error) {
+        console.error('Error loading branches:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadBranches();
+  }, []);
 
   useEffect(() => {
     const keyboardWillShow = Keyboard.addListener(
@@ -56,11 +65,17 @@ export function OrderForm() {
     };
   }, []);
 
-  const selectedLocationData = LOCATIONS.find(loc => loc.id === selectedLocation);
+  const selectedBranch = branches.find(branch => branch.id === selectedLocation);
+
+  const [correctionModalVisible, setCorrectionModalVisible] = useState(false);
+  const [correctedText, setCorrectedText] = useState('');
 
   const handleSave = () => {
-    console.log({ selectedLocation, orderText });
-    // Add haptic feedback here if needed
+    if (orderText.trim()) {
+      const corrected = correctOrderText(orderText);
+      setCorrectedText(corrected);
+      setCorrectionModalVisible(true);
+    }
     Keyboard.dismiss();
   };
 
@@ -94,6 +109,7 @@ export function OrderForm() {
 
   return (
     <ThemedView style={[styles.container, { paddingBottom: keyboardHeight }]}>
+      {/* Location Section */}
       <ThemedView style={styles.locationContainer}>
         <ThemedView style={styles.sectionTitleContainer}>
           <Ionicons
@@ -101,7 +117,7 @@ export function OrderForm() {
             size={24}
             color={isDark ? PastryColors.cream : Colors.dark.tabIconDefault}
           />
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
+          <ThemedText style={styles.sectionTitle}>
             Kafeteriya
           </ThemedText>
         </ThemedView>
@@ -115,15 +131,15 @@ export function OrderForm() {
           onPress={toggleModal}
           activeOpacity={0.7}
         >
-          {selectedLocationData ? (
+          {selectedBranch ? (
             <ThemedView style={styles.selectedLocationContent}>
               <Ionicons
-                name={selectedLocationData.icon}
+                name="business"
                 size={24}
                 color={isDark ? PastryColors.vanilla : Colors.dark.tabIconDefault}
               />
               <ThemedText style={styles.selectedLocationText}>
-                {selectedLocationData.name}
+                {selectedBranch.name}
               </ThemedText>
             </ThemedView>
           ) : (
@@ -146,6 +162,7 @@ export function OrderForm() {
         </TouchableOpacity>
       </ThemedView>
 
+      {/* Order Section */}
       <ThemedView style={styles.orderContainer}>
         <ThemedView style={styles.sectionTitleContainer}>
           <Ionicons
@@ -153,7 +170,7 @@ export function OrderForm() {
             size={24}
             color={isDark ? PastryColors.vanilla : Colors.dark.tabIconDefault}
           />
-          <ThemedText type="subtitle" style={styles.sectionTitle}>
+          <ThemedText style={styles.sectionTitle}>
             Sifariş Məlumatları
           </ThemedText>
         </ThemedView>
@@ -184,6 +201,7 @@ export function OrderForm() {
         </ThemedView>
       </ThemedView>
 
+      {/* Save Button */}
       <TouchableOpacity
         style={[
           styles.saveButton,
@@ -207,14 +225,27 @@ export function OrderForm() {
         </ThemedView>
       </TouchableOpacity>
 
+      {/* Location Selection Modal */}
       <LocationSelectionModal
         visible={modalVisible}
         onClose={toggleModal}
         selectedLocation={selectedLocation}
         onSelectLocation={setSelectedLocation}
-        locations={LOCATIONS}
+        locations={branches.map(branch => ({
+          id: branch.id,
+          name: branch.type + ' ' +branch.name ,
+          icon: 'business'
+        }))}
         modalAnimation={animation}
         overlayAnimation={overlayAnimation}
+      />
+
+      {/* Correction Comparison Modal */}
+      <CorrectionModal
+        visible={correctionModalVisible}
+        onClose={() => setCorrectionModalVisible(false)}
+        originalText={orderText}
+        correctedText={correctedText}
       />
     </ThemedView>
   );
