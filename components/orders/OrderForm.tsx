@@ -8,6 +8,7 @@ import {
   ViewStyle,
   TextStyle,
   TextInput,
+  Alert,
 } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -17,7 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LocationSelectionModal } from './LocationSelectionModal';
 import { CorrectionModal } from './CorrectionModal';
 import { correctOrderText } from '@/utils/orderCorrection';
-import { getBranches } from '@/utils/firebase';
+import { getBranches, addOrder } from '@/utils/firebase';
 import { Branch } from '@/types/branch';
 
 export function OrderForm() {
@@ -33,6 +34,7 @@ export function OrderForm() {
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const loadBranches = async () => {
@@ -70,13 +72,47 @@ export function OrderForm() {
   const [correctionModalVisible, setCorrectionModalVisible] = useState(false);
   const [correctedText, setCorrectedText] = useState('');
 
-  const handleSave = () => {
-    if (orderText.trim()) {
+  const handleSave = async () => {
+    if (!orderText.trim() || !selectedBranch) return;
+  
+    try {
+      setIsSaving(true);
       const corrected = correctOrderText(orderText);
-      setCorrectedText(corrected);
-      setCorrectionModalVisible(true);
+      
+      // Split corrected text into lines and save each line as a separate order
+      const orders = corrected.split('\n').filter(line => line.trim());
+      
+      for (const orderLine of orders) {
+        const [product, quantity] = orderLine.split(' - ');
+        const branchFullName = `${selectedBranch.type} ${selectedBranch.name}`;
+        
+        await addOrder({
+          branch: branchFullName,
+          product: product.trim(),
+          quantity: quantity.trim()
+        });
+      }
+  
+      setOrderText('');
+      setSelectedLocation('');
+      
+      Alert.alert(
+        'Uğurlu!',
+        'Sifariş uğurla əlavə edildi',
+        [{ text: 'OK' }]
+      );
+  
+    } catch (error) {
+      console.error('Error saving order:', error);
+      Alert.alert(
+        'Xəta!',
+        'Sifarişi saxlayarkən xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsSaving(false);
+      Keyboard.dismiss();
     }
-    Keyboard.dismiss();
   };
 
   const animateModal = (show: boolean) => {
@@ -197,6 +233,7 @@ export function OrderForm() {
             textAlignVertical="top"
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
+            editable={!isSaving}
           />
         </ThemedView>
       </ThemedView>
@@ -205,23 +242,31 @@ export function OrderForm() {
       <TouchableOpacity
         style={[
           styles.saveButton,
-          (!selectedLocation || !orderText) && styles.disabledButton,
+          (!selectedLocation || !orderText || isSaving) && styles.disabledButton,
           isDark ? styles.saveButtonDark : styles.saveButtonLight,
           styles.elevation
         ]}
         onPress={handleSave}
-        disabled={!selectedLocation || !orderText}
+        disabled={!selectedLocation || !orderText || isSaving}
         activeOpacity={0.7}
       >
         <ThemedView style={styles.saveButtonContent}>
-          <Ionicons
-            name="cart"
-            size={24}
-            color={PastryColors.vanilla}
-          />
-          <ThemedText style={styles.saveButtonText}>
-            Sifarişi Yadda Saxla
-          </ThemedText>
+          {isSaving ? (
+            <ThemedText style={styles.saveButtonText}>
+              Saxlanılır...
+            </ThemedText>
+          ) : (
+            <>
+              <Ionicons
+                name="cart"
+                size={24}
+                color={PastryColors.vanilla}
+              />
+              <ThemedText style={styles.saveButtonText}>
+                Sifarişi Yadda Saxla
+              </ThemedText>
+            </>
+          )}
         </ThemedView>
       </TouchableOpacity>
 
@@ -233,7 +278,7 @@ export function OrderForm() {
         onSelectLocation={setSelectedLocation}
         locations={branches.map(branch => ({
           id: branch.id,
-          name: branch.type + ' ' +branch.name ,
+          name: branch.type + ' ' + branch.name,
           icon: 'business'
         }))}
         modalAnimation={animation}

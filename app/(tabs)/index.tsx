@@ -4,10 +4,11 @@ import { MenuContainer } from '../../components/MenuContainer';
 import { ThemedView } from '../../components/ThemedView';
 import { useColorScheme } from '../../hooks/useColorScheme';
 import { IconSymbolName } from '../../components/ui/IconSymbol';
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
-
+  const router = useRouter();
   const handleSettingsPress = () => {
     // Handle settings press
   };
@@ -61,11 +62,11 @@ export default function HomeScreen() {
         <ThemedView style={styles.content}>
           <ThemedView style={styles.grid}>
             <ThemedView style={styles.row}>
-              <MenuContainer
-                {...menuItems[0]}
-                onPress={() => {}}
-                delay={100}
-              />
+            <MenuContainer
+              {...menuItems[0]}
+              onPress={() => router.push('/new_orders')}
+              delay={100}
+            />
               <MenuContainer
                 {...menuItems[1]}
                 onPress={() => {}}
