@@ -86,7 +86,7 @@ export default function HomeScreen() {
             <ThemedView style={styles.row}>
               <MenuContainer
                 {...menuItems[3]}
-                onPress={() => {}}
+                onPress={() =>  router.push('/orders_summary')}
                 delay={400}
               />
               <MenuContainer

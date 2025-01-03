@@ -1,7 +1,13 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, addDoc, setDoc, doc } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDocs } from 'firebase/firestore';
 import { Branch } from '@/types/branch';
 
+interface OrderItem {
+  branch: string;
+  product: string;
+  quantity: string;
+}
+// Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCQ6wElMS4yPTNli18cWaPLPFwqo9gfLbU",
     authDomain: "aidascorner-71243.firebaseapp.com",
@@ -11,6 +17,7 @@ const firebaseConfig = {
     appId: "1:827451742805:web:1cf778cbc185a5f47a12dc"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
@@ -24,29 +31,31 @@ export async function getBranches(): Promise<Branch[]> {
   } as Branch));
 }
 
-interface OrderItem {
-  branch: string;
-  product: string;
-  quantity: string;
-}
-
 export async function addOrder(order: OrderItem): Promise<void> {
   try {
-    // Get current date in dd/mm/yyyy format
-    const now = new Date();
-    const dateStr = `${String(now.getDate()).padStart(2, '0')}.${String(now.getMonth() + 1).padStart(2, '0')}.${now.getFullYear()}`;
+    const date = new Date();
+    const formattedDate = formatDate(date);
     
-    // Create references to nested collections
-    const dateCollection = doc(db, 'orders', dateStr);
-    const branchCollection = doc(dateCollection, 'branches', order.branch);
+    // Reference to the date document in orders collection
+    const dateDocRef = doc(db, 'orders', formattedDate);
     
-    // Create or update the product document
-    await setDoc(branchCollection, {
+    // Reference to the branch document in branches subcollection
+    const branchDocRef = doc(collection(dateDocRef, 'branches'), order.branch);
+    
+    // Set the product directly as a field in the branch document
+    await setDoc(branchDocRef, {
       [order.product]: order.quantity
-    }, { merge: true });
-
+    }, { merge: true }); // Use merge to preserve existing products
+    
   } catch (error) {
     console.error('Error adding order:', error);
     throw error;
   }
+}
+
+export function formatDate(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}.${month}.${year}`; // Changed to use dots instead of slashes
 }

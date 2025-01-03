@@ -35,6 +35,8 @@ export default function TabLayout() {
                 ? 'house.fill' 
                 : route.name === 'new_orders'
                 ? 'cart.fill'
+                : route.name === 'orders_summary'
+                ? 'list.clipboard.fill'
                 : 'paperplane.fill'
             }
             color={color}
@@ -48,6 +50,8 @@ export default function TabLayout() {
                 ? 'Home' 
                 : route.name === 'new_orders'
                 ? 'Sifarişlər'
+                : route.name === 'orders_summary'
+                ? 'Cədvəl'
                 : 'Filiallar'
             }
             color={color}
@@ -65,6 +69,12 @@ export default function TabLayout() {
         name="new_orders"
         options={{
           title: 'Sifarişlər',
+        }}
+      />
+      <Tabs.Screen
+        name="orders_summary"
+        options={{
+          title: 'Cədvəl',
         }}
       />
     </Tabs>
