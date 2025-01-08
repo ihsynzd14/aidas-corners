@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ActivityIndicator, Dimensions, TouchableOpacity } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { 
+  ActivityIndicator, 
+  Dimensions, 
+  TouchableOpacity, 
+  RefreshControl,
+  ScrollView as RNScrollView // Using native ScrollView
+} from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { OrdersDatePicker } from './OrdersDatePicker';
 import { OrdersSummaryTable } from './OrdersSummaryTable';
@@ -22,21 +27,21 @@ import { Ionicons } from '@expo/vector-icons';
 import { PastryLoader } from '../ui/PastryLoader';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-const MIN_SHEET_HEIGHT = 200; // Increased to show header
+const MIN_SHEET_HEIGHT = 250;
 const EXPANDED_HEIGHT = SCREEN_HEIGHT * 0.8;
 
 export function OrdersSummaryContent() {
-  const [selectedDate, setSelectedDate] = useState(new Date('2025-01-02'));
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [ordersData, setOrdersData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const insets = useSafeAreaInsets();
   const scrollRef = useRef(null);
   
-  // Animation values
   const animation = useSharedValue(0);
 
   const toggleExpanded = () => {
@@ -49,35 +54,40 @@ export function OrdersSummaryContent() {
     });
   };
 
-  const animatedStyle = useAnimatedStyle(() => {
-    const height = interpolate(
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: interpolate(
       animation.value,
       [0, 1],
       [MIN_SHEET_HEIGHT, EXPANDED_HEIGHT],
       Extrapolate.CLAMP
-    );
-
-    return {
-      height,
-    };
-  });
-
-  useEffect(() => {
-    loadOrders();
-  }, [selectedDate]);
+    ),
+  }));
 
   const loadOrders = async () => {
-    setLoading(true);
-    setError(null);
     try {
       const data = await fetchOrdersByDate(selectedDate);
       setOrdersData(data);
+      setError(null);
     } catch (error) {
       setError('Sifarişləri yükləyərkən xəta baş verdi');
-    } finally {
-      setLoading(false);
+      console.error('Error loading orders:', error);
     }
   };
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      await loadOrders();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [selectedDate]);
+
+  useEffect(() => {
+    setLoading(true);
+    loadOrders().finally(() => setLoading(false));
+  }, [selectedDate]);
 
   if (loading) {
     return (
@@ -97,17 +107,33 @@ export function OrdersSummaryContent() {
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <ScrollView 
-        style={{ flex: 1 }} 
+      <RNScrollView 
+        ref={scrollRef}
+        style={{ flex: 1 }}
+        scrollEventThrottle={16}
         contentContainerStyle={{ 
           padding: 16,
           paddingBottom: MIN_SHEET_HEIGHT + insets.bottom
         }}
         scrollEnabled={!isExpanded}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={isDark ? PastryColors.vanilla : PastryColors.chocolate}
+            colors={[PastryColors.chocolate]}
+            progressBackgroundColor={isDark ? '#fff' : '#fff'}
+            progressViewOffset={20} // Add some offset for better visibility
+          />
+        }
       >
         <OrdersDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-        <OrdersSummaryTable ordersData={ordersData} />
-      </ScrollView>
+        <OrdersSummaryTable 
+          ordersData={ordersData} 
+          selectedDate={selectedDate}
+          onDataChange={loadOrders}
+        />
+      </RNScrollView>
 
       <Animated.View style={[{
         position: 'absolute',

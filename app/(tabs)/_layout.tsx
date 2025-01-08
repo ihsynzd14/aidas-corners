@@ -2,13 +2,15 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { AntDesign } from '@expo/vector-icons';
 
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors, PastryColors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { TabIcon } from '@/components/ui/navigation/TabIcon';
 import { TabLabel } from '@/components/ui/navigation/TabLabel';
+
+type AntDesignName = keyof typeof AntDesign.glyphMap;
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -28,30 +30,36 @@ export default function TabLayout() {
           backgroundColor: colorScheme === 'dark' ? '#1A1A1A' : PastryColors.cream,
           borderTopColor: colorScheme === 'dark' ? '#2D2D2D' : 'rgba(0,0,0,0.05)',
         },
-        tabBarIcon: ({ color, focused }) => (
-          <TabIcon
-            name={
-              route.name === 'index' 
-                ? 'house.fill' 
-                : route.name === 'new_orders'
-                ? 'cart.fill'
-                : route.name === 'orders_summary'
-                ? 'list.clipboard.fill'
-                : 'paperplane.fill'
-            }
-            color={color}
-            focused={focused}
-          />
-        ),
+        tabBarIcon: ({ color, focused }) => {
+          let iconName: AntDesignName = 'home';
+          if (route.name === 'index') {
+            iconName = 'home';
+          } else if (route.name === 'new_orders') {
+            iconName = 'shoppingcart';
+          } else if (route.name === 'orders_summary') {
+            iconName = 'profile';
+          } else if (route.name === 'products_list') {
+            iconName = 'appstore-o';
+          } else if (route.name === 'product_statistics') {
+            iconName = 'barschart';
+          } else if (route.name === 'branches') {
+            iconName = 'bank';
+          }
+          return <AntDesign name={iconName} size={24} color={color} />;
+        },
         tabBarLabel: ({ focused, color }) => (
           <TabLabel
             label={
               route.name === 'index' 
-                ? 'Home' 
+                ? 'Ana Səhifə' 
                 : route.name === 'new_orders'
                 ? 'Sifarişlər'
                 : route.name === 'orders_summary'
                 ? 'Cədvəl'
+                : route.name === 'products_list'
+                ? 'Məhsullar'
+                : route.name === 'product_statistics'
+                ? 'Statistika'
                 : 'Filiallar'
             }
             color={color}
@@ -62,7 +70,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          title: 'Ana Səhifə',
         }}
       />
       <Tabs.Screen
@@ -75,6 +83,18 @@ export default function TabLayout() {
         name="orders_summary"
         options={{
           title: 'Cədvəl',
+        }}
+      />
+      <Tabs.Screen
+        name="products_list"
+        options={{
+          title: 'Məhsullar',
+        }}
+      />
+      <Tabs.Screen
+        name="product_statistics"
+        options={{
+          title: 'Statistika',
         }}
       />
     </Tabs>

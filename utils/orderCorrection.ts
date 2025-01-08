@@ -56,12 +56,13 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
     }
   },
   {
-    correct: "Esterharzy",
+    correct: "Esterhazy",
     variations: [
       "esterxazy",
       "esterxayzer",
       "esterhazy",
       "esterharzi",
+      "esterhazi",
       "esterharzı",
       "asterharzy",
       "esterxazi"
@@ -85,10 +86,13 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
     variations: [
       "dubai browni",
       "dubay browni",
+      "dubay brovni",
       "dubai brownies",
       "dubay brownie",
       "dubai braunı",
       "dubay browny",
+      "dubay brovny",
+      "dubay brovni",
       "dubai brauni"
     ]
   },
@@ -96,6 +100,11 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
     correct: "Brownie",
     variations: [
       "browni",
+      "brovni",
+      "brovniy",
+      "brovny",
+      "browny",
+      "browniy",
       "brownies",
       "brauni",
       "braunı",
@@ -136,23 +145,31 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
     ]
   },
   {
-    correct: "Çizkek Paxlavalı",
+    correct: "Paxlava Cheesecake",
     variations: [
       "paxlavalı chees",
       "paxlavalı chescake",
       "çizkek paxlavalı",
+      "çizkek paxlava",
+      "çizkeyk paxlava",
       "paxlavalı cheesecake",
       "paxlava çizkek",
+      "paxlava çizkeyk",
+      "paxlavalı çizkek",
+      "paxlava çizkek",
+      "paxlavalı çizkeyk",
       "paxlava cheese",
       "paxlavali cheescake"
     ]
   },
   {
-    correct: "Çizkek Fıstıqlı",
+    correct: "Cheesecake Fıstıqlı",
     variations: [
       "fistiqli cheesecake",
       "fıstıqlı çizkek",
+      "fıstıqlı cizkek",
       "çizkek fıstıqlı",
+      "cizkek fıstıqlı",
       "fıstıqlı cheesecake",
       "fıstıq çizkek",
       "fistiq cheese",
@@ -160,13 +177,19 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
     ]
   },
   {
-    correct: "Çizkek Karamelli",
+    correct: "Cheesecake Caramel",
     variations: [
+      "caramel çizkek",
       "karamel çizkek",
+      "karamel cizkek",
+      "caramel cizkek",
       "karamel cheesecake",
       "çizkek karamelli",
+      "cizkek karamelli",
+      "cheesecake karamelli",
       "karamelli cheesecake",
       "karamel chescake",
+      "caramel chescake",
       "karamel cheese",
       "karamelli cheese"
     ]

@@ -1,4 +1,4 @@
-import { StyleSheet, SafeAreaView } from 'react-native';
+import { StyleSheet, SafeAreaView, Dimensions, Platform } from 'react-native';
 import { TopBar } from '../../components/TopBar';
 import { MenuContainer } from '../../components/MenuContainer';
 import { ThemedView } from '../../components/ThemedView';
@@ -69,7 +69,7 @@ export default function HomeScreen() {
             />
               <MenuContainer
                 {...menuItems[1]}
-                onPress={() => {}}
+                onPress={() =>  router.push('/orders_summary')}
                 delay={200}
               />
             </ThemedView>
@@ -86,7 +86,7 @@ export default function HomeScreen() {
             <ThemedView style={styles.row}>
               <MenuContainer
                 {...menuItems[3]}
-                onPress={() =>  router.push('/orders_summary')}
+                onPress={() =>  router.push('/products_list')}
                 delay={400}
               />
               <MenuContainer
@@ -110,24 +110,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topBar: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingHorizontal: Dimensions.get('window').width * 0.06,
+    paddingTop: Platform.OS === 'ios' ? 12 : 24,
   },
   content: {
     flex: 1,
-    paddingTop: 12, // Add padding to prevent content from being hidden behind tab bar
-    paddingBottom: 80, // Add padding to prevent content from being hidden behind tab bar
+    paddingTop: Dimensions.get('window').height * 0.02,
+    paddingBottom: Dimensions.get('window').height * 0.1,
   },
   grid: {
     flex: 1,
-    padding: 8,
-    gap: 4,
+    padding: Dimensions.get('window').width * 0.02,
+    gap: Dimensions.get('window').height * 0.01,
   },
   row: {
     flexDirection: 'row',
     flex: 1,
+    gap: Dimensions.get('window').width * 0.02,
   },
   centerRow: {
-    paddingVertical: 12,
+    paddingVertical: Dimensions.get('window').height * 0.015,
   },
 });
