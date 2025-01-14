@@ -83,23 +83,35 @@ export default function ProductStatisticsScreen() {
   const fetchData = async () => {
     try {
       setLoading(true);
+      console.log('Fetching data for date range:', {
+        startDate: formatDate(startDate),
+        endDate: formatDate(endDate)
+      });
+      
       const db = getFirestore();
       const stats: { [key: string]: ProductStats } = {};
       
       const dates = getDatesInRange(startDate, endDate);
+      console.log('Processing dates:', dates);
 
       for (const date of dates) {
         const ordersRef = collection(db, 'orders', date, 'branches');
         const branchesSnapshot = await getDocs(ordersRef);
+        console.log(`Processing data for date ${date}:`, {
+          numberOfBranches: branchesSnapshot.size
+        });
 
         branchesSnapshot.forEach((branchDoc) => {
           const branchData = branchDoc.data();
           const branchName = branchDoc.id;
+          console.log(`Branch data for ${branchName}:`, branchData);
 
           Object.entries(branchData).forEach(([product, quantity]) => {
-            if (!stats[product]) {
-              stats[product] = {
-                productName: product,
+            const normalizedProduct = product.trim();
+            
+            if (!stats[normalizedProduct]) {
+              stats[normalizedProduct] = {
+                productName: normalizedProduct,
                 branchStats: {},
                 totalQuantity: 0,
                 dateRange: {
@@ -109,35 +121,48 @@ export default function ProductStatisticsScreen() {
               };
             }
 
-            const numericQuantity = parseInt(quantity as string, 10);
+            const numericQuantity = parseFloat(quantity as string);
             
-            if (!stats[product].branchStats[branchName]) {
-              stats[product].branchStats[branchName] = {
+            if (!stats[normalizedProduct].branchStats[branchName]) {
+              stats[normalizedProduct].branchStats[branchName] = {
                 quantity: 0,
                 dates: {}
               };
             }
 
-            stats[product].branchStats[branchName].quantity += numericQuantity;
-            stats[product].branchStats[branchName].dates[date] = (stats[product].branchStats[branchName].dates[date] || 0) + numericQuantity;
-            stats[product].totalQuantity += numericQuantity;
+            stats[normalizedProduct].branchStats[branchName].quantity += numericQuantity;
+            stats[normalizedProduct].branchStats[branchName].dates[date] = (stats[normalizedProduct].branchStats[branchName].dates[date] || 0) + numericQuantity;
+            stats[normalizedProduct].totalQuantity += numericQuantity;
           });
         });
       }
 
+      console.log('Final processed stats:', stats);
       setProductStats(Object.values(stats).sort((a, b) => b.totalQuantity - a.totalQuantity));
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error in fetchData:', error);
       setLoading(false);
     }
   };
 
   const fetchDailyStats = async () => {
-    if (!selectedProduct || !selectedBranch) return;
+    if (!selectedProduct || !selectedBranch) {
+      console.log('No product or branch selected, skipping fetch');
+      return;
+    }
 
     try {
       setLoading(true);
+      console.log('Fetching daily stats for:', {
+        product: selectedProduct,
+        branch: selectedBranch,
+        dateRange: {
+          start: formatDate(startDate),
+          end: formatDate(endDate)
+        }
+      });
+
       const dates = getDatesInRange(startDate, endDate);
       const dailyData: DailyStats[] = [];
 
@@ -149,10 +174,15 @@ export default function ProductStatisticsScreen() {
         branchSnapshot.forEach((doc) => {
           if (doc.id === selectedBranch) {
             const data = doc.data();
-            if (data[selectedProduct]) {
+            console.log(`Data for date ${date}:`, data);
+            const matchingProduct = Object.entries(data).find(([key]) => 
+              key.trim() === selectedProduct.trim()
+            );
+            
+            if (matchingProduct) {
               dailyData.push({
                 date,
-                quantity: parseInt(data[selectedProduct] as string, 10)
+                quantity: parseFloat(matchingProduct[1] as string)
               });
             } else {
               dailyData.push({ date, quantity: 0 });
@@ -161,10 +191,11 @@ export default function ProductStatisticsScreen() {
         });
       }
 
+      console.log('Final daily stats:', dailyData);
       setDailyStats(dailyData);
       setLoading(false);
     } catch (error) {
-      console.error('Error fetching daily stats:', error);
+      console.error('Error in fetchDailyStats:', error);
       setLoading(false);
     }
   };

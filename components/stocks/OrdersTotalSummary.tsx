@@ -239,11 +239,12 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
   const totals = calculateTotals();
   const totalProducts = Object.keys(totals).length;
   const totalQuantity = Object.values(totals).reduce((sum, qty) => sum + qty, 0);
+  const totalBranches = Object.keys(ordersData).length;
   const totalEntries = Object.entries(totals);
 
   const handleCopy = () => {
     try {
-      const message = decodeURIComponent(formatWhatsAppMessage(totals, totalProducts, totalQuantity));
+      const message = decodeURIComponent(formatWhatsAppMessage(totals, totalProducts, totalQuantity, totalBranches));
       Clipboard.setString(message);
     } catch (error) {
       Alert.alert(
@@ -310,22 +311,77 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                 >
                   Ümumi Cəm
                 </ThemedText>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                  <MaterialCommunityIcons
-                    name="package-variant"
-                    size={14}
-                    color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
-                  />
-                  <ThemedText 
-                    numberOfLines={1}
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 600,
-                      color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)',
-                    }}
-                  >
-                    {totalProducts} növ  • {totalQuantity} ədəd
-                  </ThemedText>
+                <View style={{ 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  flexWrap: 'wrap',
+                  gap: 8 
+                }}>
+                  <View style={{ 
+                    flexDirection: 'row', 
+                    alignItems: 'center', 
+                    gap: 4 
+                  }}>
+                    <MaterialCommunityIcons
+                      name="package-variant"
+                      size={14}
+                      color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
+                    />
+                    <ThemedText 
+                      numberOfLines={1}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)',
+                      }}
+                    >
+                      {totalProducts} növ
+                    </ThemedText>
+                  </View>
+
+                  <View style={{ 
+                    flexDirection: 'row', 
+                    alignItems: 'center', 
+                    gap: 4 
+                  }}>
+                    <MaterialCommunityIcons
+                      name="pound"
+                      size={14}
+                      color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
+                    />
+                    <ThemedText 
+                      numberOfLines={1}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)',
+                      }}
+                    >
+                      {totalQuantity} ədəd
+                    </ThemedText>
+                  </View>
+
+                  <View style={{ 
+                    flexDirection: 'row', 
+                    alignItems: 'center', 
+                    gap: 4 
+                  }}>
+                    <MaterialCommunityIcons
+                      name="store"
+                      size={14}
+                      color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
+                    />
+                    <ThemedText 
+                      numberOfLines={1}
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)',
+                      }}
+                    >
+                      {totalBranches} şöbə
+                    </ThemedText>
+                  </View>
                 </View>
               </ThemedView>
             </ThemedView>
@@ -337,7 +393,7 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
             }}>
               <TouchableOpacity
                 onPress={() => {
-                  const message = formatWhatsAppMessage(totals, totalProducts, totalQuantity);
+                  const message = formatWhatsAppMessage(totals, totalProducts, totalQuantity, totalBranches);
                   shareViaWhatsApp(message);
                 }}
                 style={{

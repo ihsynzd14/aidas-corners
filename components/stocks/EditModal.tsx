@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, View, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { PastryColors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { PRODUCT_CORRECTIONS } from '@/utils/orderCorrection';
 
 export interface EditModalProps {
   visible: boolean;
@@ -78,18 +80,28 @@ export function EditModal({
           </ThemedText>
           
           <ThemedText style={{ marginBottom: 8 }}>Məhsul adı:</ThemedText>
-          <TextInput
-            value={productName}
-            onChangeText={setProductName}
-            style={{
-              backgroundColor: isDark ? '#333' : '#F5F5F5',
-              padding: 12,
-              borderRadius: 8,
-              marginBottom: 16,
-              color: isDark ? '#FFF' : '#000',
-            }}
-            placeholderTextColor={isDark ? '#999' : '#666'}
-          />
+          <View style={{
+            backgroundColor: isDark ? '#333' : '#F5F5F5',
+            borderRadius: 8,
+            marginBottom: 16,
+          }}>
+            <Picker
+              selectedValue={productName}
+              onValueChange={(itemValue: string) => setProductName(itemValue)}
+              style={{
+                color: isDark ? '#FFF' : '#000',
+              }}
+            >
+              <Picker.Item label="Məhsul seçin" value="" />
+              {PRODUCT_CORRECTIONS.map((product) => (
+                <Picker.Item 
+                  key={product.correct} 
+                  label={product.correct} 
+                  value={product.correct}
+                />
+              ))}
+            </Picker>
+          </View>
           
           <ThemedText style={{ marginBottom: 8 }}>Miqdar:</ThemedText>
           <TextInput

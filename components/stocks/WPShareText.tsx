@@ -9,12 +9,13 @@ function formatDateString(date: Date): string {
 }
 
 // Updated formatWhatsAppMessage function
-export function formatWhatsAppMessage(totals: { [key: string]: number }, totalProducts: number, totalQuantity: number) {
+export function formatWhatsAppMessage(totals: { [key: string]: number }, totalProducts: number, totalQuantity: number, totalBranches: number) {
   const date = formatDateString(new Date());
   let message = `*Aida's Corner - Gündəlik Sifariş Hesabatı*\n`;
   message += `📅 ${date}\n\n`;
   message += `📦 *Ümumi Məhsullar:* ${totalProducts} növ\n`;
-  message += `📊 *Ümumi Miqdar:* ${totalQuantity} ədəd\n\n`;
+  message += `📊 *Ümumi Miqdar:* ${totalQuantity} ədəd\n`;
+  message += `🏪 *Ümumi Şöbə:* ${totalBranches}\n\n`;
   message += `*Məhsullar üzrə bölgü:*\n`;
   
   Object.entries(totals).forEach(([product, quantity]) => {

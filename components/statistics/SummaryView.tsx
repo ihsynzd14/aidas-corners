@@ -2,6 +2,8 @@ import React from 'react';
 import { StyleSheet, ScrollView } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
+import { PastryColors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 interface ProductStats {
   productName: string;
@@ -23,28 +25,60 @@ interface SummaryViewProps {
 }
 
 export const SummaryView: React.FC<SummaryViewProps> = ({ productStats }) => {
-  const formatQuantity = (quantity: number) => {
-    return quantity % 1 === 0 ? quantity.toString() : quantity.toFixed(1);
+  const isDark = useColorScheme() === 'dark';
+
+  const formatQuantity = (quantity: number, productName: string) => {
+    const isChocolateProduct = productName.toLowerCase().includes('şokolad') || 
+                              productName.toLowerCase().includes('lokumlu');
+    return quantity % 1 === 0 ? Math.round(quantity).toString() : quantity.toFixed(1);
   };
 
   return (
     <ScrollView style={styles.scrollView}>
       {productStats.map((stat, index) => (
-        <ThemedView key={index} style={styles.productCard}>
-          <ThemedView style={styles.productHeader}>
-            <ThemedText style={styles.productName}>
+        <ThemedView key={index} style={[
+          styles.productCard,
+          { 
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#fff',
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+            borderWidth: 1
+          }
+        ]}>
+          <ThemedView style={[
+            styles.productHeader,
+            { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(74,53,49,0.05)' }
+          ]}>
+            <ThemedText style={[
+              styles.productName,
+              { color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
+            ]}>
               {stat.productName}
             </ThemedText>
-            <ThemedText style={styles.totalQuantity}>
-              Ümumi: {formatQuantity(stat.totalQuantity)}
+            <ThemedText style={[
+              styles.totalQuantity,
+              { color: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(74,53,49,0.8)' }
+            ]}>
+              Ümumi: {formatQuantity(stat.totalQuantity, stat.productName)}
             </ThemedText>
           </ThemedView>
           
           <ThemedView style={styles.tableContainer}>
-            <ThemedView style={styles.tableHeader}>
-              <ThemedText style={[styles.columnHeader, { flex: 1.5 }]}>Filial</ThemedText>
-              <ThemedText style={styles.columnHeader}>Miqdar</ThemedText>
-              <ThemedText style={styles.columnHeader}>%</ThemedText>
+            <ThemedView style={[
+              styles.tableHeader,
+              { borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74,53,49,0.1)' }
+            ]}>
+              <ThemedText style={[
+                styles.columnHeader,
+                { flex: 1.5, color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
+              ]}>Filial</ThemedText>
+              <ThemedText style={[
+                styles.columnHeader,
+                { color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
+              ]}>Miqdar</ThemedText>
+              <ThemedText style={[
+                styles.columnHeader,
+                { color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
+              ]}>%</ThemedText>
             </ThemedView>
             
             {Object.entries(stat.branchStats)
@@ -54,12 +88,23 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ productStats }) => {
                   key={bIndex} 
                   style={[
                     styles.tableRow,
-                    bIndex % 2 === 0 ? styles.evenRow : styles.oddRow
+                    bIndex % 2 === 0 
+                      ? { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(74,53,49,0.03)' }
+                      : { backgroundColor: isDark ? 'transparent' : '#fff' }
                   ]}
                 >
-                  <ThemedText style={[styles.branchName, { flex: 1.5 }]}>{branchName}</ThemedText>
-                  <ThemedText style={styles.quantity}>{formatQuantity(branchStat.quantity)}</ThemedText>
-                  <ThemedText style={styles.percentage}>
+                  <ThemedText style={[
+                    styles.branchName,
+                    { flex: 1.5, color: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(74,53,49,0.8)' }
+                  ]}>{branchName}</ThemedText>
+                  <ThemedText style={[
+                    styles.quantity,
+                    { color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
+                  ]}>{formatQuantity(branchStat.quantity, stat.productName)}</ThemedText>
+                  <ThemedText style={[
+                    styles.percentage,
+                    { color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
+                  ]}>
                     {((branchStat.quantity / stat.totalQuantity) * 100).toFixed(1)}%
                   </ThemedText>
                 </ThemedView>
@@ -79,7 +124,6 @@ const styles = StyleSheet.create({
   productCard: {
     marginBottom: 20,
     borderRadius: 16,
-    backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -92,19 +136,15 @@ const styles = StyleSheet.create({
   },
   productHeader: {
     padding: 16,
-    backgroundColor: 'rgba(74, 53, 49, 0.05)',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(74, 53, 49, 0.1)',
   },
   productName: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#4A3531',
     marginBottom: 4,
   },
   totalQuantity: {
     fontSize: 16,
-    color: '#4A3531',
     fontWeight: '600',
   },
   tableContainer: {
@@ -114,13 +154,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: 12,
     borderBottomWidth: 2,
-    borderBottomColor: 'rgba(74, 53, 49, 0.1)',
     marginBottom: 8,
   },
   columnHeader: {
     flex: 1,
     fontWeight: 'bold',
-    color: '#4A3531',
     fontSize: 15,
     textAlign: 'center',
   },
@@ -131,28 +169,19 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginVertical: 2,
   },
-  evenRow: {
-    backgroundColor: 'rgba(74, 53, 49, 0.03)',
-  },
-  oddRow: {
-    backgroundColor: '#fff',
-  },
   branchName: {
     flex: 1,
     fontSize: 15,
-    color: '#4A3531',
     paddingLeft: 8,
   },
   quantity: {
     flex: 1,
     fontSize: 15,
-    color: '#4A3531',
     textAlign: 'center',
   },
   percentage: {
     flex: 1,
     fontSize: 15,
-    color: '#4A3531',
     textAlign: 'center',
   },
 }); 

@@ -3,6 +3,8 @@ import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { AntDesign } from '@expo/vector-icons';
+import { PastryColors } from '@/constants/Colors';
+import { useColorScheme } from '@/hooks/useColorScheme';
 
 interface DailyStats {
   date: string;
@@ -22,31 +24,59 @@ export const DailyView: React.FC<DailyViewProps> = ({
   dailyStats,
   onSelectionPress,
 }) => {
+  const isDark = useColorScheme() === 'dark';
+  
   const formatQuantity = (quantity: number) => {
     if (!quantity || quantity === 0) return null;
-    return quantity % 1 === 0 ? quantity.toString() : quantity.toFixed(1);
+    return quantity % 1 === 0 ? Math.round(quantity).toString() : quantity.toFixed(1);
   };
 
   return (
     <ScrollView style={styles.scrollView}>
       <TouchableOpacity 
-        style={styles.selectionButton} 
+        style={[
+          styles.selectionButton,
+          { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#fff' }
+        ]} 
         onPress={onSelectionPress}
       >
-        <ThemedText style={styles.selectionButtonText}>
+        <ThemedText style={[
+          styles.selectionButtonText,
+          { color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
+        ]}>
           {selectedProduct && selectedBranch 
             ? `${selectedProduct} - ${selectedBranch}` 
             : 'Məhsul və Filial seçin'}
         </ThemedText>
-        <AntDesign name="down" size={20} color="#4A3531" />
+        <AntDesign 
+          name="down" 
+          size={20} 
+          color={isDark ? PastryColors.vanilla : PastryColors.chocolate} 
+        />
       </TouchableOpacity>
 
       {selectedProduct && selectedBranch && (
-        <ThemedView style={styles.productCard}>
+        <ThemedView style={[
+          styles.productCard,
+          { 
+            backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : '#fff',
+            borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+            borderWidth: 1
+          }
+        ]}>
           <ThemedView style={styles.tableContainer}>
-            <ThemedView style={styles.tableHeader}>
-              <ThemedText style={styles.columnHeader}>Tarix</ThemedText>
-              <ThemedText style={styles.columnHeader}>Miqdar</ThemedText>
+            <ThemedView style={[
+              styles.tableHeader,
+              { borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74,53,49,0.1)' }
+            ]}>
+              <ThemedText style={[
+                styles.columnHeader,
+                { color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
+              ]}>Tarix</ThemedText>
+              <ThemedText style={[
+                styles.columnHeader,
+                { color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
+              ]}>Miqdar</ThemedText>
             </ThemedView>
             
             {dailyStats.map((stat, index) => {
@@ -58,11 +88,19 @@ export const DailyView: React.FC<DailyViewProps> = ({
                   key={index} 
                   style={[
                     styles.tableRow,
-                    index % 2 === 0 ? styles.evenRow : styles.oddRow
+                    index % 2 === 0 
+                      ? { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(74,53,49,0.03)' }
+                      : { backgroundColor: isDark ? 'transparent' : '#fff' }
                   ]}
                 >
-                  <ThemedText style={styles.date}>{stat.date}</ThemedText>
-                  <ThemedText style={styles.quantity}>{formattedQuantity}</ThemedText>
+                  <ThemedText style={[
+                    styles.date,
+                    { color: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(74,53,49,0.8)' }
+                  ]}>{stat.date}</ThemedText>
+                  <ThemedText style={[
+                    styles.quantity,
+                    { color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
+                  ]}>{formattedQuantity}</ThemedText>
                 </ThemedView>
               );
             })}
@@ -81,7 +119,6 @@ const styles = StyleSheet.create({
   selectionButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
     padding: 16,
     borderRadius: 8,
     marginBottom: 16,
@@ -97,11 +134,9 @@ const styles = StyleSheet.create({
   selectionButtonText: {
     flex: 1,
     fontSize: 16,
-    color: '#4A3531',
   },
   productCard: {
     borderRadius: 16,
-    backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -119,13 +154,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingVertical: 12,
     borderBottomWidth: 2,
-    borderBottomColor: 'rgba(74, 53, 49, 0.1)',
     marginBottom: 8,
   },
   columnHeader: {
     flex: 1,
     fontWeight: 'bold',
-    color: '#4A3531',
     fontSize: 15,
     textAlign: 'center',
   },
@@ -136,22 +169,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginVertical: 2,
   },
-  evenRow: {
-    backgroundColor: 'rgba(74, 53, 49, 0.03)',
-  },
-  oddRow: {
-    backgroundColor: '#fff',
-  },
   date: {
     flex: 1,
     fontSize: 15,
-    color: '#4A3531',
     textAlign: 'center',
   },
   quantity: {
     flex: 1,
     fontSize: 15,
-    color: '#4A3531',
     textAlign: 'center',
   },
 }); 

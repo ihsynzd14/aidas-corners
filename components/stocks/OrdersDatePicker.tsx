@@ -38,7 +38,7 @@ export function OrdersDatePicker({ selectedDate, onDateChange }: OrdersDatePicke
 
   return (
     <ThemedView style={styles.outerContainer}>
-      <GradientBackground intensity="light" />
+      <GradientBackground intensity="strong" />
       <ThemedView style={styles.container}>
         <TouchableOpacity 
           onPress={handlePreviousDay} 
