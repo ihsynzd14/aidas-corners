@@ -8,9 +8,22 @@ import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Platform } from 'react-native';
+import * as Updates from 'expo-updates';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+async function checkForUpdates() {
+  try {
+    const update = await Updates.checkForUpdateAsync();
+    if (update.isAvailable) {
+      await Updates.fetchUpdateAsync();
+      await Updates.reloadAsync();
+    }
+  } catch (error) {
+    console.log('Güncelleme kontrolü sırasında hata:', error);
+  }
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -23,6 +36,10 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
+
+  useEffect(() => {
+    checkForUpdates();
+  }, []);
 
   if (!loaded) {
     return null;

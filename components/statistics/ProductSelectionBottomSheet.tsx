@@ -1,7 +1,5 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { ThemedView } from '@/components/ThemedView';
-import { ThemedText } from '@/components/ThemedText';
+import { StyleSheet, TouchableOpacity, View, Text, useColorScheme } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 
@@ -37,6 +35,18 @@ export const ProductSelectionBottomSheet: React.FC<ProductSelectionBottomSheetPr
   setSelectedBranch,
   setAvailableBranches,
 }) => {
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+
+  // Ana renkler
+  const bgColor = isDark ? '#111827' : '#f9e3bf';
+  const contentBgColor = isDark ? '#1F2937' : '#fae6c5';
+  const textColor = isDark ? '#F3F4F6' : '#111827';
+  const secondaryTextColor = isDark ? '#9CA3AF' : '#6B7280';
+  const borderColor = isDark ? '#374151' : '#fadeb3';
+  const itemBgColor = isDark ? '#374151' : '#feebd6';
+  const selectedBgColor = isDark ? '#4B5563' : '#4A3531';
+
   return (
     <BottomSheetModal
       ref={bottomSheetModalRef}
@@ -48,79 +58,106 @@ export const ProductSelectionBottomSheet: React.FC<ProductSelectionBottomSheetPr
         }
       }}
       enablePanDownToClose={true}
-      backgroundStyle={styles.bottomSheetBackground}
-      handleIndicatorStyle={styles.bottomSheetIndicator}
+      backgroundStyle={[styles.bottomSheetBackground, { backgroundColor: bgColor }]}
+      handleIndicatorStyle={[styles.bottomSheetIndicator, { backgroundColor: isDark ? '#4B5563' : '#D1D5DB' }]}
     >
-      <ThemedView style={styles.bottomSheetContent}>
-        <ThemedText style={styles.bottomSheetMainTitle}>
+      <View style={[styles.bottomSheetContent, { backgroundColor: contentBgColor }]}>
+        <Text style={[styles.bottomSheetMainTitle, { color: textColor }]}>
           {selectedProduct ? 'Filial Seçin' : 'Məhsul Seçin'}
-        </ThemedText>
+        </Text>
         
         {!selectedProduct ? (
-          <BottomSheetScrollView contentContainerStyle={styles.bottomSheetScrollViewContent}>
+          <BottomSheetScrollView 
+            contentContainerStyle={styles.bottomSheetScrollViewContent}
+            style={{ backgroundColor: contentBgColor }}
+          >
             {productStats.map((stat, index) => (
               <TouchableOpacity
                 key={index}
                 style={[
                   styles.bottomSheetItem,
-                  selectedProduct === stat.productName && styles.selectedItem
+                  { 
+                    backgroundColor: itemBgColor, 
+                    borderColor: borderColor,
+                    shadowColor: isDark ? '#000' : '#4A3531',
+                    shadowOpacity: isDark ? 0.3 : 0.1,
+                  },
+                  selectedProduct === stat.productName && { 
+                    backgroundColor: selectedBgColor,
+                    borderColor: selectedBgColor,
+                  }
                 ]}
                 onPress={() => {
                   setSelectedProduct(stat.productName);
                   setAvailableBranches(Object.keys(stat.branchStats));
                 }}
               >
-                <ThemedView style={styles.bottomSheetItemContent}>
-                  <ThemedText style={[
+                <View style={styles.bottomSheetItemContent}>
+                  <Text style={[
                     styles.bottomSheetItemText,
+                    { color: textColor },
                     selectedProduct === stat.productName && styles.selectedItemText
                   ]}>
                     {stat.productName}
-                  </ThemedText>
-                  <ThemedText style={[
+                  </Text>
+                  <Text style={[
                     styles.bottomSheetItemSubtext,
+                    { color: secondaryTextColor },
                     selectedProduct === stat.productName && styles.selectedItemText
                   ]}>
                     Ümumi: {stat.totalQuantity} ədəd
-                  </ThemedText>
-                </ThemedView>
+                  </Text>
+                </View>
                 <AntDesign 
                   name="right" 
                   size={20} 
-                  color={selectedProduct === stat.productName ? '#fff' : '#4A3531'} 
+                  color={selectedProduct === stat.productName ? '#fff' : textColor} 
                 />
               </TouchableOpacity>
             ))}
           </BottomSheetScrollView>
         ) : (
-          <ThemedView style={styles.branchSelectionContainer}>
+          <View style={[styles.branchSelectionContainer, { backgroundColor: contentBgColor }]}>
             <TouchableOpacity 
               style={styles.backButton}
               onPress={() => setSelectedProduct('')}
             >
-              <AntDesign name="left" size={20} color="#4A3531" />
-              <ThemedText style={styles.backButtonText}>Geri</ThemedText>
+              <AntDesign name="left" size={20} color={textColor} />
+              <Text style={[styles.backButtonText, { color: textColor }]}>Geri</Text>
             </TouchableOpacity>
 
-            <BottomSheetScrollView contentContainerStyle={styles.bottomSheetScrollViewContent}>
+            <BottomSheetScrollView 
+              contentContainerStyle={styles.bottomSheetScrollViewContent}
+              style={{ backgroundColor: contentBgColor }}
+            >
               {availableBranches.map((branch, index) => (
                 <TouchableOpacity
                   key={index}
                   style={[
                     styles.bottomSheetItem,
-                    selectedBranch === branch && styles.selectedItem
+                    { 
+                      backgroundColor: itemBgColor, 
+                      borderColor: borderColor,
+                      shadowColor: isDark ? '#000' : '#4A3531',
+                      shadowOpacity: isDark ? 0.3 : 0.1,
+                    },
+                    selectedBranch === branch && { 
+                      backgroundColor: selectedBgColor,
+                      borderColor: selectedBgColor,
+                    }
                   ]}
                   onPress={() => {
                     setSelectedBranch(branch);
                     bottomSheetModalRef.current?.dismiss();
                   }}
                 >
-                  <ThemedText style={[
+                  <Text style={[
                     styles.bottomSheetItemText,
+                    { color: textColor },
                     selectedBranch === branch && styles.selectedItemText
                   ]}>
                     {branch}
-                  </ThemedText>
+                  </Text>
                   <AntDesign 
                     name="check" 
                     size={20} 
@@ -129,29 +166,19 @@ export const ProductSelectionBottomSheet: React.FC<ProductSelectionBottomSheetPr
                 </TouchableOpacity>
               ))}
             </BottomSheetScrollView>
-          </ThemedView>
+          </View>
         )}
-      </ThemedView>
+      </View>
     </BottomSheetModal>
   );
 };
 
 const styles = StyleSheet.create({
   bottomSheetBackground: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: -4,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 8,
   },
   bottomSheetIndicator: {
-    backgroundColor: '#4A3531',
     width: 40,
     height: 4,
     borderRadius: 2,
@@ -163,7 +190,6 @@ const styles = StyleSheet.create({
   bottomSheetMainTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#4A3531',
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -177,25 +203,23 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
-    backgroundColor: 'rgba(74, 53, 49, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(74, 53, 49, 0.1)',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowRadius: 4,
+    elevation: 3,
   },
   bottomSheetItemContent: {
     flex: 1,
   },
-  selectedItem: {
-    backgroundColor: '#4A3531',
-    borderColor: '#4A3531',
-  },
   bottomSheetItemText: {
     fontSize: 18,
-    color: '#4A3531',
     marginBottom: 4,
   },
   bottomSheetItemSubtext: {
     fontSize: 14,
-    color: '#666',
   },
   selectedItemText: {
     color: '#fff',
@@ -211,7 +235,6 @@ const styles = StyleSheet.create({
   },
   backButtonText: {
     fontSize: 16,
-    color: '#4A3531',
     marginLeft: 8,
   },
 }); 

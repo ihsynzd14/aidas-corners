@@ -1,4 +1,6 @@
 import { Alert, Linking, Platform } from 'react-native';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
 
 // Add helper function to format date
 function formatDateString(date: Date): string {
@@ -65,6 +67,58 @@ export async function shareViaWhatsApp(message: string) {
     Alert.alert(
       "Xəta",
       "Məlumatları paylaşarkən xəta baş verdi. Zəhmət olmasa WhatsApp'ın quraşdırıldığını yoxlayın."
+    );
+  }
+}
+
+// Excel ve PDF için genel paylaşım fonksiyonu
+export async function shareFile(filePath: string, type: 'excel' | 'pdf') {
+  try {
+    // Dosyanın var olduğunu kontrol et
+    const fileInfo = await FileSystem.getInfoAsync(filePath);
+    if (!fileInfo.exists) {
+      throw new Error('Dosya bulunamadı');
+    }
+
+    // Paylaşım özelliğinin kullanılabilir olup olmadığını kontrol et
+    const isAvailable = await Sharing.isAvailableAsync();
+    if (!isAvailable) {
+      throw new Error('Paylaşım özelliği bu cihazda kullanılamıyor');
+    }
+
+    // Dosyayı paylaş
+    await Sharing.shareAsync(filePath, {
+      mimeType: type === 'excel' 
+        ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        : 'application/pdf',
+      dialogTitle: type === 'excel' ? 'Excel Dosyasını Paylaş' : 'PDF Dosyasını Paylaş',
+      UTI: type === 'excel' ? 'com.microsoft.excel.xlsx' : 'com.adobe.pdf'
+    });
+
+  } catch (error: any) {
+    console.error('Paylaşım hatası:', error);
+    Alert.alert(
+      "Xəta",
+      `${type === 'excel' ? 'Excel' : 'PDF'} faylını paylaşarkən xəta baş verdi: ${error.message}`,
+      [{ text: "Tamam" }]
+    );
+  }
+}
+
+// Genel metin paylaşımı için
+export async function shareText(text: string, title: string = '') {
+  try {
+    if (Platform.OS === 'android') {
+      const intentUrl = `intent:#Intent;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodeURIComponent(text)};S.android.intent.extra.SUBJECT=${encodeURIComponent(title)};end`;
+      await Linking.openURL(intentUrl);
+    } else {
+      // iOS için Share Sheet
+      await Linking.openURL(`sms:&body=${encodeURIComponent(text)}`);
+    }
+  } catch (error) {
+    Alert.alert(
+      "Xəta",
+      "Məlumatları paylaşarkən xəta baş verdi."
     );
   }
 }

@@ -2,14 +2,21 @@
   "expo": {
     "name": "Aidas Corners",
     "slug": "aidas-corners",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Excel dosyalarını kaydetmek ve paylaşmak için izin gerekli",
+        "NSDocumentsFolderUsageDescription": "Excel dosyalarını kaydetmek ve paylaşmak için izin gerekli",
+        "LSSupportsOpeningDocumentsInPlace": true,
+        "UIFileSharingEnabled": true
+      },
+      "bundleIdentifier": "com.ihsynzd.aidascorners"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +26,11 @@
       },
       "package": "com.ihsynzd.aidascorners",
       "permissions": [
-        "QUERY_ALL_PACKAGES"
+        "QUERY_ALL_PACKAGES",
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_EXTERNAL_STORAGE",
+        "MEDIA_LIBRARY",
+        "DOWNLOADS"
       ],
       "intentFilters": [
         {
@@ -57,6 +68,12 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      [
+        "expo-file-system",
+        {
+          "filePermission": "Uygulama dosya erişimi için gerekli"
+        }
       ]
     ],
     "experiments": {
@@ -69,6 +86,15 @@
       "eas": {
         "projectId": "6f3777e0-d5c9-434b-b7cf-ff0b1c7a127b"
       }
-    }
+    },
+    "updates": {
+      "enabled": true,
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/6f3777e0-d5c9-434b-b7cf-ff0b1c7a127b"
+    },
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    },
+    "channel": "production"
   }
 }

@@ -2,6 +2,8 @@ import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { PastryColors } from '@/constants/Colors';
 
 interface ViewSwitcherProps {
   viewMode: 'summary' | 'daily';
@@ -12,18 +14,40 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({
   viewMode,
   setViewMode,
 }) => {
+  const isDark = useColorScheme() === 'dark';
+
   return (
-    <ThemedView style={styles.viewSwitchContainer}>
+    <ThemedView style={[
+      styles.viewSwitchContainer,
+      {
+        backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(74,53,49,0.02)',
+        borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74,53,49,0.1)',
+      }
+    ]}>
       <TouchableOpacity 
         style={[
           styles.viewSwitchButton, 
-          viewMode === 'summary' && styles.activeViewButton
+          {
+            backgroundColor: isDark 
+              ? viewMode === 'summary' 
+                ? PastryColors.chocolate 
+                : 'rgba(255,255,255,0.08)'
+              : viewMode === 'summary'
+                ? PastryColors.chocolate
+                : 'rgba(74,53,49,0.08)'
+          }
         ]}
         onPress={() => setViewMode('summary')}
       >
         <ThemedText style={[
           styles.viewSwitchText,
-          viewMode === 'summary' && styles.activeViewText
+          { 
+            color: viewMode === 'summary'
+              ? '#fff'
+              : isDark 
+                ? 'rgba(255,255,255,0.8)'
+                : PastryColors.chocolate
+          }
         ]}>
           Ümumi Baxış
         </ThemedText>
@@ -32,15 +56,29 @@ export const ViewSwitcher: React.FC<ViewSwitcherProps> = ({
       <TouchableOpacity 
         style={[
           styles.viewSwitchButton,
-          viewMode === 'daily' && styles.activeViewButton
+          {
+            backgroundColor: isDark 
+              ? viewMode === 'daily' 
+                ? PastryColors.chocolate 
+                : 'rgba(255,255,255,0.08)'
+              : viewMode === 'daily'
+                ? PastryColors.chocolate
+                : 'rgba(74,53,49,0.08)'
+          }
         ]}
         onPress={() => setViewMode('daily')}
       >
         <ThemedText style={[
           styles.viewSwitchText,
-          viewMode === 'daily' && styles.activeViewText
+          { 
+            color: viewMode === 'daily'
+              ? '#fff'
+              : isDark 
+                ? 'rgba(255,255,255,0.8)'
+                : PastryColors.chocolate
+          }
         ]}>
-          Günlük Baxış
+          Tək Filial Baxış
         </ThemedText>
       </TouchableOpacity>
     </ThemedView>
@@ -51,9 +89,7 @@ const styles = StyleSheet.create({
   viewSwitchContainer: {
     flexDirection: 'row',
     padding: 16,
-    backgroundColor: '#fff',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(74, 53, 49, 0.1)',
   },
   viewSwitchButton: {
     flex: 1,
@@ -61,17 +97,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginHorizontal: 4,
-    backgroundColor: 'rgba(74, 53, 49, 0.05)',
-  },
-  activeViewButton: {
-    backgroundColor: '#4A3531',
   },
   viewSwitchText: {
     fontSize: 14,
-    color: '#4A3531',
     fontWeight: '600',
-  },
-  activeViewText: {
-    color: '#fff',
   },
 }); 
