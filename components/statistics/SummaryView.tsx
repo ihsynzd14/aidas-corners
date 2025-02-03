@@ -167,6 +167,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     padding: 16,
+    paddingBottom: 150,
   },
   productCard: {
     marginBottom: 12,

@@ -30,73 +30,50 @@ export default function TabLayout() {
           backgroundColor: colorScheme === 'dark' ? '#1A1A1A' : PastryColors.cream,
           borderTopColor: colorScheme === 'dark' ? '#2D2D2D' : 'rgba(0,0,0,0.05)',
         },
-        tabBarIcon: ({ color, focused }) => {
-          let iconName: AntDesignName = 'home';
+        tabBarItemStyle: {
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+        },
+        tabBarIcon: ({ color }) => {
+          let iconName: AntDesignName;
           if (route.name === 'index') {
             iconName = 'home';
           } else if (route.name === 'new_orders') {
             iconName = 'shoppingcart';
           } else if (route.name === 'orders_summary') {
             iconName = 'profile';
-          } else if (route.name === 'products_list') {
-            iconName = 'appstore-o';
+          } else if (route.name === 'ai_assistant') {
+            iconName = 'API';
           } else if (route.name === 'product_statistics') {
             iconName = 'barschart';
-          } else if (route.name === 'branches') {
-            iconName = 'bank';
+          } else {
+            return null;
           }
           return <AntDesign name={iconName} size={24} color={color} />;
         },
-        tabBarLabel: ({ focused, color }) => (
-          <TabLabel
-            label={
-              route.name === 'index' 
-                ? 'Ana Səhifə' 
-                : route.name === 'new_orders'
-                ? 'Sifarişlər'
-                : route.name === 'orders_summary'
-                ? 'Cədvəl'
-                : route.name === 'products_list'
-                ? 'Məhsullar'
-                : route.name === 'product_statistics'
-                ? 'Statistika'
-                : 'Filiallar'
-            }
-            color={color}
-            focused={focused}
-          />
-        )
-      })}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Ana Səhifə',
-        }}
-      />
-      <Tabs.Screen
-        name="new_orders"
-        options={{
-          title: 'Sifarişlər',
-        }}
-      />
-      <Tabs.Screen
-        name="orders_summary"
-        options={{
-          title: 'Cədvəl',
-        }}
-      />
-      <Tabs.Screen
-        name="products_list"
-        options={{
-          title: 'Məhsullar',
-        }}
-      />
-      <Tabs.Screen
-        name="product_statistics"
-        options={{
-          title: 'Statistika',
-        }}
-      />
+        tabBarLabel: ({ focused, color }) => {
+          let label = '';
+          if (route.name === 'index') {
+            label = 'Ana Səhifə';
+          } else if (route.name === 'new_orders') {
+            label = 'Sifarişlər';
+          } else if (route.name === 'orders_summary') {
+            label = 'Cədvəl';
+          } else if (route.name === 'ai_assistant') {
+            label = 'AI Asistan';
+          } else if (route.name === 'product_statistics') {
+            label = 'Statistika';
+          }
+          return label ? <TabLabel label={label} color={color} focused={focused} /> : null;
+        }
+      })}
+    >
+      <Tabs.Screen name="index" options={{ title: 'Ana Səhifə' }} />
+      <Tabs.Screen name="new_orders" options={{ title: 'Sifarişlər' }} />
+      <Tabs.Screen name="orders_summary" options={{ title: 'Cədvəl' }} />
+      <Tabs.Screen name="product_statistics" options={{ title: 'Statistika' }} />
+      <Tabs.Screen name="ai_assistant" options={{ title: 'AI Asistan', headerShown: false }} />
     </Tabs>
   );
 }
@@ -116,6 +93,8 @@ const styles = StyleSheet.create({
     },
     shadowOpacity: 0.1,
     shadowRadius: 3,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     ...Platform.select({
       ios: {
         backgroundColor: 'transparent',

@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@expo/vector-icons": "^14.0.2",
+    "@google/generative-ai": "^0.21.0",
     "@gorhom/bottom-sheet": "^5.0.6",
     "@react-native-clipboard/clipboard": "^1.16.1",
     "@react-native-community/datetimepicker": "^8.2.0",
@@ -26,15 +27,18 @@
     "expo-blur": "~14.0.1",
     "expo-clipboard": "^7.0.0",
     "expo-constants": "~17.0.3",
+    "expo-dev-client": "~5.0.9",
     "expo-font": "~13.0.2",
     "expo-haptics": "~14.0.0",
     "expo-linear-gradient": "^14.0.1",
     "expo-linking": "~7.0.3",
     "expo-router": "~4.0.15",
+    "expo-sharing": "~13.0.1",
     "expo-splash-screen": "~0.29.18",
     "expo-status-bar": "~2.0.0",
     "expo-symbols": "~0.2.0",
     "expo-system-ui": "~4.0.6",
+    "expo-updates": "~0.26.12",
     "expo-web-browser": "~14.0.1",
     "firebase": "^10.8.0",
     "nativewind": "^4.1.23",
@@ -54,9 +58,7 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "13.12.5",
     "xlsx": "^0.18.5",
-    "expo-sharing": "~13.0.1",
-    "expo-updates": "~0.26.12",
-    "expo-dev-client": "~5.0.9"
+    "expo-application": "~6.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

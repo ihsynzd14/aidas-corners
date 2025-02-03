@@ -93,9 +93,9 @@ export async function getBranches(): Promise<Branch[]> {
   return branches;
 }
 
-export async function addOrder(order: OrderItem): Promise<void> {
+export async function addOrder(date: string, order: OrderItem): Promise<void> {
   try {
-    const formattedDate = formatDate(new Date());
+    const formattedDate = date;
     const dateDocRef = doc(db, 'orders', formattedDate);
     const branchDocRef = doc(collection(dateDocRef, 'branches'), order.branch);
     

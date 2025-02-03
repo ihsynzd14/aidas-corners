@@ -9,6 +9,7 @@ import {
   TextStyle,
   TextInput,
   Alert,
+  NativeSyntheticEvent,
 } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
@@ -18,8 +19,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { LocationSelectionModal } from './LocationSelectionModal';
 import { CorrectionModal } from './CorrectionModal';
 import { correctOrderText } from '@/utils/orderCorrection';
-import { getBranches, addOrder } from '@/utils/firebase';
+import { getBranches, addOrder, formatDate } from '@/utils/firebase';
 import { Branch } from '@/types/branch';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 export function OrderForm() {
   const colorScheme = useColorScheme();
@@ -35,6 +38,8 @@ export function OrderForm() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
 
   useEffect(() => {
     const loadBranches = async () => {
@@ -79,6 +84,9 @@ export function OrderForm() {
       setIsSaving(true);
       const corrected = correctOrderText(orderText);
       
+      // Tarihi formatlayın
+      const formattedDate = formatDate(selectedDate);
+
       // Split corrected text into lines and save each line as a separate order
       const orders = corrected.split('\n').filter(line => line.trim());
       
@@ -86,7 +94,7 @@ export function OrderForm() {
         const [product, quantity] = orderLine.split(' - ');
         const branchFullName = `${selectedBranch.type} ${selectedBranch.name}`;
         
-        await addOrder({
+        await addOrder(formattedDate, {
           branch: branchFullName,
           product: product.trim(),
           quantity: quantity.trim()
@@ -143,8 +151,36 @@ export function OrderForm() {
     }
   };
 
+  const onChangeDate = (event: DateTimePickerEvent, date?: Date) => {
+    setShowDatePicker(false);
+    if (date) {
+      setSelectedDate(date);
+    }
+  };
+
   return (
     <ThemedView style={[styles.container, { paddingBottom: keyboardHeight }]}>
+      {/* Tarih Seçim Bölümü */}
+      <ThemedView style={styles.dateContainer}>
+          <ThemedView style={styles.sectionTitleContainer}>
+        <ThemedText style={styles.sectionTitle}>
+            Sifariş Tarixi
+        </ThemedText>
+        </ThemedView>
+        <TouchableOpacity onPress={() => setShowDatePicker(true)} style={[styles.dateButton, isDark ? styles.dateButtonDark : styles.dateButtonLight]}>
+          <Ionicons name="calendar" size={24} color={isDark ? PastryColors.vanilla : Colors.dark.tabIconDefault} />
+          <ThemedText style={isDark ? styles.dateDarkText : styles.dateText}>{formatDate(selectedDate)}</ThemedText>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="default"
+            onChange={onChangeDate}
+          />
+        )}
+      </ThemedView>
       {/* Location Section */}
       <ThemedView style={styles.locationContainer}>
         <ThemedView style={styles.sectionTitleContainer}>
@@ -412,5 +448,39 @@ const styles = StyleSheet.create({
     color: Colors.light.background,
     fontSize: 18,
     fontWeight: '600',
-  }
+  },
+  dateContainer: {
+    marginTop: 16,
+  },
+  label: {
+    fontSize: 16,
+    marginBottom: 8,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  dateButtonLight: {
+    backgroundColor: '#fff',
+  },
+  dateButtonDark: {
+    backgroundColor: '#2A2A2A',
+  },
+  dateText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: Colors.light.text,
+  },
+  dateDarkText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: 'white',
+  },
 });

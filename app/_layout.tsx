@@ -13,18 +13,6 @@ import * as Updates from 'expo-updates';
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-async function checkForUpdates() {
-  try {
-    const update = await Updates.checkForUpdateAsync();
-    if (update.isAvailable) {
-      await Updates.fetchUpdateAsync();
-      await Updates.reloadAsync();
-    }
-  } catch (error) {
-    console.log('Güncelleme kontrolü sırasında hata:', error);
-  }
-}
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
@@ -36,10 +24,6 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
-
-  useEffect(() => {
-    checkForUpdates();
-  }, []);
 
   if (!loaded) {
     return null;

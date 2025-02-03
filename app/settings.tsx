@@ -40,16 +40,18 @@ export default function SettingsScreen() {
         </ThemedView>
 
         <ThemedView style={styles.section}>
-          <ThemedText type="subtitle" style={styles.sectionTitle}>Hesab</ThemedText>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>İdarəetmə</ThemedText>
           <SettingItem
-            title="Profil"
-            description="Hesab məlumatlarınızı idarə edin"
-            icon="person.2.fill"
+            title="Filiallar"
+            description="Filialları idarə edin"
+            icon="box.truck.fill"
+            onPress={() => router.push('/pages/branches')}
           />
           <SettingItem
-            title="Bildirişlər"
-            description="Push bildirişlərini tənzimləyin"
-            icon="bell.fill"
+            title="Məhsullar"
+            description="Məhsul siyahısını idarə edin"
+            icon="cart.fill"
+            onPress={() => router.push('/pages/products_list')}
           />
         </ThemedView>
 
@@ -66,6 +68,7 @@ export default function SettingsScreen() {
             icon="cart.fill"
           />
         </ThemedView>
+
       </ThemedView>
     </ThemedView>
   );

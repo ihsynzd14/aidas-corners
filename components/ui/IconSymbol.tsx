@@ -16,6 +16,7 @@ const MAPPING = {
   'list.clipboard.fill': 'assignment',
   'person.2.fill': 'people',
   'save': 'save',
+  'ai.fill': 'psychology',
 } as const;
 
 export type IconSymbolName = keyof typeof MAPPING;

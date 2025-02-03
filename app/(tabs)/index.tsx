@@ -32,15 +32,15 @@ export default function HomeScreen() {
       gradient: ['#4ECDC4', '#45B7AF'],
     },
     {
-      title: 'Çatdırılma',
-      description: 'Aktiv çatdırılmaları və marşrutları izləyin',
-      iconName: 'box.truck.fill',
+      title: 'Məhsul Statistikası',
+      description: 'Məhsulların satış statistikasını izləyin',
+      iconName: 'list.clipboard.fill',
       gradient: ['#FFD93D', '#F4C000'],
     },
     {
-      title: 'Məhsullar və Analiz',
-      description: 'Menyunu yeniləyin və məhsulları idarə edin',
-      iconName: 'list.clipboard.fill',
+      title: 'AI Asistan',
+      description: 'Yapay zeka destekli analiz ve öneriler',
+      iconName: 'ai.fill',
       gradient: ['#95DAB6', '#7CC49E'],
     },
     {
@@ -77,7 +77,7 @@ export default function HomeScreen() {
             <ThemedView style={[styles.row, styles.centerRow]}>
               <MenuContainer
                 {...menuItems[2]}
-                onPress={() => {}}
+                onPress={() => router.push('/(tabs)/product_statistics')}
                 delay={300}
                 compact={true}
               />
@@ -86,7 +86,7 @@ export default function HomeScreen() {
             <ThemedView style={styles.row}>
               <MenuContainer
                 {...menuItems[3]}
-                onPress={() =>  router.push('/products_list')}
+                onPress={() => router.push('/(tabs)/ai_assistant' as any)}
                 delay={400}
               />
               <MenuContainer

@@ -240,6 +240,7 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingBottom: 110,
   },
   loadingContainer: {
     flex: 1,
