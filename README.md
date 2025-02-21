@@ -1,6 +1,6 @@
 # Aidas Corners 🛍️
 
-A modern e-commerce application built with Expo and React Native, offering a seamless shopping experience across mobile platforms.
+A modern Pastry Order Managaement application built with Expo and React Native, offering a seamless shopping experience across mobile platforms.
 
 ## 🌟 Features
 
