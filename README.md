@@ -27,7 +27,7 @@ A modern e-commerce application built with Expo and React Native, offering a sea
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/aidas-corners.git
+git clone https://github.com/ihsynzd14/aidas-corners.git
 cd aidas-corners
 ```
 
