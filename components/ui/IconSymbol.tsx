@@ -14,12 +14,27 @@ const MAPPING = {
   'cart.fill': 'shopping-cart',
   'box.truck.fill': 'local-shipping',
   'list.clipboard.fill': 'assignment',
-  'person.2.fill': 'people',
-  'save': 'save',
+  'person.2.fill': 'groups',
   'ai.fill': 'psychology',
+  'trash.fill': 'delete',
+  'save': 'save',
 } as const;
 
-export type IconSymbolName = keyof typeof MAPPING;
+export type IconSymbolName =
+  | 'save'
+  | 'house.fill'
+  | 'paperplane.fill'
+  | 'chevron.left.forwardslash.chevron.right'
+  | 'chevron.right'
+  | 'chevron.left'
+  | 'gearshape.fill'
+  | 'bell.fill'
+  | 'cart.fill'
+  | 'box.truck.fill'
+  | 'list.clipboard.fill'
+  | 'person.2.fill'
+  | 'ai.fill'
+  | 'trash.fill';
 
 type IconSymbolProps = {
   name: IconSymbolName;

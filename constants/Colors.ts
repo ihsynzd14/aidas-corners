@@ -12,6 +12,7 @@ export const Colors = {
   danger:'#bb2124',
   light: {
     text: '#4A3531', // Chocolate brown for better readability
+    textSecondary: "ccc",
     background: '#FFF5E4', // Warm cream background
     tint: '#FF9494', // Soft pink tint
     icon: '#4A3531', // Chocolate brown icons
@@ -20,6 +21,7 @@ export const Colors = {
   },
   dark: {
     text: '#FFFFFF', // Light pink text
+    textSecondary: "ccc",
     background: '#151718', // Dark chocolate background
     tint: '#FF9494', // Soft pink tint
     icon: '#e4e4e4', // Light pink icons

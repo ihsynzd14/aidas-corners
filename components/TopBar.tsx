@@ -1,4 +1,4 @@
-import { StyleSheet, ViewStyle, TouchableOpacity, Pressable } from 'react-native';
+import { StyleSheet, ViewStyle, TouchableOpacity, Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from './ui/IconSymbol';
 import { ThemedText } from './ThemedText';
@@ -12,17 +12,23 @@ import { Platform } from 'react-native';
 type TopBarProps = {
   title: string;
   style?: ViewStyle;
+  rightComponent?: React.ReactNode;
 };
 
-export function TopBar({ title, style }: TopBarProps) {
+export function TopBar({ title, style, rightComponent }: TopBarProps) {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
   const isSettings = pathname === '/settings';
+  const isNotificationHistory = pathname === '/notification_history';
 
   const handleSettingsPress = () => {
     router.push('/settings');
+  };
+
+  const handleNotificationsPress = () => {
+    router.push('/notification_history');
   };
 
   const handleBack = () => {
@@ -32,7 +38,7 @@ export function TopBar({ title, style }: TopBarProps) {
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }, style]}>
       <GradientBackground intensity="light" />
-      {isSettings ? (
+      {(isSettings || isNotificationHistory) ? (
         <Pressable 
           onPress={handleBack} 
           style={({ pressed }) => [
@@ -51,27 +57,46 @@ export function TopBar({ title, style }: TopBarProps) {
         <ThemedView style={styles.leftPlaceholder} />
       )}
 
-      <ThemedText type="title" style={[styles.title, isSettings && styles.settingsTitle]}>
+      <ThemedText type="title" style={[styles.title, (isSettings || isNotificationHistory) && styles.settingsTitle]}>
         {title}
       </ThemedText>
 
-      {!isSettings && (
-        <Pressable
-          onPress={handleSettingsPress}
-          style={({ pressed }) => [
-            styles.settingsButton,
-            pressed && styles.pressed
-          ]}
-          hitSlop={20}
-        >
-          <IconSymbol
-            name="gearshape.fill"
-            size={32}
-            color={colorScheme === 'dark' ? PastryColors.accent : PastryColors.chocolate}
-          />
-        </Pressable>
+      {rightComponent ? (
+        rightComponent
+      ) : !isSettings && !isNotificationHistory && (
+        <View style={styles.rightButtons}>
+          <Pressable
+            onPress={handleNotificationsPress}
+            style={({ pressed }) => [
+              styles.iconButton,
+              pressed && styles.pressed
+            ]}
+            hitSlop={20}
+          >
+            <IconSymbol
+              name="bell.fill"
+              size={28}
+              color={colorScheme === 'dark' ? PastryColors.accent : PastryColors.chocolate}
+            />
+          </Pressable>
+
+          <Pressable
+            onPress={handleSettingsPress}
+            style={({ pressed }) => [
+              styles.iconButton,
+              pressed && styles.pressed
+            ]}
+            hitSlop={20}
+          >
+            <IconSymbol
+              name="gearshape.fill"
+              size={28}
+              color={colorScheme === 'dark' ? PastryColors.accent : PastryColors.chocolate}
+            />
+          </Pressable>
+        </View>
       )}
-      {isSettings && <ThemedView style={styles.rightPlaceholder} />}
+      {(isSettings || isNotificationHistory) && !rightComponent && <ThemedView style={styles.rightPlaceholder} />}
     </ThemedView>
   );
 }
@@ -91,9 +116,14 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 12,
   },
-  settingsButton: {
-    padding: 12,
+  iconButton: {
+    padding: 8,
     borderRadius: 12,
+    marginLeft: 8,
+  },
+  rightButtons: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   pressed: {
     opacity: 0.7,

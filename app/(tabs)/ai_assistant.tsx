@@ -5,14 +5,35 @@ import { AIAssistantUI } from '@/components/ai-assistant/ui/AIAssistantUI';
 import { DataProcessor } from '@/components/ai-assistant/core/DataProcessor';
 import { AIPromptManager } from '@/components/ai-assistant/core/AIPromptManager';
 import { Message, DateRange } from '@/components/ai-assistant/core/types';
-import { Animated } from 'react-native';
+import { Animated, Alert } from 'react-native';
 import { DocumentData, QueryDocumentSnapshot } from 'firebase/firestore';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Gemini API yapılandırması
-const genAI = new GoogleGenerativeAI('AIzaSyBJc_JyLzf38h1QXtDOvjvEk2ZK6njVFoA');
-const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
+// Varsayılan API anahtarı
+const DEFAULT_API_KEY = 'AIzaSyCFJn84h0V3mMwP2Vaa7_T18Ul2ALrvHsU';
 
 export default function AiAssistant() {
+  const [genAI, setGenAI] = useState<GoogleGenerativeAI | null>(null);
+  const [model, setModel] = useState<any>(null);
+
+  useEffect(() => {
+    initializeAI();
+  }, []);
+
+  const initializeAI = async () => {
+    try {
+      const savedApiKey = await AsyncStorage.getItem('gemini_api_key');
+      const apiKey = savedApiKey || DEFAULT_API_KEY;
+      const newGenAI = new GoogleGenerativeAI(apiKey);
+      const newModel = newGenAI.getGenerativeModel({ model: 'gemini-pro' });
+      setGenAI(newGenAI);
+      setModel(newModel);
+    } catch (error) {
+      console.error('AI başlatılırken xəta:', error);
+      Alert.alert('Xəta', 'AI xidməti başladılarkən xəta baş verdi');
+    }
+  };
+
   const initialMessage: Message = {
     role: 'assistant',
     content: 'Salam! Mən Aida\'s Corner\'in AI köməkçisiyəm. Sizə necə kömək edə bilərəm?\n\nBu mövzularda məlumat verə bilərəm:\n• Satış təhlili və proqnozlar\n• Anbar idarəetməsi və optimallaşdırma\n• Müştəri əlaqələri və marketinq təklifləri\n• Maliyyə hesabatları və proqnozlar\n• Logistika və təchizat zəncirinin optimallaşdırılması',
@@ -50,6 +71,11 @@ export default function AiAssistant() {
   }, []);
 
   const handleSend = async (inputMessage: string) => {
+    if (!model) {
+      Alert.alert('Xəta', 'AI xidməti hazır deyil');
+      return;
+    }
+
     const userMessage: Message = { 
       role: 'user', 
       content: inputMessage,

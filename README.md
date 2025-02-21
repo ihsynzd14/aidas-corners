@@ -1,50 +1,85 @@
-# Welcome to your Expo app 👋
+# Aidas Corners 🛍️
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern e-commerce application built with Expo and React Native, offering a seamless shopping experience across mobile platforms.
 
-## Get started
+## 🌟 Features
 
-1. Install dependencies
+- Cross-platform compatibility (iOS & Android)
+- Modern and intuitive user interface
+- Responsive design
+- Secure authentication
+- Product catalog management
+- Shopping cart functionality
+- Order management
+- User profile management
 
-   ```bash
-   npm install
-   ```
+## 🚀 Getting Started
 
-2. Start the app
+### Prerequisites
 
-   ```bash
-    npx expo start
-   ```
+- Node.js (v14 or higher)
+- npm or yarn
+- Expo CLI
+- iOS Simulator (for iOS development)
+- Android Studio (for Android development)
 
-In the output, you'll find options to open the app in a
+### Installation
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+1. Clone the repository
 ```bash
-npm run reset-project
+git clone https://github.com/yourusername/aidas-corners.git
+cd aidas-corners
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install dependencies
+```bash
+npm install
+```
 
-## Learn more
+3. Start the development server
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+## 🛠️ Built With
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- [Expo](https://expo.dev/) - The framework for universal React applications
+- [React Native](https://reactnative.dev/) - Create native apps for Android and iOS using React
+- [TypeScript](https://www.typescriptlang.org/) - JavaScript with syntax for types
 
-## Join the community
+## 📱 Running the App
 
-Join our community of developers creating universal apps.
+After starting the development server, you can run the app in various ways:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Press 'a' for Android emulator
+- Press 'i' for iOS simulator
+- Scan the QR code with Expo Go app on your physical device
+
+## 🤝 Contributing
+
+This project is proprietary and belongs to Aidas Corners. Please contact the owners for permission before using or contributing to this project.
+
+## 📄 License
+
+MIT License
+
+Copyright (c) 2024 Aidas Corners
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+**Note:** While this project uses the MIT License, it is proprietary to Aidas Corners. Permission must be obtained from the owners before using or modifying this software.
+
+## 📞 Contact
+
+For any inquiries about using or contributing to this project, please contact the Aidas Corners team.
+
+## ✨ Acknowledgments
+
+- Thanks to all contributors who have helped shape Aidas Corners
+- Special thanks to the Expo and React Native communities for their excellent documentation and tools

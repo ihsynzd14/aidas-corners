@@ -83,4 +83,16 @@ export interface Message {
 export interface DateRange {
   startDate: string;
   endDate: string;
+}
+
+export interface NotificationHistoryItem {
+  id: string;
+  title: string;
+  body: string;
+  type: 'comparison' | 'topSelling' | 'insight';
+  timestamp: number;
+}
+
+export interface NotificationHistoryState {
+  notifications: NotificationHistoryItem[];
 } 
