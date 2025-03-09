@@ -217,6 +217,144 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
       "redvelvet",
       "red velvut"
     ]
+  },
+  {
+    correct: "Balli tort",
+    variations: [
+      "balii tort",
+      "bali tort",
+      "balı tort",
+      "balli tort",
+      "ballı tort",
+      "balii",
+      "bali",
+      "balı"
+    ],
+  },
+  {
+    correct: "Napaleon",
+    variations: [
+      "napoleon",
+      "napalion",
+      "napolyon",
+      "napolion",
+      "napalyon"
+    ],
+  },
+  {
+    correct: "Cheesecake blueberry",
+    variations: [
+      "blueberry cheesecake",
+      "blue berry cheesecake",
+      "cheesecake blue berry",
+      "blueberry cheezcake",
+      "blue berry cheezcake",
+      "blueberry cheese cake",
+      "blue berry cheese cake"
+    ],
+  },
+  {
+    correct: "Cheesecake raspberry",
+    variations: [
+      "raspberry cheesecake",
+      "cheesecake raspberry",
+      "raspberry cheezcake",
+      "raspberry cheese cake",
+      "malina cheesecake",
+      "cheesecake malina"
+    ],
+  },
+  {
+    correct: "Kurabiye ağ",
+    variations: [
+      "ag kurabiye",
+      "ağ kurabiye",
+      "kurabiye ag",
+      "kurabiye ağ",
+      "ag kurabiyə",
+      "ağ kurabiyə",
+      "kurabiyə ag",
+      "kurabiyə ağ"
+    ],
+  },
+  {
+    correct: "Kurabiye qara",
+    variations: [
+      "qara kurabiye",
+      "kara kurabiye",
+      "kurabiye qara",
+      "kurabiye kara",
+      "qara kurabiyə",
+      "kara kurabiyə",
+      "kurabiyə qara",
+      "kurabiyə kara"
+    ],
+  },
+  {
+    correct: "Tart",
+    variations: [
+      "tart",
+      "tartlar",
+      "tartlər",
+      "tarts"
+    ],
+  },
+  {
+    correct: "Crescent brownies",
+    variations: [
+      "crescent browni",
+      "crescent brownie",
+      "crescent brauni",
+      "crescent brovni",
+      "crescent brovny",
+      "crescent browny",
+      "kresent browni",
+      "kresent brownie"
+    ],
+  },
+  {
+    correct: "Crescent crem",
+    variations: [
+      "crescent krem",
+      "crescent cream",
+      "kresent krem",
+      "kresent cream",
+      "crescent kremli",
+      "kresent kremli"
+    ],
+  },
+  {
+    correct: "Dubai bardaq",
+    variations: [
+      "dubai bardak",
+      "dubay bardaq",
+      "dubay bardak",
+      "dubai stəkan",
+      "dubay stəkan",
+      "dubai stekan",
+      "dubay stekan"
+    ],
+  },
+  {
+    correct: "Cheesecake dubai",
+    variations: [
+      "dubai cheesecake",
+      "dubay cheesecake",
+      "dubai cheezcake",
+      "dubay cheezcake",
+      "dubai cheese cake",
+      "dubay cheese cake"
+    ],
+  },
+  {
+    correct: "Kinder delice",
+    variations: [
+      "kinder delis",
+      "kinder delise",
+      "kinder deliçe",
+      "kinder delice",
+      "kinder delish"
+    ],
   }
 ];
 

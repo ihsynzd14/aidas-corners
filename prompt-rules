@@ -1,0 +1,19 @@
+Sorunu Detaylı Tanımlayın:
+"Kaydırma davranışı hatalı ve buggy" yerine şöyle diyebilirsiniz:
+"Klavye açıldığında input alanları görünmüyor ve kaydırma düzgün çalışmıyor. Kullanıcı bir input alanına tıkladığında, o alan otomatik olarak görünür olmalı ve klavye tarafından kapatılmamalı."
+Beklenen Davranışı Açıklayın:
+"Kullanıcı bir input alanına tıkladığında, ekran o alana otomatik olarak kaydırılmalı ve alan klavyenin üstünde görünür olmalı. Kaydırma akıcı olmalı ve kullanıcı deneyimini bozmamalı."
+Platform Bilgisi Verin:
+"Bu uygulama hem iOS hem de Android'de çalışacak, bu yüzden her iki platformda da düzgün çalışan bir çözüm gerekiyor."
+Mevcut Çözümleri Belirtin:
+"Şu anda KeyboardAvoidingView ve ScrollView kullanıyorum, ancak bunlar düzgün çalışmıyor. Özellikle Android'de sorunlar yaşıyorum."
+Teknik Detayları Ekleyin:
+"React Native'in klavye API'lerini (Keyboard.addListener) ve ScrollView ref'lerini kullanarak bir çözüm arıyorum."
+Örnek İyi Prompt:
+"React Native uygulamam için klavye ve kaydırma davranışını iyileştirmem gerekiyor. Şu anda kullanıcı bir input alanına tıkladığında, klavye açılıyor ancak input alanı klavyenin altında kalabiliyor ve görünmüyor. Hem iOS hem de Android'de çalışacak bir çözüm arıyorum.
+İstediğim davranış:
+Kullanıcı bir input alanına tıkladığında, o alan otomatik olarak görünür olmalı (klavyenin üstünde)
+Kaydırma akıcı olmalı ve kullanıcı deneyimini bozmamalı
+Klavye kapandığında ekran normal durumuna dönmeli
+Şu anda KeyboardAvoidingView, ScrollView ve Keyboard API'lerini kullanıyorum, ancak bunlar tam olarak istediğim davranışı sağlamıyor. Özellikle Android'de sorunlar yaşıyorum. Lütfen bu sorunu çözmeme yardımcı olur musunuz?"
+Bu tür detaylı bir prompt, AI'ın sorununuzu daha iyi anlamasına ve daha etkili çözümler sunmasına yardımcı olacaktır.

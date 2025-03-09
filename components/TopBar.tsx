@@ -13,9 +13,13 @@ type TopBarProps = {
   title: string;
   style?: ViewStyle;
   rightComponent?: React.ReactNode;
+  leftComponent?: {
+    icon: 'back';
+    onPress: () => void;
+  };
 };
 
-export function TopBar({ title, style, rightComponent }: TopBarProps) {
+export function TopBar({ title, style, rightComponent, leftComponent }: TopBarProps) {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -38,7 +42,22 @@ export function TopBar({ title, style, rightComponent }: TopBarProps) {
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }, style]}>
       <GradientBackground intensity="light" />
-      {(isSettings || isNotificationHistory) ? (
+      {leftComponent ? (
+        <Pressable 
+          onPress={leftComponent.onPress} 
+          style={({ pressed }) => [
+            styles.backButton,
+            pressed && styles.pressed
+          ]}
+          hitSlop={20}
+        >
+          <IconSymbol
+            name="chevron.left"
+            size={32}
+            color={colorScheme === 'dark' ? Colors.dark.icon : Colors.light.icon}
+          />
+        </Pressable>
+      ) : (isSettings || isNotificationHistory) ? (
         <Pressable 
           onPress={handleBack} 
           style={({ pressed }) => [

@@ -95,4 +95,17 @@ export interface NotificationHistoryItem {
 
 export interface NotificationHistoryState {
   notifications: NotificationHistoryItem[];
-} 
+}
+
+export interface APIResponse {
+  [dateRange: string]: BranchData[];
+}
+
+export interface BranchData {
+  branchId: string;
+  branchName: string;
+  date: string;
+  products: Record<string, string>;
+}
+
+export type AIProvider = 'groq' | 'gemini' | 'openrouter'; 

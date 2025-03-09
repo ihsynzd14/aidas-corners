@@ -1,13 +1,24 @@
-import { SalesData, ProductGroups, BranchGroups, DateRange } from './types';
-import { getBranches } from '@/utils/firebase';
-import { Branch } from '@/types/branch';
+import { APIResponse, DateRange } from './types';
+
+interface BranchData {
+  branchId: string;
+  branchName: string;
+  products: Record<string, string>;
+}
+
+interface BranchSale {
+  branchName: string;
+  sales: number;
+}
+
+interface ProductAnalysis {
+  branchSales: BranchSale[];
+  totalSales: number;
+}
 
 export class AIPromptManager {
   private static instance: AIPromptManager;
-  private branchGroups: BranchGroups = {
-    next: [],
-    coffemania: []
-  };
+  private branches: string[] = [];
 
   private constructor() {}
 
@@ -18,293 +29,235 @@ export class AIPromptManager {
     return AIPromptManager.instance;
   }
 
-  public getBranchGroups(): BranchGroups {
-    return this.branchGroups;
+  public async initializeBranches(): Promise<void> {
+    this.branches = [
+      'Next Ağşəhər',
+      'Next Xətai',
+      'Next Mərkəz',
+      'Next City Mall',
+      'Next Crescent',
+      'Coffemania Gəncə',
+      'Coffemania Dəniz mall',
+      'Coffemania Nərimanov',
+      'Coffemania Azadlıq',
+      'Coffemania Əhmədli'
+    ];
   }
 
-  public async initializeBranches() {
-    try {
-      const branches = await getBranches();
-      this.branchGroups = {
-        next: branches.filter((b: Branch) => b.type === 'next').map((b: Branch) => b.name),
-        coffemania: branches.filter((b: Branch) => b.type === 'coffemania').map((b: Branch) => b.name)
-      };
-    } catch (error) {
-      console.error('Şube listesi alınırken hata:', error);
-    }
-  }
-
-  public createContext(
-    salesData: Record<string, SalesData>,
-    productGroups: ProductGroups,
-    branchGroups: BranchGroups
-  ): string {
-    const sortedProducts = Object.entries(salesData)
-      .map(([_, data]) => ({
-        name: data.product.name,
-        total: data.sales.total
+  private analyzeProductByBranch(branchData: BranchData[], productName: string): ProductAnalysis {
+    console.log(`\n=== Analyzing ${productName} by Branch ===`);
+    
+    const branchSales = branchData
+      .filter((b: BranchData) => b.branchId !== 'total' && b.products[productName])
+      .map((branch: BranchData) => ({
+        branchName: branch.branchName,
+        sales: parseFloat(branch.products[productName])
       }))
-      .sort((a, b) => b.total - a.total);
+      .sort((a: BranchSale, b: BranchSale) => b.sales - a.sales);
 
-    return `Sən Aida's Corner şirniyyat şəbəkəsinin süni intellekt köməkçisisən.
+    console.log('Branch Sales:', branchSales);
 
-MƏHSUL SATIŞLARI (dəqiq rəqəmlər, çoxdan aza doğru sıralanmış):
+    const totalSales = parseFloat(
+      branchData.find((b: BranchData) => b.branchId === 'total')?.products[productName] || '0'
+    );
 
-SATIŞ REYTİNQİ:
-${sortedProducts.map((p, i) => 
-  `[${(i + 1).toString().padStart(2, '0')}] ${p.name.padEnd(25, '.')} ${p.total.toFixed(2).padStart(8, ' ')} ədəd`
-).join('\n')}
+    console.log('Total Sales:', totalSales);
 
-SATIŞ QRUPLARI:
-A. 500+ satış: ${productGroups.A.join(', ')}
-B. 200-499 satış: ${productGroups.B.join(', ')}
-C. 100-199 satış: ${productGroups.C.join(', ')}
-D. 50-99 satış: ${productGroups.D.join(', ')}
-E. 0-49 satış: ${productGroups.E.join(', ')}
-
-MƏHSUL DETALLARI:
-${Object.values(salesData).map(data => {
-  const { product, sales, trends } = data;
-  return `${product.name}:
-  ┌─────────────────────────────
-  │ ÜMUMI SATIŞ: ${sales.total.toFixed(2)}
-  │ NEXT: ${sales.byGroup.next.toFixed(2)}
-  │ COFFEMANİA: ${sales.byGroup.coffemania.toFixed(2)}
-  │
-  │ Next Filialları:
-${Object.entries(sales.byBranch)
-  .filter(([branch]) => branchGroups.next.includes(branch))
-  .map(([branch, quantity]) => `  │  • ${branch}: ${quantity.toFixed(2)}`)
-  .join('\n')}
-  │
-  │ Coffemania Filialları:
-${Object.entries(sales.byBranch)
-  .filter(([branch]) => branchGroups.coffemania.includes(branch))
-  .map(([branch, quantity]) => `  │  • ${branch}: ${quantity.toFixed(2)}`)
-  .join('\n')}
-  │
-  │ Trend Məlumatları:
-  │  • Ən yüksək: ${trends.maxDay.date} (${trends.maxDay.amount.toFixed(2)})
-  │  • Ən aşağı: ${trends.minDay.date} (${trends.minDay.amount.toFixed(2)})
-  │  • Ortalama: ${trends.average.toFixed(2)}
-  │  • Artım: ${trends.growth.toFixed(2)}%
-  └─────────────────────────────`;
-}).join('\n\n')}
-
-FİLİAL QRUPLARI:
-1. NEXT FİLİALLARI:
-   - ${branchGroups.next.join('\n   - ')}
-
-2. COFFEMANİA FİLİALLARI:
-   - ${branchGroups.coffemania.join('\n   - ')}
-
-MƏHSUL MƏHDUDİYYƏTLƏRİ:
-1. Şokolad Lokumlu - YALNIZ NEXT FİLİALLARINDA satılır
-2. Şokolad - YALNIZ COFFEMANİA FİLİALLARINDA satılır`;
+    return {
+      branchSales,
+      totalSales
+    };
   }
 
-  public createPrompt(context: string, query: string, dateRange: DateRange): string {
-    // Tarih aralığını kontrol et
-    const startDate = new Date(dateRange.startDate);
-    const endDate = new Date(dateRange.endDate);
-    const dayDifference = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
+  public createContext(apiResponse: APIResponse): string {
+    console.log('\n=== Creating Context ===');
+    
+    const dateRange = Object.keys(apiResponse)[0];
+    const branchData = apiResponse[dateRange];
+    const totalData = branchData.find(b => b.branchId === 'total');
 
-    if (dayDifference < 30) {
-      const newStartDate = new Date(endDate);
-      newStartDate.setDate(newStartDate.getDate() - 30);
-      dateRange.startDate = newStartDate.toISOString().split('T')[0];
-      console.log('Tarih aralığı 30 güne tamamlandı:', dateRange);
+    if (!totalData) {
+      console.log('No total data found!');
+      return '';
     }
 
-    return `${context}
+    console.log('Date Range:', dateRange);
 
-İstifadəçi sualı: ${query}
+    // Ən çox satılan məhsulları hesabla
+    const sortedProducts = Object.entries(totalData.products)
+      .map(([product, amount]) => ({
+        product,
+        amount: parseFloat(amount)
+      }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 3);
 
-ANALİZ DÖVRÜ: ${dateRange.startDate} - ${dateRange.endDate} (${Math.ceil((new Date(dateRange.endDate).getTime() - new Date(dateRange.startDate).getTime()) / (1000 * 3600 * 24))} gün)
+    console.log('Top 3 Products:', sortedProducts);
 
-CAVAB FORMATI:
+    // Next və Coffemania filiallarını ayır
+    const nextBranches = branchData.filter(b => b.branchName.startsWith('Next'));
+    const coffemaniaBranches = branchData.filter(b => b.branchName.startsWith('Coffemania'));
 
-1. SATIŞ SIRALAMASINDA:
-   - Çoxdan aza sıralama istənildikdə: [01], [02], [03]... şəklində göstər
-   - Azdan çoxa sıralama istənildikdə: [15], [14], [13]... şəklində göstər
-   - Sıra nömrəsini yalnız [XX] formatında göstər
-   - Satış miqdarını tam dəqiqliyi ilə göstər (məsələn: 123.45)
-   - Sıfır satışları "0.00" formatında göstər
+    console.log('Next Branches:', nextBranches.length);
+    console.log('Coffemania Branches:', coffemaniaBranches.length);
 
-2. MƏHSUL MƏHDUDİYYƏTLƏRİ:
-   - Şokolad Lokumlu - YALNIZ NEXT FİLİALLARINDA satılır
-   - Şokolad - YALNIZ COFFEMANİA FİLİALLARINDA satılır
-   - Məhdudiyyətli məhsullar üçün "satılmır" qeydi əlavə et
+    // Hər məhsul üçün filial analizini hazırla
+    const productAnalysis = new Map();
+    
+    Object.keys(totalData.products).forEach(product => {
+      const analysis = this.analyzeProductByBranch(branchData, product);
+      productAnalysis.set(product, analysis);
+    });
 
-3. FİLİAL QRUPLAMASINDA:
-   - Next filialları: ${this.branchGroups.next.join(', ')}
-   - Coffemania filialları: ${this.branchGroups.coffemania.join(', ')}
-   - Hər qrup üçün cəmi göstər
-   - Filialları qarışdırma
+    console.log('\n=== Product Analysis Example ===');
+    console.log('Analysis for Profiterol:', productAnalysis.get('Profiterol'));
 
-4. HESABLAMALARDA:
-   - Bütün rəqəmləri iki onluq rəqəmlə göstər (məsələn: 123.45)
-   - Faizləri %.2f formatında göstər (məsələn: 12.34%)
-   - Yuvarlaqlaşdırma etmə
-   - Sıfır dəyərləri "0.00" kimi göstər
+    const context = `
+Tarix aralığı: ${dateRange}
 
-5. MÜQAYİSƏLƏRDƏ:
-   - Mütləq fərqi göstər
-   - Faiz fərqini göstər
-   - Trend istiqamətini (artım/azalma) göstər
-   - Səbəb-nəticə əlaqəsini izah et
+Ümumi məlumatlar:
+- Next filialları: ${nextBranches.length} ədəd
+- Coffemania filialları: ${coffemaniaBranches.length} ədəd
 
-ÖNƏMLİ QAYDALAR:
-1. Cavabını Azərbaycan dilində ver
-2. Rəqəmləri tam dəqiqliyi ilə göstər
-3. Məhsul məhdudiyyətlərinə riayət et
-4. Filialları qarışdırma
-5. Yuvarlaqlaşdırma etmə
-6. Minimum 30 günlük dövr üçün analiz apar`;
+Ən çox satılan 3 məhsul:
+${sortedProducts.map(p => `- ${p.product}: ${p.amount}`).join('\n')}
+
+Filiallar və məhsul çeşidləri:
+${branchData
+  .filter(b => b.branchId !== 'total')
+  .map(branch => {
+    const productCount = Object.keys(branch.products).length;
+    const productList = Object.entries(branch.products)
+      .map(([product, amount]) => `${product}: ${amount}`)
+      .join(', ');
+    return `- ${branch.branchName}: ${productCount} çeşid məhsul (${productList})`;
+  })
+  .join('\n')}
+
+Məhsulların filial üzrə təhlili:
+${Array.from(productAnalysis.entries())
+  .map(([product, analysis]) => {
+    const { branchSales, totalSales } = analysis as any;
+    if (branchSales.length === 0) return '';
+    
+    const topBranches = branchSales
+      .slice(0, 3)
+      .map((b: BranchSale) => `${b.branchName}: ${b.sales} (${((b.sales / totalSales) * 100).toFixed(1)}%)`)
+      .join(', ');
+    
+    return `- ${product}: Cəmi ${totalSales}, Ən yaxşı filialllar: ${topBranches}`;
+  })
+  .filter(Boolean)
+  .join('\n')}
+
+Ümumi satış məlumatları:
+${Object.entries(totalData.products)
+  .map(([product, amount]) => `- ${product}: ${amount}`)
+  .join('\n')}
+`;
+
+    console.log('\n=== Final Context ===');
+    console.log(context);
+
+    return context;
   }
 
-  public validateResponse(response: string, salesData: Record<string, SalesData>, dateRange: DateRange): boolean {
-    // Tarih aralığını kontrol et
-    const startDate = new Date(dateRange.startDate);
-    const endDate = new Date(dateRange.endDate);
-    const dayDifference = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
+  public createPrompt(context: string, userMessage: string, dateRange: DateRange): string {
+    const questionType = this.determineQuestionType(userMessage);
+    
+    return `You are Aida's Corner's AI assistant. You MUST ALWAYS respond in Azerbaijani language (not Turkish, specifically Azerbaijani). 
+Use Azerbaijani letters like 'ə' instead of 'e' where appropriate.
 
-    if (dayDifference < 30) {
-      console.error('Tarih aralığı 30 günden az:', dayDifference);
-      return false;
-    }
+Here are some examples of Azerbaijani words you should use:
+- "məhsul" (not "məhsül" or "ürün")
+- "satış" (not "satış" or "satıs")
+- "filial" (not "şöbə" or "şube")
+- "təhlil" (not "analiz")
+- "müqayisə" (not "qarşılaşdırma")
+- "dəyər" (not "qiymət")
+- "artım" (not "yüksəliş")
+- "azalma" (not "düşüş")
+- "nəticə" (not "sonuc")
 
-    // Yanıtta şube karşılaştırması var mı kontrol et
-    const hasBranchComparison = response.toLowerCase().includes('next') || 
-                               response.toLowerCase().includes('coffemania');
+Context information:
+${context}
 
-    // Diğer kontrolleri yap ve hata mesajlarını kaydet
-    const validationResults = {
-      numbers: this.checkNumberAccuracy(response, salesData),
-      percentages: this.checkPercentageCalculations(response),
-      branches: hasBranchComparison ? this.checkBranchComparisons(response) : true, // Şube karşılaştırması varsa kontrol et
-      restrictions: this.checkProductRestrictions(response)
+Date range: ${dateRange.startDate} - ${dateRange.endDate}
+
+Question type: ${questionType}
+User question: ${userMessage}
+
+When preparing the answer:
+1. Show exact numbers and statistics
+2. Compare between branches when relevant
+3. Note trends if asked
+4. Give suggestions only if specifically requested
+5. Keep answers concise and directly related to the question
+6. Use exact numbers from the data
+7. Don't make assumptions about data you don't have
+
+${this.getAdditionalInstructions(questionType)}
+
+Answer (in Azerbaijani):
+`;
+  }
+
+  private determineQuestionType(question: string): string {
+    const keywords = {
+      basic: ['neçə', 'hansı', 'nə qədər', 'nə zaman', 'harada'],
+      comparison: ['müqayisə', 'fərq', 'daha çox', 'ən çox', 'ən az'],
+      analysis: ['təhlil', 'analiz', 'trend', 'inkişaf', 'dəyişim'],
+      recommendation: ['təklif', 'tövsiyə', 'nə etməli', 'necə', 'yaxşılaşdırma']
     };
 
-    // Hata mesajlarını konsola yazdır
-    if (!validationResults.numbers) console.error('Sayısal değerler doğrulanamadı');
-    if (!validationResults.percentages) console.error('Yüzde hesaplamaları doğrulanamadı');
-    if (!validationResults.branches && hasBranchComparison) console.error('Şube karşılaştırmaları doğrulanamadı');
-    if (!validationResults.restrictions) console.error('Ürün kısıtlamaları doğrulanamadı');
-
-    // En az bir kontrol başarılı olmalı
-    return Object.values(validationResults).some(result => result);
-  }
-
-  private checkNumberAccuracy(response: string, salesData: Record<string, SalesData>): boolean {
-    try {
-      // Yanıttaki sayısal değerleri kontrol et
-      const numbers = response.match(/\d+\.\d{2}/g);
-      if (!numbers) return true; // Sayısal değer yoksa geçerli kabul et
-
-      // Tolerans değerini artır
-      const tolerance = 0.1;
-
-      // Her sayıyı kontrol et
-      return numbers.some(num => {
-        const value = parseFloat(num);
-        // Satış verilerinde bu sayı var mı kontrol et
-        return Object.values(salesData).some(data => {
-          const values = [
-            data.sales.total,
-            data.sales.byGroup.next,
-            data.sales.byGroup.coffemania,
-            ...Object.values(data.sales.byBranch),
-            ...data.sales.daily.map(day => day.amount)
-          ];
-          
-          return values.some(v => Math.abs(v - value) < tolerance);
-        });
-      });
-    } catch (error) {
-      console.error('Sayı doğrulama hatası:', error);
-      return true; // Hata durumunda geçerli kabul et
+    const lowercaseQuestion = question.toLowerCase();
+    
+    for (const [type, words] of Object.entries(keywords)) {
+      if (words.some(word => lowercaseQuestion.includes(word))) {
+        return type;
+      }
     }
+
+    return 'basic';
   }
 
-  private checkPercentageCalculations(response: string): boolean {
-    try {
-      const percentages = response.match(/\d+\.\d{2}%/g);
-      if (!percentages) return true;
+  private getAdditionalInstructions(questionType: string): string {
+    const instructions = {
+      basic: 'Sadə və birbaşa cavab ver. Rəqəmləri dəqiq göstər.',
+      comparison: 'Müqayisəli təhlil apar. Fərqləri və oxşarlıqları vurğula.',
+      analysis: 'Dərin təhlil apar. Trendləri və səbəbləri izah et.',
+      recommendation: 'Təhlil əsasında konkret təkliflər ver. Hər təklifi əsaslandır.'
+    };
 
-      return percentages.every(percent => {
-        const value = parseFloat(percent);
-        return !isNaN(value) && value >= -100 && value <= 1000; // Daha geniş aralık
-      });
-    } catch (error) {
-      console.error('Yüzde doğrulama hatası:', error);
+    return instructions[questionType as keyof typeof instructions] || instructions.basic;
+  }
+
+  public validateResponse(response: string, apiResponse: APIResponse): boolean {
+    // Cavab boşdursa və ya çox qısadırsa
+    if (!response || response.length < 10) {
       return false;
     }
-  }
 
-  private checkBranchComparisons(response: string): boolean {
-    try {
-      const text = response.toLowerCase();
-      
-      // Spesifik şube karşılaştırması yapılıyor mu kontrol et
-      const specificBranchComparison = this.branchGroups.next.some(nextBranch => 
-        this.branchGroups.coffemania.some(coffBranch => 
-          text.includes(nextBranch.toLowerCase()) && text.includes(coffBranch.toLowerCase())
-        )
-      );
-
-      // Eğer spesifik şube karşılaştırması varsa, genel şube grubu kontrolü yapma
-      if (specificBranchComparison) {
-        return true;
-      }
-
-      // Genel şube grubu karşılaştırması yapılıyorsa kontrol et
-      const hasGeneralComparison = text.includes('next filialları') || 
-                                 text.includes('next filiallar') || 
-                                 text.includes('next şöbələri') ||
-                                 text.includes('coffemania filialları') || 
-                                 text.includes('coffemania filiallar') || 
-                                 text.includes('coffemania şöbələri');
-
-      // Her iki şube grubundan da bahsedilmiş olmalı
-      const nextMentions = text.match(/next/gi)?.length || 0;
-      const coffemanMentions = text.match(/coffemania/gi)?.length || 0;
-
-      // Genel karşılaştırma varsa her iki gruptan da bahsedilmiş olmalı
-      if (hasGeneralComparison) {
-        return nextMentions > 0 && coffemanMentions > 0;
-      }
-
-      // Ne spesifik ne de genel karşılaştırma yoksa true dön
-      return true;
-    } catch (error) {
-      console.error('Şube karşılaştırma hatası:', error);
-      return true; // Hata durumunda geçerli kabul et
-    }
-  }
-
-  private checkProductRestrictions(response: string): boolean {
-    try {
-      const text = response.toLowerCase();
-
-      // Şokolad Lokumlu kontrolü
-      if (text.includes('şokolad lokumlu')) {
-        if (text.includes('coffemania') && !text.includes('satılmır')) {
-          return false;
-        }
-      }
-
-      // Şokolad kontrolü
-      if (text.includes('şokolad') && !text.includes('lokumlu')) {
-        if (text.includes('next') && !text.includes('satılmır')) {
-          return false;
-        }
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Ürün kısıtlaması kontrolü hatası:', error);
+    const dateRange = Object.keys(apiResponse)[0];
+    if (!dateRange || !apiResponse[dateRange]) {
       return false;
     }
+
+    const totalData = apiResponse[dateRange].find(b => b.branchId === 'total');
+    if (!totalData) {
+      return false;
+    }
+
+    // Cavabda rəqəm varsa və ya filial/məhsul adı varsa qəbul et
+    const numbers = response.match(/\d+(\.\d+)?/g);
+    const branchNames = apiResponse[dateRange].map(b => b.branchName);
+    const productNames = Object.keys(totalData.products);
+    
+    const containsBranchOrProduct = [...branchNames, ...productNames].some(
+      name => response.toLowerCase().includes(name.toLowerCase())
+    );
+
+    // Əgər cavabda rəqəm varsa və ya filial/məhsul adı varsa, və ya "filial" sözü keçirsə qəbul et
+    return !!(numbers || containsBranchOrProduct || response.toLowerCase().includes('filial'));
   }
-} 
+}

@@ -14,6 +14,7 @@ export const Colors = {
     text: '#4A3531', // Chocolate brown for better readability
     textSecondary: "ccc",
     background: '#FFF5E4', // Warm cream background
+    backgroundSecondary: '#f5e6ce', // Warm cream background
     tint: '#FF9494', // Soft pink tint
     icon: '#4A3531', // Chocolate brown icons
     tabIconDefault: '#FFC3C3', // Light pink for inactive tabs

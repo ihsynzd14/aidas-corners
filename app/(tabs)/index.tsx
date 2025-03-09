@@ -39,14 +39,14 @@ export default function HomeScreen() {
     },
     {
       title: 'AI Asistan',
-      description: 'Yapay zeka destekli analiz ve öneriler',
+      description: 'Suni intellekt dəstəkli analiz ve önərilər',
       iconName: 'ai.fill',
       gradient: ['#95DAB6', '#7CC49E'],
     },
     {
-      title: 'İşçilər',
-      description: 'Komandanı və qrafikləri idarə edin',
-      iconName: 'person.2.fill',
+      title: 'Ərzaq Təqibi',
+      description: 'Ərzaqların vəziyyətindən xəbərdar olun və onları idarə edin',
+      iconName: 'paperplane.fill',
       gradient: ['#6C5CE7', '#5A4BD1'],
     },
   ];
@@ -91,7 +91,7 @@ export default function HomeScreen() {
               />
               <MenuContainer
                 {...menuItems[4]}
-                onPress={() => {}}
+                onPress={() => router.push('/pages/daily-needs')}
                 delay={500}
               />
             </ThemedView>

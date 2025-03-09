@@ -12,7 +12,20 @@ interface NotificationData {
   type: 'comparison' | 'topSelling' | 'insight';
 }
 
+interface NotificationTime {
+  hour: number;
+  minute: number;
+  type: 'comparison' | 'topSelling' | 'insight';
+}
+
 const NOTIFICATION_HISTORY_KEY = '@notification_history';
+const NOTIFICATION_TIMES_KEY = '@notification_times';
+
+const DEFAULT_NOTIFICATION_TIMES: NotificationTime[] = [
+  { hour: 18, minute: 0, type: 'insight' },
+  { hour: 16, minute: 0, type: 'topSelling' },
+  { hour: 20, minute: 0, type: 'comparison' }
+];
 
 export class NotificationService {
   private static instance: NotificationService;
@@ -54,19 +67,39 @@ export class NotificationService {
     await this.scheduleNotifications();
   }
 
+  public async getNotificationTimes(): Promise<NotificationTime[]> {
+    try {
+      const times = await AsyncStorage.getItem(NOTIFICATION_TIMES_KEY);
+      return times ? JSON.parse(times) : DEFAULT_NOTIFICATION_TIMES;
+    } catch (error) {
+      console.error('Bildiriş zamanları alınarkən xəta:', error);
+      return DEFAULT_NOTIFICATION_TIMES;
+    }
+  }
+
+  public async setNotificationTime(type: 'comparison' | 'topSelling' | 'insight', hour: number, minute: number): Promise<void> {
+    try {
+      const times = await this.getNotificationTimes();
+      const updatedTimes = times.map(t => 
+        t.type === type ? { ...t, hour, minute } : t
+      );
+      await AsyncStorage.setItem(NOTIFICATION_TIMES_KEY, JSON.stringify(updatedTimes));
+      await this.scheduleNotifications();
+    } catch (error) {
+      console.error('Bildiriş zamanı yenilənərkən xəta:', error);
+      throw error;
+    }
+  }
+
   private async scheduleNotifications() {
     await Notifications.cancelAllScheduledNotificationsAsync();
 
-    const notificationTypes: Array<{ hour: number; type: 'comparison' | 'topSelling' | 'insight' }> = [
-      { hour: 12, type: 'insight' },
-      { hour: 18, type: 'topSelling' },
-      { hour: 20, type: 'comparison' }
-    ];
+    const notificationTimes = await this.getNotificationTimes();
 
-    for (const { hour, type } of notificationTypes) {
+    for (const { hour, minute, type } of notificationTimes) {
       const now = new Date();
       const nextTriggerDate = new Date(now);
-      nextTriggerDate.setHours(hour, 0, 0, 0);
+      nextTriggerDate.setHours(hour, minute, 0, 0);
       
       if (nextTriggerDate <= now) {
         nextTriggerDate.setDate(nextTriggerDate.getDate() + 1);
@@ -84,7 +117,7 @@ export class NotificationService {
         },
         trigger: {
           hour: hour,
-          minute: 0,
+          minute: minute,
           type: SchedulableTriggerInputTypes.DAILY
         }
       });
