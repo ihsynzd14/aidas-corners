@@ -389,3 +389,89 @@ export async function getDailyNeeds(date: Date): Promise<DailyNeedOrder[]> {
     return []; // Hata durumunda boş array dön
   }
 }
+
+// App version checking function
+export async function checkAppVersion(): Promise<{
+  needsUpdate: boolean, 
+  apkUrl?: string, 
+  latestVersion?: string,
+  changelog?: string[]
+}> {
+  try {
+    // Check cache first
+    const cacheKey = 'app_version_check';
+    const cachedData = getCache(cacheKey);
+    if (cachedData) return cachedData;
+
+    // Get current app version from app.json
+    const appInfo = require('../app.json');
+    const currentVersion = appInfo.expo.version;
+    
+    // Get latest version from Firebase
+    const appVersionCollection = collection(db, 'app_version');
+    const snapshot = await getDocs(appVersionCollection);
+    
+    if (snapshot.empty) {
+      return { needsUpdate: false };
+    }
+    
+    // Assuming there's only one document in the collection
+    const versionDoc = snapshot.docs[0];
+    const versionData = versionDoc.data();
+    const latestVersion = versionData.apk_version;
+    const apkUrl = versionData.apk_url;
+    const changelog = versionData.changelog || [];
+    
+    // Compare versions using semantic versioning
+    const needsUpdate = compareVersions(currentVersion, latestVersion);
+    
+    const result = { 
+      needsUpdate, 
+      apkUrl: needsUpdate ? apkUrl : undefined,
+      latestVersion: needsUpdate ? latestVersion : undefined,
+      changelog: needsUpdate ? changelog : undefined
+    };
+    
+    // Cache the result
+    setCache(cacheKey, result);
+    
+    return result;
+  } catch (error) {
+    console.error('Error checking app version:', error);
+    return { needsUpdate: false };
+  }
+}
+
+/**
+ * Compares two version strings using semantic versioning rules
+ * Returns true if remoteVersion is newer than localVersion
+ * 
+ * @param localVersion - The current app version
+ * @param remoteVersion - The latest version from Firebase
+ * @returns boolean - True if an update is needed
+ */
+function compareVersions(localVersion: string, remoteVersion: string): boolean {
+  // Remove any non-numeric characters (like 'a' in '1.3.0a')
+  const cleanLocalVersion = localVersion.replace(/[^0-9.]/g, '');
+  const cleanRemoteVersion = remoteVersion.replace(/[^0-9.]/g, '');
+  
+  const localParts = cleanLocalVersion.split('.').map(Number);
+  const remoteParts = cleanRemoteVersion.split('.').map(Number);
+  
+  // Compare each part of the version
+  for (let i = 0; i < Math.max(localParts.length, remoteParts.length); i++) {
+    // If a part doesn't exist, treat it as 0
+    const localPart = i < localParts.length ? localParts[i] : 0;
+    const remotePart = i < remoteParts.length ? remoteParts[i] : 0;
+    
+    if (remotePart > localPart) {
+      return true; // Remote version is newer
+    } else if (remotePart < localPart) {
+      return false; // Local version is newer
+    }
+    // If parts are equal, continue to next part
+  }
+  
+  // If we get here, versions are identical
+  return false;
+}

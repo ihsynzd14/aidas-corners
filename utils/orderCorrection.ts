@@ -324,7 +324,7 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
     ],
   },
   {
-    correct: "Dubai bardaq",
+    correct: "Dubai supangele ",
     variations: [
       "dubai bardak",
       "dubay bardaq",
@@ -332,7 +332,11 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
       "dubai stəkan",
       "dubay stəkan",
       "dubai stekan",
-      "dubay stekan"
+      "dubay stekan",
+      "dubai supangele",
+      "dubay supangele",
+      "dubai supanqele",
+      "dubay supanqele"
     ],
   },
   {
@@ -355,6 +359,55 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
       "kinder delice",
       "kinder delish"
     ],
+  },
+  {
+    correct: "American Kurabiye",
+    variations: [
+      "amerikan kurabiye",
+      "amerikan cookie",
+      "american cookie",
+      "american kurabiye",
+      "amerikan"
+    ]
+  },
+  {
+    correct: "Çatlaq Kurabiye",
+    variations: [
+      "çatlaq kurabiye",
+      "çatlaq cookie",
+      "crack cookie",
+      "crack kurabiye",
+      "çatlaq"
+    ]
+  },
+  {
+    correct: "Susamlı Kurabiye",
+    variations: [
+      "susamlı kurabiye",
+      "sesame cookie",
+      "sesame kurabiye",
+      "susamlı"
+    ]
+  },
+  {
+    correct: "Yulaflı Kurabiye",
+    variations: [
+      "yulaflı kurabiye",
+      "yulaflı cookie",
+      "oatmeal cookie",
+      "oat kurabiye",
+      "yulaflı"
+    ]
+  },
+  {
+    correct: "Krokant",
+    variations: [
+      "krokant",
+      "krokant cookie",
+      "krokant kurabiye",
+      "krokont",
+      "crocant"
+    ]
   }
 ];
 

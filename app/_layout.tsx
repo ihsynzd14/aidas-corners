@@ -7,11 +7,12 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 import * as Updates from 'expo-updates';
 import * as Notifications from 'expo-notifications';
 import { NotificationService } from '@/services/NotificationService';
 import { router } from 'expo-router';
+import AppUpdater from '@/components/AppUpdater';
 
 // Bildirim ayarlarını yapılandır
 Notifications.setNotificationHandler({
@@ -105,7 +106,8 @@ export default function RootLayout() {
             }}
           />
         </Stack>
-        <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} translucent hidden backgroundColor='transparent' />
+        <StatusBar hidden style={colorScheme === 'dark' ? 'light' : 'dark'} translucent backgroundColor='transparent' />
+        <AppUpdater />
       </ThemeProvider>
     </GestureHandlerRootView>
   );
