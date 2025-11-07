@@ -1,8 +1,7 @@
-import { Stack } from 'expo-router';
+import { Stack , useRouter } from 'expo-router';
 import { Appearance, StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { useRouter } from 'expo-router';
 import { TopBar } from '@/components/TopBar';
 import { SettingItem } from '@/components/settings/SettingItem';
 import { ThemedText } from '@/components/ThemedText';
@@ -16,7 +15,7 @@ export default function SettingsScreen() {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === 'dark';
   const [apiKey, setApiKey] = useState('');
-  const [notificationTimes, setNotificationTimes] = useState<Array<{ type: string; hour: number; minute: number }>>([]);
+  const [notificationTimes, setNotificationTimes] = useState<{ type: string; hour: number; minute: number }[]>([]);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [groqApiKey, setGroqApiKey] = useState('');

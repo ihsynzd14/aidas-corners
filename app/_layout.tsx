@@ -1,18 +1,27 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack , router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Platform, View } from 'react-native';
+import { Platform, View, LogBox } from 'react-native';
 import * as Updates from 'expo-updates';
 import * as Notifications from 'expo-notifications';
 import { NotificationService } from '@/services/NotificationService';
-import { router } from 'expo-router';
 import AppUpdater from '@/components/AppUpdater';
+import Constants from 'expo-constants';
+
+// Expo Go'da remote push notification uyarısını bastır
+if (__DEV__ && Constants.appOwnership === 'expo') {
+  LogBox.ignoreLogs([
+    'expo-notifications',
+    'Android Push notifications',
+    'remote notifications',
+  ]);
+}
 
 // Bildirim ayarlarını yapılandır
 Notifications.setNotificationHandler({
@@ -20,6 +29,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -34,14 +45,25 @@ export default function RootLayout() {
 
   useEffect(() => {
     const setupNotifications = async () => {
-      const { status } = await Notifications.requestPermissionsAsync();
-      if (status !== 'granted') {
-        console.log('Bildirim izni reddedildi!');
-        return;
-      }
+      try {
+        // Expo Go kontrolü - sadece local notifications kullan
+        const isExpoGo = Constants.appOwnership === 'expo';
+        
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status !== 'granted') {
+          console.log('Bildirim izni reddedildi!');
+          return;
+        }
 
-      // Bildirim servisini başlat
-      NotificationService.getInstance();
+        if (isExpoGo) {
+          console.log('✅ Local notifications aktif (Expo Go modunda)');
+        }
+
+        // Bildirim servisini başlat
+        NotificationService.getInstance();
+      } catch (error) {
+        console.log('Bildirim kurulumu atlandı:', error);
+      }
     };
 
     setupNotifications();

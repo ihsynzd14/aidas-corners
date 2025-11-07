@@ -408,7 +408,267 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
       "krokont",
       "crocant"
     ]
-  }
+  },
+  {
+    correct: "Coconut kurabiye",
+    variations: [
+      "coconut kurabiye",
+      "coconut cookie",
+      "coconut kurabiyə",
+      "coconut cookie",
+      "kokoslu kurabiye",
+      "kokoslu cookie",
+      "kokoslu kurabiyə",
+    ]
+  },
+  {
+    correct: "Acıbadem kurabiye",
+    variations: [
+      "acıbadem kurabiye",
+      "acıbadem cookie",
+      "acıbadem kurabiyə",
+      "acıbadem"
+    ]
+  },
+  {
+    correct: "Pavlova",
+    variations: [
+      "pavlova",
+      "pavlovo",
+      "pavlava"
+    ]
+  },
+  {
+    correct: "Bananamania",
+    variations: [
+      "bananamania",
+      "bananmania",
+      "bananmaniya",
+      "bananamaniya",
+      "bananamanya",
+    ]
+  },
+  {
+    correct: "Pasta de nata",
+    variations: [
+      "pasta de nata",
+      "pasta de nata",
+      "pasta nata",
+      "pastanata",
+      "pasta denata",
+      "pasta da nata",
+      "pastel de nata",
+      "pastel nata"
+    ]
+  },
+  {
+    correct: "Matcha",
+    variations: [
+      "matcha",
+      "matça",
+      "macha",
+      "maca",
+      "matcha cake",
+      "matcha tort",
+      "matça tort"
+    ]
+  },
+  {
+    correct: "Mango chia",
+    variations: [
+      "mango chia",
+      "mango çia",
+      "mango chia pudding",
+      "mango çia pudding",
+      "chia mango",
+      "çia mango",
+      "mango chia seed",
+      "mango çia seed"
+    ]
+  },
+  {
+    correct: "Mango Panna",
+    variations: [
+      "mango panna",
+      "mango panna cotta",
+      "panna mango",
+      "panna cotta mango",
+      "mango pana",
+      "mango pana cotta",
+      "pana mango",
+      "pana cotta mango"
+    ]
+  },
+  {
+    correct: "Raspberry Panna",
+    variations: [
+      "rasberry panna",
+      "rasberry pana",
+      "rasbery panna",
+      "rasbery pana",
+      "raspberry panna",
+      "raspberry panna cotta",
+      "panna raspberry",
+      "panna cotta raspberry",
+      "raspberry pana",
+      "raspberry pana cotta",
+      "pana raspberry",
+      "pana cotta raspberry",
+      "malina panna",
+      "malina panna cotta",
+      "panna malina",
+      "panna cotta malina"
+    ]
+  },
+  {
+    correct: "Magnolia matcha",
+    variations: [
+      "magnolia matcha",
+      "maqnolia matcha",
+      "magnolya matcha",
+      "maqnoliya matcha",
+      "maqnolya maca",
+      "maqnolya maça",
+      "maqnoliya matcha",
+      "matcha magnolia",
+      "matcha maqnolia"
+    ]
+  },
+  {
+    correct: "Tiramisu matcha",
+    variations: [
+      "tiramisu matcha",
+      "tiramisu matca",
+      "tiramisu maca",
+      "tiramisu maça",
+      "tiramisu maccha",
+      "matcha tiramisu",
+      "tiramizo matcha"
+    ]
+  },
+  {
+    correct: "Crepes matcha",
+    variations: [
+      "crepes matcha",
+      "crepe matcha",
+      "krep matcha",
+      "kreps matcha",
+      "kreps maca",
+      "kreps maça",
+      "matcha crepe",
+      "matcha krep"
+    ]
+  },
+  {
+    correct: "Velvet matcha",
+    variations: [
+      "velvet matcha",
+      "velvet maca",
+      "velvet maça",
+      "velvet maca",
+      "red velvet matcha",
+      "matcha velvet"
+    ]
+  },
+  {
+    correct: "Cookies matcha",
+    variations: [
+      "cookies matcha",
+      "cookie matcha",
+      "cookie maca",
+      "cookie maça",
+      "kurabiye matcha",
+      "matcha cookie",
+      "matcha cookies"
+    ]
+  },
+  {
+    correct: "Cookies choco",
+    variations: [
+      "cookies koko",
+      "cookies choco",
+      "cookie choco",
+      "choco cookie",
+      "chocolate cookie",
+      "şokoladlı cookie",
+      "sokoladli cookie",
+      "şokoladlı kurabiye"
+    ]
+  },
+  {
+    correct: "Cookies vanil",
+    variations: [
+      "cookies vanil",
+      "cookie vanil",
+      "vanil cookie",
+      "vanilli cookie",
+      "vanilli kurabiye"
+    ]
+  },
+  {
+    correct: "Cookies red",
+    variations: [
+      "cookies red",
+      "cookie red",
+      "red cookie",
+      "red velvet cookie"
+    ]
+  },
+  {
+    correct: "Muffin matcha",
+    variations: [
+      "muffin matcha",
+      "maffin matcha",
+      "maffin maca",
+      "maffin maça",
+      "matcha muffin"
+    ]
+  },
+  {
+    correct: "Muffin choco",
+    variations: [
+      "muffin koko",
+      "maffin kakao",
+      "muffin kakao",
+      "maffin koko",
+      "maffin coco",
+      "muffin cocoa",
+      "muffin koko",
+      "muffin coco",
+      "muffin cocoa"
+    ]
+  },
+  {
+    correct: "Muffin orange",
+    variations: [
+      "muffin orang",
+      "maffin portagal",
+      "maffin oranj",
+      "maffin oranga",
+      "maffin orang",
+      "muffin portagal",
+      "muffin oranj",
+      "muffin oranga"
+    ]
+  },
+  {
+    correct: "Chia matcha cup",
+    variations: [
+      "chia matcha cup",
+      "çia maça cup",
+      "çia maca cup",
+      "chia matcha",
+      "matcha chia",
+      "cia matcha",
+      "cia maca",
+      "cia maça",
+      "cia matcha",
+      "çia matcha",
+      "çia matcha",
+      "chia cup matcha"
+    ]
+  },
+  
 ];
 
 interface OrderItem {

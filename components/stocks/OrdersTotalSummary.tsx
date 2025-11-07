@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TouchableOpacity, FlatList, View, Alert } from 'react-native';
+import { TouchableOpacity, FlatList, View, Alert, Text } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -25,8 +25,10 @@ interface BranchQuantity {
 interface OrdersTotalSummaryProps {
   ordersData: any;
   SHEET_HEIGHT: number;
-  scrollRef: React.RefObject<FlatList>;
+  scrollRef: React.RefObject<any>;
 }
+
+type SortType = 'alpha-asc' | 'alpha-desc' | 'quantity-asc' | 'quantity-desc';
 
 interface ProductItemProps {
   product: string;
@@ -40,6 +42,81 @@ interface ProductItemProps {
 const normalizeProductName = (name: string): string => {
   return name.trim().toLowerCase();
 };
+
+// Modern Filter Component
+const FilterButton = React.memo(({ 
+  icon, 
+  label, 
+  isActive, 
+  onPress, 
+  isDark 
+}: { 
+  icon: string; 
+  label: string; 
+  isActive: boolean; 
+  onPress: () => void; 
+  isDark: boolean;
+}) => {
+  const scaleValue = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scaleValue.value }]
+  }));
+
+  const handlePress = () => {
+    scaleValue.value = withSpring(0.92, {}, () => {
+      scaleValue.value = withSpring(1);
+    });
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onPress();
+  };
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={handlePress}
+        style={{
+          paddingHorizontal: 12,
+          paddingVertical: 7,
+          borderRadius: 18,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 5,
+          backgroundColor: isActive 
+            ? isDark ? PastryColors.chocolate : PastryColors.primary
+            : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(74,53,49,0.05)',
+          borderWidth: 1.5,
+          borderColor: isActive
+            ? isDark ? PastryColors.primary : PastryColors.chocolate
+            : 'transparent',
+          shadowColor: isActive ? PastryColors.primary : 'transparent',
+          shadowOffset: { width: 0, height: 2 },
+          shadowOpacity: 0.2,
+          shadowRadius: 4,
+          elevation: isActive ? 3 : 0,
+        }}
+      >
+        <MaterialCommunityIcons
+          name={icon as any}
+          size={15}
+          color={isActive 
+            ? isDark ? PastryColors.vanilla : '#FFFFFF'
+            : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(74,53,49,0.5)'}
+        />
+        <Text style={{
+          fontSize: 11.5,
+          fontWeight: isActive ? '700' : '500',
+          color: isActive 
+            ? isDark ? PastryColors.vanilla : '#FFFFFF'
+            : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(74,53,49,0.5)',
+        }}>
+          {label}
+        </Text>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+});
 
 // ProductItem Component
 const ProductItem = React.memo(({ 
@@ -182,6 +259,8 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
+  const [sortType, setSortType] = useState<SortType>('quantity-desc');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
 
   const getBranchQuantities = (productName: string): BranchQuantity[] => {
     const quantities: BranchQuantity[] = [];
@@ -240,7 +319,18 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
   const totalProducts = Object.keys(totals).length;
   const totalQuantity = Object.values(totals).reduce((sum, qty) => sum + qty, 0);
   const totalBranches = Object.keys(ordersData).length;
-  const totalEntries = Object.entries(totals);
+  let totalEntries = Object.entries(totals);
+
+  // Apply sorting based on sortType
+  if (sortType === 'alpha-asc') {
+    totalEntries = totalEntries.sort((a, b) => a[0].localeCompare(b[0], 'az'));
+  } else if (sortType === 'alpha-desc') {
+    totalEntries = totalEntries.sort((a, b) => b[0].localeCompare(a[0], 'az'));
+  } else if (sortType === 'quantity-asc') {
+    totalEntries = totalEntries.sort((a, b) => a[1] - b[1]);
+  } else if (sortType === 'quantity-desc') {
+    totalEntries = totalEntries.sort((a, b) => b[1] - a[1]);
+  }
 
   const handleCopy = () => {
     try {
@@ -432,6 +522,92 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
             </View>
           </View>
         </View>
+      </ThemedView>
+
+      {/* Filter Component */}
+      <ThemedView style={{
+        marginHorizontal: 12,
+        marginTop: 8,
+        marginBottom: 4,
+        borderRadius: 16,
+        backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(74,53,49,0.02)',
+        borderWidth: 1,
+        borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(74,53,49,0.05)',
+        overflow: 'hidden',
+      }}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setIsFilterOpen(!isFilterOpen);
+          }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 8,
+            padding: 10,
+          }}
+        >
+          <MaterialCommunityIcons
+            name="filter-variant"
+            size={16}
+            color={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(74,53,49,0.4)'}
+          />
+          <ThemedText style={{
+            fontSize: 11,
+            fontWeight: '600',
+            color: isDark ? 'rgba(255,255,255,0.4)' : 'rgba(74,53,49,0.4)',
+            letterSpacing: 0.5,
+            textDecorationLine: 'none',
+          }}>
+            SIRALA
+          </ThemedText>
+          <View style={{ flex: 1, height: 1, backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(74,53,49,0.05)' }} />
+          <MaterialCommunityIcons
+            name={isFilterOpen ? "chevron-up" : "chevron-down"}
+            size={18}
+            color={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(74,53,49,0.4)'}
+          />
+        </TouchableOpacity>
+        
+        {isFilterOpen && (
+          <View style={{
+            flexDirection: 'row',
+            gap: 7,
+            paddingHorizontal: 10,
+            paddingBottom: 10,
+            flexWrap: 'wrap',
+          }}>
+            <FilterButton
+              icon="sort-alphabetical-ascending"
+              label="A-Z"
+              isActive={sortType === 'alpha-asc'}
+              onPress={() => setSortType('alpha-asc')}
+              isDark={isDark}
+            />
+            <FilterButton
+              icon="sort-alphabetical-descending"
+              label="Z-A"
+              isActive={sortType === 'alpha-desc'}
+              onPress={() => setSortType('alpha-desc')}
+              isDark={isDark}
+            />
+            <FilterButton
+              icon="sort-numeric-ascending"
+              label="Azdan Çoxa"
+              isActive={sortType === 'quantity-asc'}
+              onPress={() => setSortType('quantity-asc')}
+              isDark={isDark}
+            />
+            <FilterButton
+              icon="sort-numeric-descending"
+              label="Çoxdan Aza"
+              isActive={sortType === 'quantity-desc'}
+              onPress={() => setSortType('quantity-desc')}
+              isDark={isDark}
+            />
+          </View>
+        )}
       </ThemedView>
 
       {/* Product List */}

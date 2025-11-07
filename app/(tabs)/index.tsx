@@ -49,6 +49,12 @@ export default function HomeScreen() {
       iconName: 'paperplane.fill',
       gradient: ['#6C5CE7', '#5A4BD1'],
     },
+    {
+      title: 'Analizlər',
+      description: 'Məhsulların satış statistikasını izləyin',
+      iconName: 'chart.bar.fill',
+      gradient: ['#FFD93D', '#F4C000'],
+    },
   ];
 
   return (
@@ -81,12 +87,16 @@ export default function HomeScreen() {
                 delay={300}
                 compact={true}
               />
+               <MenuContainer
+                {...menuItems[5]}
+                onPress={() => router.push('/(tabs)/analytics')}
+                delay={500}
+              />
             </ThemedView>
-
             <ThemedView style={styles.row}>
               <MenuContainer
                 {...menuItems[3]}
-                onPress={() => router.push('/(tabs)/ai_assistant' as any)}
+                onPress={() => router.push('/(tabs)/ai_assistant')}
                 delay={400}
               />
               <MenuContainer
@@ -94,6 +104,7 @@ export default function HomeScreen() {
                 onPress={() => router.push('/pages/daily-needs')}
                 delay={500}
               />
+             
             </ThemedView>
           </ThemedView>
         </ThemedView>

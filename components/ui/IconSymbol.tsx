@@ -18,6 +18,7 @@ const MAPPING = {
   'ai.fill': 'psychology',
   'trash.fill': 'delete',
   'save': 'save',
+  'chart.bar.fill': 'bar-chart',
 } as const;
 
 export type IconSymbolName =
@@ -34,7 +35,8 @@ export type IconSymbolName =
   | 'list.clipboard.fill'
   | 'person.2.fill'
   | 'ai.fill'
-  | 'trash.fill';
+  | 'trash.fill'
+  | 'chart.bar.fill';
 
 type IconSymbolProps = {
   name: IconSymbolName;

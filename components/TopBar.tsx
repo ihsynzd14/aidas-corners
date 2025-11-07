@@ -1,4 +1,4 @@
-import { StyleSheet, ViewStyle, TouchableOpacity, Pressable, View } from 'react-native';
+import { StyleSheet, ViewStyle, TouchableOpacity, Pressable, View , Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconSymbol } from './ui/IconSymbol';
 import { ThemedText } from './ThemedText';
@@ -7,7 +7,6 @@ import { GradientBackground } from './ui/GradientBackground';
 import { PastryColors, Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useRouter, usePathname } from 'expo-router';
-import { Platform } from 'react-native';
 
 type TopBarProps = {
   title: string;

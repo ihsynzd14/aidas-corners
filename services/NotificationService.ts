@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 import { SchedulableTriggerInputTypes } from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NotificationHistoryItem } from '@/components/ai-assistant/core/types';
+import Constants from 'expo-constants';
 
 interface NotificationData {
   title: string;
@@ -42,29 +43,39 @@ export class NotificationService {
   }
 
   private async setupNotifications() {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    
-    if (finalStatus !== 'granted') {
-      console.log('Bildiriş icazəsi alınmadı!');
-      return;
-    }
+    try {
+      const isExpoGo = Constants.appOwnership === 'expo';
+      
+      const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      let finalStatus = existingStatus;
+      
+      if (existingStatus !== 'granted') {
+        const { status } = await Notifications.requestPermissionsAsync();
+        finalStatus = status;
+      }
+      
+      if (finalStatus !== 'granted') {
+        console.log('Bildiriş icazəsi alınmadı!');
+        return;
+      }
 
-    if (Platform.OS === 'android') {
-      await Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
-        vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
-      });
-    }
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
+        });
+      }
 
-    await this.scheduleNotifications();
+      if (isExpoGo) {
+        console.log('✅ Local bildirimlər hazırdır (Expo Go)');
+      }
+
+      await this.scheduleNotifications();
+    } catch (error) {
+      console.log('Bildirim kurulumu sırasında hata (normal for Expo Go):', error);
+    }
   }
 
   public async getNotificationTimes(): Promise<NotificationTime[]> {
@@ -92,35 +103,41 @@ export class NotificationService {
   }
 
   private async scheduleNotifications() {
-    await Notifications.cancelAllScheduledNotificationsAsync();
+    try {
+      await Notifications.cancelAllScheduledNotificationsAsync();
 
-    const notificationTimes = await this.getNotificationTimes();
+      const notificationTimes = await this.getNotificationTimes();
 
-    for (const { hour, minute, type } of notificationTimes) {
-      const now = new Date();
-      const nextTriggerDate = new Date(now);
-      nextTriggerDate.setHours(hour, minute, 0, 0);
-      
-      if (nextTriggerDate <= now) {
-        nextTriggerDate.setDate(nextTriggerDate.getDate() + 1);
-      }
-
-      let notificationData = await this.prepareNotificationData(type);
-
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: notificationData.title,
-          body: notificationData.body,
-          sound: true,
-          priority: Notifications.AndroidNotificationPriority.HIGH,
-          data: { type }
-        },
-        trigger: {
-          hour: hour,
-          minute: minute,
-          type: SchedulableTriggerInputTypes.DAILY
+      for (const { hour, minute, type } of notificationTimes) {
+        const now = new Date();
+        const nextTriggerDate = new Date(now);
+        nextTriggerDate.setHours(hour, minute, 0, 0);
+        
+        if (nextTriggerDate <= now) {
+          nextTriggerDate.setDate(nextTriggerDate.getDate() + 1);
         }
-      });
+
+        let notificationData = await this.prepareNotificationData(type);
+
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: notificationData.title,
+            body: notificationData.body,
+            sound: true,
+            priority: Notifications.AndroidNotificationPriority.HIGH,
+            data: { type }
+          },
+          trigger: {
+            hour: hour,
+            minute: minute,
+            type: SchedulableTriggerInputTypes.DAILY
+          }
+        });
+      }
+      
+      console.log('✅ Local bildirimlər planlandı');
+    } catch (error) {
+      console.log('Bildirim zamanlama hatası:', error);
     }
   }
 

@@ -21,8 +21,8 @@ import { CorrectionModal } from './CorrectionModal';
 import { correctOrderText } from '@/utils/orderCorrection';
 import { getBranches, addOrder, formatDate } from '@/utils/firebase';
 import { Branch } from '@/types/branch';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+
 
 export function OrderForm() {
   const colorScheme = useColorScheme();

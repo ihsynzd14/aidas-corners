@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
-import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 
 interface TabLabelProps {
   label: string;
@@ -10,13 +10,7 @@ interface TabLabelProps {
 
 export function TabLabel({ label, color, focused }: TabLabelProps) {
   const animatedStyle = useAnimatedStyle(() => ({
-    opacity: withSpring(focused ? 1 : 0.7),
-    transform: [{ 
-      translateY: withSpring(focused ? 0 : 2, {
-        damping: 12,
-        stiffness: 100
-      })
-    }]
+    opacity: withTiming(focused ? 1 : 0.6, { duration: 150 }),
   }));
 
   return (
@@ -33,9 +27,10 @@ export function TabLabel({ label, color, focused }: TabLabelProps) {
 
 const styles = StyleSheet.create({
   label: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     marginTop: 4,
     letterSpacing: 0.2,
+    textAlign: 'center',
   }
 });

@@ -1,30 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
-  ActivityIndicator, 
-  Dimensions, 
-  TouchableOpacity, 
-  RefreshControl,
-  ScrollView as RNScrollView // Using native ScrollView
-} from 'react-native';
+import { Dimensions, ScrollView as RNScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
-import { OrdersDatePicker } from './OrdersDatePicker';
-import { OrdersSummaryTable } from './OrdersSummaryTable';
+import { ModernDatePicker } from './ModernDatePicker';
+import { ModernOrdersSummaryTable } from './ModernOrdersSummaryTable';
 import { OrdersTotalSummary } from './OrdersTotalSummary';
 import { fetchOrdersByDate } from '@/utils/ordersData';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Colors, PastryColors } from '@/constants/Colors';
-import { ThemedText } from '../ThemedText';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  interpolate,
-  Extrapolate,
-} from 'react-native-reanimated';
+import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
+import { SkeletonOrdersTable, SkeletonDatePicker } from './SkeletonLoader';
+import { EnhancedErrorState } from './EnhancedErrorState';
+import { SuccessToast } from './FeedbackComponents';
 import { Ionicons } from '@expo/vector-icons';
-import { PastryLoader } from '../ui/PastryLoader';
+import { PastryColors } from '@/constants/Colors';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const MIN_SHEET_HEIGHT = 250;
@@ -35,53 +24,67 @@ export function OrdersSummaryContent() {
   const [ordersData, setOrdersData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorType, setErrorType] = useState<'network' | 'server' | 'unknown'>('unknown');
   const [isExpanded, setIsExpanded] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const insets = useSafeAreaInsets();
-  const scrollRef = useRef(null);
+  const scrollRef = useRef<RNScrollView | null>(null);
   
   const animation = useSharedValue(0);
+
+  const animatedStyle = useAnimatedStyle(() => {
+    return {
+      height: withSpring(isExpanded ? EXPANDED_HEIGHT : MIN_SHEET_HEIGHT, {
+        damping: 20,
+        stiffness: 90,
+      }),
+    };
+  });
 
   const toggleExpanded = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setIsExpanded(!isExpanded);
-    animation.value = withSpring(isExpanded ? 0 : 1, {
-      damping: 15,
-      stiffness: 100,
-      mass: 0.8,
-    });
   };
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    height: interpolate(
-      animation.value,
-      [0, 1],
-      [MIN_SHEET_HEIGHT, EXPANDED_HEIGHT],
-      Extrapolate.CLAMP
-    ),
-  }));
 
   const loadOrders = async () => {
     try {
+      setError(null);
       const data = await fetchOrdersByDate(selectedDate);
       setOrdersData(data);
-      setError(null);
-    } catch (error) {
-      setError('Sifarişləri yükləyərkən xəta baş verdi');
+      setToastMessage('Sifarişlər uğurla yükləndi');
+      setShowSuccessToast(true);
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Sifarişləri yükləyərkən xəta baş verdi';
+      
+      // Network error detection
+      if (errorMessage.includes('network') || errorMessage.includes('Network')) {
+        setErrorType('network');
+      } else if (errorMessage.includes('server') || errorMessage.includes('500')) {
+        setErrorType('server');
+      } else {
+        setErrorType('unknown');
+      }
+      
+      setError(errorMessage);
       console.error('Error loading orders:', error);
     }
   };
 
+  const handleRetry = () => {
+    setLoading(true);
+    setError(null);
+    loadOrders().finally(() => setLoading(false));
+  };
+
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
-    try {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      await loadOrders();
-    } finally {
-      setRefreshing(false);
-    }
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    await loadOrders();
+    setRefreshing(false);
   }, [selectedDate]);
 
   useEffect(() => {
@@ -91,23 +94,37 @@ export function OrdersSummaryContent() {
 
   if (loading) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <PastryLoader />
+      <ThemedView style={{ flex: 1 }}>
+        <ThemedView style={{ padding: 16 }}>
+          <SkeletonDatePicker />
+          <SkeletonOrdersTable />
+        </ThemedView>
       </ThemedView>
     );
   }
 
   if (error) {
     return (
-      <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', padding: 20 }}>
-        <ThemedText style={{ color: Colors.danger, textAlign: 'center' }}>{error}</ThemedText>
+      <ThemedView style={{ flex: 1 }}>
+        <EnhancedErrorState 
+          error={error} 
+          type={errorType}
+          onRetry={handleRetry}
+        />
       </ThemedView>
     );
   }
 
   return (
     <ThemedView style={{ flex: 1 }}>
-      <RNScrollView 
+      <SuccessToast
+        visible={showSuccessToast}
+        message={toastMessage}
+        onHide={() => setShowSuccessToast(false)}
+        type="success"
+      />
+      
+      <RNScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
         scrollEventThrottle={16}
@@ -127,8 +144,8 @@ export function OrdersSummaryContent() {
           />
         }
       >
-        <OrdersDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
-        <OrdersSummaryTable 
+        <ModernDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+        <ModernOrdersSummaryTable 
           ordersData={ordersData} 
           selectedDate={selectedDate}
           onDataChange={loadOrders}

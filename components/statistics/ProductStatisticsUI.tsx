@@ -133,7 +133,7 @@ interface ProductStatisticsUIProps {
   selectedBranch: string;
   dailyStats: DailyStats[];
   availableBranches: string[];
-  bottomSheetModalRef: React.RefObject<BottomSheetModal>;
+  bottomSheetModalRef: React.RefObject<BottomSheetModal | null>;
   onStartDateChange: (event: any, selectedDate?: Date) => void;
   onEndDateChange: (event: any, selectedDate?: Date) => void;
   setShowStartPicker: (show: boolean) => void;

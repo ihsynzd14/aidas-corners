@@ -32,7 +32,7 @@ interface Props {
 const TypeWriter = ({ text, onComplete, style }: { text: string; onComplete?: () => void; style?: any }) => {
   const [displayedText, setDisplayedText] = useState('');
   const [isComplete, setIsComplete] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const textRef = useRef(text);
   const chunkSize = 5; // Her adımda eklenecek karakter sayısı
   

@@ -15,7 +15,7 @@ interface ProductStats {
 }
 
 interface ProductSelectionBottomSheetProps {
-  bottomSheetModalRef: React.RefObject<BottomSheetModal>;
+  bottomSheetModalRef: React.RefObject<BottomSheetModal | null>;
   selectedProduct: string;
   selectedBranch: string;
   productStats: ProductStats[];
@@ -52,11 +52,6 @@ export const ProductSelectionBottomSheet: React.FC<ProductSelectionBottomSheetPr
       ref={bottomSheetModalRef}
       index={0}
       snapPoints={['75%']}
-      onChange={(index) => {
-        if (index === -1) {
-          // Handle sheet close
-        }
-      }}
       enablePanDownToClose={true}
       backgroundStyle={[styles.bottomSheetBackground, { backgroundColor: bgColor }]}
       handleIndicatorStyle={[styles.bottomSheetIndicator, { backgroundColor: isDark ? '#4B5563' : '#D1D5DB' }]}

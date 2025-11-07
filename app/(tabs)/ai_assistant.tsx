@@ -14,7 +14,7 @@ const API_KEYS = {
   gemini: ''
 };
 
-const API_BASE_URL = 'https://aidas-corners-springboot-production.up.railway.app/api';
+const API_BASE_URL = 'https://aidas-corners.up.railway.app/api';
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
 export default function AiAssistant() {
@@ -57,8 +57,8 @@ export default function AiAssistant() {
         console.warn('Gemini key yüklenirken hata:', e);
       }
       
-      API_KEYS.groq = savedGroqKey || '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';
-      API_KEYS.openrouter = savedOpenrouterKey || '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';
+      API_KEYS.groq = savedGroqKey || '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';
+      API_KEYS.openrouter = savedOpenrouterKey || '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';
       API_KEYS.gemini = savedGeminiKey || 'AIzaSyC26TIDS26c5rve0bM2OQkkxEdoWNUtNhg';
 
       console.log('API Keys loaded:', {
@@ -73,8 +73,8 @@ export default function AiAssistant() {
       Alert.alert('Xəta', 'API açarları yüklənərkən xəta baş verdi');
       
       // Hata durumunda varsayılan anahtarları kullan
-      API_KEYS.groq = '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';
-      API_KEYS.openrouter = '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';
+      API_KEYS.groq = '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';
+      API_KEYS.openrouter = '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';
       API_KEYS.gemini = 'AIzaSyC26TIDS26c5rve0bM2OQkkxEdoWNUtNhg';
       
       initializeAI();
