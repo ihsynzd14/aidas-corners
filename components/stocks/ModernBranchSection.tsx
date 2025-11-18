@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { TouchableOpacity, View, StyleSheet, Animated as RNAnimated } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, Animated as RNAnimated, Platform } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { MaterialCommunityIcons, Feather, AntDesign } from '@expo/vector-icons';
 import { Colors, PastryColors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import * as Haptics from 'expo-haptics';
+import { BlurView } from 'expo-blur';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -92,8 +93,8 @@ export const ModernBranchSection = ({
           headerAnimatedStyle,
           {
             borderBottomColor: isDark
-              ? 'rgba(255,255,255,0.1)'
-              : 'rgba(0,0,0,0.06)',
+              ? 'rgba(255,255,255,0.05)'
+              : 'rgba(0,0,0,0.03)',
           },
         ]}
       >
@@ -109,14 +110,14 @@ export const ModernBranchSection = ({
                   styles.iconWrapper,
                   {
                     backgroundColor: isDark
-                      ? 'rgba(255,255,255,0.1)'
-                      : 'rgba(74,53,49,0.05)',
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(74,53,49,0.04)',
                   },
                 ]}
               >
                 <MaterialCommunityIcons
                   name="store"
-                  size={24}
+                  size={26}
                   color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
                 />
               </ThemedView>
@@ -134,20 +135,22 @@ export const ModernBranchSection = ({
                 >
                   {branchName}
                 </ThemedText>
-                <ThemedText
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                  style={[
-                    styles.productCount,
-                    {
-                      color: isDark
-                        ? 'rgba(255,255,255,0.6)'
-                        : 'rgba(0,0,0,0.5)',
-                    },
-                  ]}
-                >
-                  {Object.keys(products).length} məhsul
-                </ThemedText>
+                <ThemedView style={styles.countBadge}>
+                  <ThemedText
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    style={[
+                      styles.productCount,
+                      {
+                        color: isDark
+                          ? 'rgba(255,255,255,0.7)'
+                          : 'rgba(0,0,0,0.6)',
+                      },
+                    ]}
+                  >
+                    {Object.keys(products).length} məhsul
+                  </ThemedText>
+                </ThemedView>
               </ThemedView>
             </ThemedView>
 
@@ -158,8 +161,8 @@ export const ModernBranchSection = ({
                   styles.actionButton,
                   {
                     backgroundColor: isDark
-                      ? 'rgba(255,255,255,0.1)'
-                      : 'rgba(74,53,49,0.05)',
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(74,53,49,0.04)',
                   },
                 ]}
                 activeOpacity={0.7}
@@ -177,8 +180,8 @@ export const ModernBranchSection = ({
                   styles.actionButton,
                   {
                     backgroundColor: isDark
-                      ? 'rgba(255,255,255,0.1)'
-                      : 'rgba(74,53,49,0.05)',
+                      ? 'rgba(255,255,255,0.08)'
+                      : 'rgba(74,53,49,0.04)',
                   },
                 ]}
                 activeOpacity={0.7}
@@ -186,20 +189,10 @@ export const ModernBranchSection = ({
                 <AntDesign name="delete" size={20} color={Colors.danger} />
               </TouchableOpacity>
 
-              <Animated.View
-                style={[
-                  styles.expandButton,
-                  {
-                    backgroundColor: isDark
-                      ? 'rgba(255,255,255,0.1)'
-                      : 'rgba(74,53,49,0.05)',
-                  },
-                  iconRotation,
-                ]}
-              >
+              <Animated.View style={[styles.expandButton, iconRotation]}>
                 <Feather
                   name="chevron-down"
-                  size={20}
+                  size={22}
                   color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
                 />
               </Animated.View>
@@ -210,14 +203,15 @@ export const ModernBranchSection = ({
 
       {isExpanded && (
         <ThemedView style={styles.productsContainer}>
-          {Object.entries(products).map(([product, quantity], index) => (
+          {Object.entries(products).map(([productName, quantity], index) => (
             <ProductItem
-              key={product}
-              product={product}
+              key={productName}
+              productName={productName}
               quantity={quantity}
-              isLast={index === Object.keys(products).length - 1}
-              onEdit={() => onEditProduct(product, quantity.toString())}
-              onDelete={() => onDeleteProduct(product)}
+              isDark={isDark}
+              onEdit={() => onEditProduct(productName, quantity.toString())}
+              onDelete={() => onDeleteProduct(productName)}
+              isLast={index === Object.entries(products).length - 1}
             />
           ))}
         </ThemedView>
@@ -226,17 +220,21 @@ export const ModernBranchSection = ({
   );
 };
 
-interface ProductItemProps {
-  product: string;
+const ProductItem = ({
+  productName,
+  quantity,
+  isDark,
+  onEdit,
+  onDelete,
+  isLast,
+}: {
+  productName: string;
   quantity: number;
-  isLast: boolean;
+  isDark: boolean;
   onEdit: () => void;
   onDelete: () => void;
-}
-
-const ProductItem = ({ product, quantity, isLast, onEdit, onDelete }: ProductItemProps) => {
-  const isDark = useColorScheme() === 'dark';
-
+  isLast: boolean;
+}) => {
   const handleEdit = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onEdit();
@@ -248,44 +246,55 @@ const ProductItem = ({ product, quantity, isLast, onEdit, onDelete }: ProductIte
   };
 
   return (
-    <ThemedView
+    <View
       style={[
         styles.productItem,
         {
-          marginBottom: isLast ? 0 : 12,
-          backgroundColor: isDark
+          borderBottomWidth: isLast ? 0 : 1,
+          borderBottomColor: isDark
             ? 'rgba(255,255,255,0.05)'
-            : 'rgba(74,53,49,0.03)',
+            : 'rgba(0,0,0,0.03)',
         },
       ]}
     >
-      <ThemedView style={styles.productInfo}>
-        <MaterialCommunityIcons
-          name="cookie"
-          size={20}
-          color={isDark ? 'rgba(255,255,255,0.5)' : 'rgba(74,53,49,0.5)'}
-          style={styles.productIcon}
-        />
-        <ThemedText
+      <View style={styles.productInfo}>
+        <View
           style={[
-            styles.productName,
+            styles.productIconBadge,
             {
-              color: isDark ? PastryColors.vanilla : '#333',
+              backgroundColor: isDark
+                ? 'rgba(255,255,255,0.08)'
+                : 'rgba(74,53,49,0.06)',
             },
           ]}
         >
-          {product}
+          <MaterialCommunityIcons
+            name="cake-variant"
+            size={20}
+            color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
+          />
+        </View>
+        <ThemedText
+          numberOfLines={1}
+          style={[
+            styles.productName,
+            {
+              color: isDark ? PastryColors.vanilla : PastryColors.chocolate,
+            },
+          ]}
+        >
+          {productName}
         </ThemedText>
-      </ThemedView>
+      </View>
 
       <View style={styles.productActions}>
-        <ThemedView
+        <View
           style={[
-            styles.quantityBadge,
+            styles.quantityChip,
             {
               backgroundColor: isDark
-                ? 'rgba(255,255,255,0.15)'
-                : 'rgba(74,53,49,0.07)',
+                ? 'rgba(255,255,255,0.1)'
+                : 'rgba(74,53,49,0.08)',
             },
           ]}
         >
@@ -299,16 +308,16 @@ const ProductItem = ({ product, quantity, isLast, onEdit, onDelete }: ProductIte
           >
             {quantity}
           </ThemedText>
-        </ThemedView>
+        </View>
 
         <TouchableOpacity
           onPress={handleEdit}
           style={[
-            styles.productActionButton,
+            styles.actionButton,
             {
               backgroundColor: isDark
-                ? 'rgba(255,255,255,0.1)'
-                : 'rgba(74,53,49,0.05)',
+                ? 'rgba(255,255,255,0.08)'
+                : 'rgba(74,53,49,0.06)',
             },
           ]}
           activeOpacity={0.7}
@@ -323,11 +332,11 @@ const ProductItem = ({ product, quantity, isLast, onEdit, onDelete }: ProductIte
         <TouchableOpacity
           onPress={handleDelete}
           style={[
-            styles.productActionButton,
+            styles.actionButton,
             {
               backgroundColor: isDark
-                ? 'rgba(255,255,255,0.1)'
-                : 'rgba(74,53,49,0.05)',
+                ? 'rgba(255,255,255,0.08)'
+                : 'rgba(74,53,49,0.06)',
             },
           ]}
           activeOpacity={0.7}
@@ -335,26 +344,33 @@ const ProductItem = ({ product, quantity, isLast, onEdit, onDelete }: ProductIte
           <AntDesign name="delete" size={18} color={Colors.danger} />
         </TouchableOpacity>
       </View>
-    </ThemedView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginBottom: 16,
-    borderRadius: 16,
+    marginBottom: 20,
+    borderRadius: 24,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    elevation: 4,
     overflow: 'hidden',
+    ...Platform.select({
+      ios: {
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.08,
+        shadowRadius: 16,
+      },
+    }),
   },
   header: {
     overflow: 'hidden',
   },
   headerTouchable: {
-    padding: 16,
+    padding: 24,
   },
   headerContent: {
     flexDirection: 'row',
@@ -368,90 +384,103 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 16,
     backgroundColor: 'transparent',
-    maxWidth: '70%',
   },
   iconWrapper: {
-    height: 44,
-    width: 44,
-    borderRadius: 22,
+    height: 52,
+    width: 52,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: 16,
     flexShrink: 0,
   },
   textContainer: {
     backgroundColor: 'transparent',
     flex: 1,
+    gap: 6,
   },
   branchName: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '600',
-    marginBottom: 4,
+    letterSpacing: 0.3,
+    ...Platform.select({
+      ios: {
+        fontWeight: '700',
+      },
+    }),
+  },
+  countBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: 'transparent',
   },
   productCount: {
-    fontSize: 14,
+    fontSize: 13,
+    fontWeight: '500',
+    letterSpacing: 0.2,
+  },
+  expandButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    flexShrink: 0,
   },
   actionButton: {
     padding: 10,
     borderRadius: 10,
-  },
-  expandButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
   productsContainer: {
     backgroundColor: 'transparent',
-    padding: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   productItem: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 14,
-    borderRadius: 12,
+    paddingVertical: 14,
   },
   productInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
-    marginRight: 16,
-    backgroundColor: 'transparent',
+    gap: 12,
   },
-  productIcon: {
-    marginRight: 12,
+  productIconBadge: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   productName: {
-    flex: 1,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '500',
+    flex: 1,
+    letterSpacing: 0.2,
   },
   productActions: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
   },
-  quantityBadge: {
+  quantityChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
-    minWidth: 45,
+    minWidth: 50,
     alignItems: 'center',
   },
   quantityText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-  },
-  productActionButton: {
-    padding: 8,
-    borderRadius: 8,
+    letterSpacing: 0.3,
   },
 });

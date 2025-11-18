@@ -39,8 +39,8 @@ export function OrdersSummaryContent() {
   const animatedStyle = useAnimatedStyle(() => {
     return {
       height: withSpring(isExpanded ? EXPANDED_HEIGHT : MIN_SHEET_HEIGHT, {
-        damping: 20,
-        stiffness: 90,
+        damping: 95,
+        stiffness: 95,
       }),
     };
   });
