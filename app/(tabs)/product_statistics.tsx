@@ -7,6 +7,8 @@ import { useProductStatistics } from '@/components/statistics/ProductStatisticsL
 
 export default function ProductStatisticsScreen() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const [shareVisible, setShareVisible] = React.useState(false);
+
   const {
     loading,
     productStats,
@@ -76,6 +78,8 @@ export default function ProductStatisticsScreen() {
           dailyStats={dailyStats}
           availableBranches={availableBranches}
           bottomSheetModalRef={bottomSheetModalRef}
+          shareVisible={shareVisible}
+          setShareVisible={setShareVisible}
           onStartDateChange={onStartDateChange}
           onEndDateChange={onEndDateChange}
           setShowStartPicker={setShowStartPicker}
@@ -92,4 +96,4 @@ export default function ProductStatisticsScreen() {
       </BottomSheetModalProvider>
     </GestureHandlerRootView>
   );
-} 
+}

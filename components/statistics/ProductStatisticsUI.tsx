@@ -1,125 +1,18 @@
-import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, ActivityIndicator, useColorScheme, Text, Animated, LayoutAnimation, View } from 'react-native';
+import React from 'react';
+import { StyleSheet, TouchableOpacity, ActivityIndicator, useColorScheme as useNativeColorScheme, Text, View, Platform, StatusBar } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
-import { TopBar } from '@/components/TopBar';
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 import { DatePicker } from '@/components/statistics/DatePicker';
 import { ViewSwitcher } from '@/components/statistics/ViewSwitcher';
 import { SummaryView } from '@/components/statistics/SummaryView';
 import { DailyView } from '@/components/statistics/DailyView';
 import { ProductSelectionBottomSheet } from '@/components/statistics/ProductSelectionBottomSheet';
+import { ShareBottomSheet } from '@/components/statistics/ShareBottomSheet';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { ProductStats, DailyStats } from './ProductStatisticsLogic';
-
-interface ExportButtonsProps {
-  onExcelPress: () => void;
-  onWhatsAppPress: () => void;
-  onCopyPress: () => void;
-  startDate: Date;
-  endDate: Date;
-}
-
-export const ExportButtons: React.FC<ExportButtonsProps> = ({
-  onExcelPress,
-  onWhatsAppPress,
-  onCopyPress,
-  startDate,
-  endDate
-}) => {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('az-AZ', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  };
-
-  const toggleExpand = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded(!isExpanded);
-  };
-
-  const bgColor = isDark ? '#1F2937' : '#FFFFFF';
-  const borderColor = isDark ? '#374151' : '#E5E7EB';
-  const textColor = isDark ? '#E5E7EB' : '#374151';
-  const secondaryTextColor = isDark ? '#9CA3AF' : '#6B7280';
-
-  return (
-    <View style={[styles.exportWrapper, { borderColor, backgroundColor: bgColor }]}>
-      <TouchableOpacity 
-        style={styles.headerSection} 
-        onPress={toggleExpand}
-        activeOpacity={0.7}
-      >
-        <View style={styles.headerLeft}>
-          <MaterialIcons 
-            name="ios-share" 
-            size={22} 
-            color={textColor}
-            style={styles.shareIcon}
-          />
-          <Text style={[styles.headerTitle, { color: textColor }]}>
-            Paylaş
-          </Text>
-        </View>
-        
-        <View style={styles.headerRight}>
-          <Text style={[styles.dateText, { color: secondaryTextColor }]}>
-            {formatDate(startDate)} - {formatDate(endDate)}
-          </Text>
-          <MaterialIcons 
-            name={isExpanded ? "keyboard-arrow-up" : "keyboard-arrow-down"} 
-            size={24} 
-            color={secondaryTextColor}
-            style={styles.arrowIcon}
-          />
-        </View>
-      </TouchableOpacity>
-
-      {isExpanded && (
-        <View style={[styles.buttonGroup, { borderTopColor: borderColor }]}>
-          <TouchableOpacity 
-            style={[
-              styles.exportButton, 
-              styles.outlineButton,
-              { backgroundColor: bgColor, borderColor }
-            ]} 
-            onPress={onExcelPress}
-          >
-            <View style={styles.buttonContent}>
-              <MaterialIcons name="table-chart" size={20} color="#10B981" />
-              <Text style={[styles.buttonText, { color: "#10B981" }]}>Excel</Text>
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.exportButton, styles.whatsappButton]} 
-            onPress={onWhatsAppPress}
-          >
-            <View style={styles.buttonContent}>
-              <MaterialCommunityIcons name="whatsapp" size={20} color="#FFFFFF" />
-              <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>WhatsApp</Text>
-            </View>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[
-              styles.exportButton, 
-              styles.outlineButton,
-              { backgroundColor: bgColor, borderColor }
-            ]} 
-            onPress={onCopyPress}
-          >
-            <View style={styles.buttonContent}>
-              <MaterialIcons name="content-copy" size={20} color={textColor} />
-              <Text style={[styles.buttonText, { color: textColor }]}>Kopyala</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
-};
+import { useRouter } from 'expo-router';
+import { colorScheme } from '@/constants/colorScheme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ProductStatisticsUIProps {
   loading: boolean;
@@ -146,6 +39,8 @@ interface ProductStatisticsUIProps {
   generateExcel: () => void;
   generateWhatsAppText: () => void;
   copyToClipboard: () => void;
+  shareVisible: boolean;
+  setShareVisible: (visible: boolean) => void;
 }
 
 export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
@@ -172,59 +67,127 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
   handlePresentModalPress,
   generateExcel,
   generateWhatsAppText,
-  copyToClipboard
+  copyToClipboard,
+  shareVisible,
+  setShareVisible
 }) => {
+  const router = useRouter();
+  const nativeColorScheme = useNativeColorScheme();
+  const isDark = nativeColorScheme === 'dark';
+  const insets = useSafeAreaInsets();
+
+  const handleSharePress = () => {
+    setShareVisible(true);
+  };
+
+  const bgColor = isDark ? colorScheme.backgroundDark : colorScheme.backgroundLight;
+  const headerBgColor = isDark ? 'rgba(44, 42, 41, 0.8)' : 'rgba(253, 247, 243, 0.8)'; // slightly transparent version of background
+  const borderColor = isDark ? colorScheme.cardDark : colorScheme.cardLight; // Using card colors for borders as per scheme
+  const textColor = isDark ? colorScheme.textDark : colorScheme.textLight;
+
   return (
-    <ThemedView style={styles.container}>
-      <TopBar 
-        title="Məhsul Statistikası" 
-        style={styles.topBar}
-      />
-      
-      <ViewSwitcher 
-        viewMode={viewMode}
-        setViewMode={setViewMode}
-      />
+    <ThemedView style={[styles.container, { backgroundColor: bgColor }]}>
+      <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
-      <DatePicker
-        startDate={startDate}
-        endDate={endDate}
-        showStartPicker={showStartPicker}
-        showEndPicker={showEndPicker}
-        onStartDateChange={onStartDateChange}
-        onEndDateChange={onEndDateChange}
-        setShowStartPicker={setShowStartPicker}
-        setShowEndPicker={setShowEndPicker}
-      />
+      {/* Header */}
+      <View style={{ backgroundColor: headerBgColor, paddingTop: insets.top }}>
+        <View style={[
+          styles.header,
+          {
+            borderBottomColor: isDark ? 'rgba(82, 42, 50, 0.5)' : 'rgba(231, 208, 212, 0.5)', // specific border colors from HTML logic but mapped to our scheme if possible, or kept close
+            backgroundColor: headerBgColor
+          }
+        ]}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => router.back()}
+          >
+            <MaterialIcons name="arrow-back" size={24} color={textColor} />
+          </TouchableOpacity>
 
-      {loading ? (
-        <ThemedView style={styles.loadingContainer}>
-          <ActivityIndicator size="large" />
-        </ThemedView>
-      ) : (
-        viewMode === 'summary' ? (
-          <>
-            <ExportButtons
-              onExcelPress={generateExcel}
-              onWhatsAppPress={generateWhatsAppText}
-              onCopyPress={copyToClipboard}
-              startDate={startDate}
-              endDate={endDate}
-            />
-            <SummaryView productStats={productStats} />
-          </>
+          <Text style={[styles.headerTitle, { color: textColor }]}>Məhsul Statistikası</Text>
+
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={handleSharePress}
+          >
+            <MaterialIcons name="ios-share" size={24} color={textColor} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Navigation Tabs (Umumi / Tek Filial) */}
+      <View style={[
+        styles.navTabs,
+        {
+          backgroundColor: bgColor,
+          borderBottomColor: borderColor
+        }
+      ]}>
+        <TouchableOpacity
+          style={[
+            styles.navTab,
+            viewMode === 'summary' && { borderBottomColor: colorScheme.primary }
+          ]}
+          onPress={() => setViewMode('summary')}
+        >
+          <Text style={[
+            styles.navTabText,
+            { color: viewMode === 'summary' ? textColor : (isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight) }
+          ]}>
+            Ümumi Baxış
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.navTab,
+            viewMode === 'daily' && { borderBottomColor: colorScheme.primary }
+          ]}
+          onPress={() => setViewMode('daily')}
+        >
+          <Text style={[
+            styles.navTabText,
+            { color: viewMode === 'daily' ? textColor : (isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight) }
+          ]}>
+            Tək Filial Baxış
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Content */}
+      <View style={styles.content}>
+        <DatePicker
+          startDate={startDate}
+          endDate={endDate}
+          showStartPicker={showStartPicker}
+          showEndPicker={showEndPicker}
+          onStartDateChange={onStartDateChange}
+          onEndDateChange={onEndDateChange}
+          setShowStartPicker={setShowStartPicker}
+          setShowEndPicker={setShowEndPicker}
+        />
+
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={colorScheme.primary} />
+          </View>
         ) : (
-          <DailyView
-            selectedProduct={selectedProduct}
-            selectedBranch={selectedBranch}
-            dailyStats={dailyStats}
-            onSelectionPress={handlePresentModalPress}
-          />
-        )
-      )}
+          viewMode === 'summary' ? (
+            <SummaryView productStats={productStats} />
+          ) : (
+            <DailyView
+              selectedProduct={selectedProduct}
+              selectedBranch={selectedBranch}
+              dailyStats={dailyStats}
+              onSelectionPress={handlePresentModalPress}
+            />
+          )
+        )}
+      </View>
 
       <ProductSelectionBottomSheet
-        bottomSheetModalRef={bottomSheetModalRef}
+        bottomSheetModalRef={bottomSheetModalRef as React.RefObject<BottomSheetModal>}
         selectedProduct={selectedProduct}
         selectedBranch={selectedBranch}
         productStats={productStats}
@@ -233,6 +196,14 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
         setSelectedBranch={setSelectedBranch}
         setAvailableBranches={setAvailableBranches}
       />
+
+      <ShareBottomSheet
+        visible={shareVisible}
+        onClose={() => setShareVisible(false)}
+        onExcelPress={generateExcel}
+        onWhatsAppPress={generateWhatsAppText}
+        onCopyPress={copyToClipboard}
+      />
     </ThemedView>
   );
 };
@@ -240,83 +211,53 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingBottom: 110,
+  },
+  header: {
+    height: 56, // h-16 in tailwind is 64px usually, but h-16 is 4rem = 64px. HTML says h-16. Let's check tailwind. h-16 is 4rem. 1rem = 16px usually. So 64px.
+    // Wait, HTML says h-16. 
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16, // px-4
+    borderBottomWidth: 1,
+  },
+  headerButton: {
+    width: 48, // w-12
+    height: 48, // h-12
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 18, // text-lg
+    fontWeight: 'bold',
+    textAlign: 'center',
+    flex: 1,
+  },
+  navTabs: {
+    flexDirection: 'row',
+    paddingHorizontal: 16, // px-4
+    borderBottomWidth: 1,
+    zIndex: 10,
+  },
+  navTab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14, // py-3.5
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  navTabText: {
+    fontSize: 14, // text-sm
+    fontWeight: 'bold',
+  },
+  content: {
+    flex: 1,
+    padding: 16, // p-4
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  topBar: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-  },
-  exportWrapper: {
-    marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-  },
-  headerSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 14,
-  },
-  headerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  shareIcon: {
-    marginRight: 8,
-  },
-  arrowIcon: {
-    marginLeft: 8,
-  },
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  dateText: {
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    gap: 8,
-    padding: 14,
-    paddingTop: 10,
-    borderTopWidth: 1,
-  },
-  exportButton: {
-    flex: 1,
-    padding: 10,
-    borderRadius: 8,
-  },
-  outlineButton: {
-    borderWidth: 1,
-  },
-  whatsappButton: {
-    backgroundColor: '#25D366',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-  },
-  buttonText: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-}); 
+});

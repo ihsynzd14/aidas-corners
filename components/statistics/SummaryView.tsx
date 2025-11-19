@@ -43,13 +43,13 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ productStats }) => {
   return (
     <ScrollView style={styles.scrollView}>
       {productStats.map((stat, index) => (
-        <Pressable 
-          key={index} 
+        <Pressable
+          key={index}
           onPress={() => toggleExpand(stat.productName)}
         >
           <ThemedView style={[
             styles.productCard,
-            { 
+            {
               backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#fff',
               borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
             }
@@ -97,15 +97,15 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ productStats }) => {
                 <ThemedView style={[styles.expandIconContainer, {
                   backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(74,53,49,0.04)',
                 }]}>
-                  <MaterialIcons 
-                    name={expandedItems[stat.productName] ? 'expand-less' : 'expand-more'} 
-                    size={20} 
+                  <MaterialIcons
+                    name={expandedItems[stat.productName] ? 'expand-less' : 'expand-more'}
+                    size={20}
                     color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
                   />
                 </ThemedView>
               </ThemedView>
             </ThemedView>
-            
+
             {expandedItems[stat.productName] && (
               <ThemedView style={styles.tableContainer}>
                 <ThemedView style={[
@@ -125,15 +125,15 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ productStats }) => {
                     { color: isDark ? PastryColors.vanilla : PastryColors.chocolate }
                   ]}>%</ThemedText>
                 </ThemedView>
-                
+
                 {Object.entries(stat.branchStats)
                   .sort(([, a], [, b]) => b.quantity - a.quantity)
                   .map(([branchName, branchStat], bIndex) => (
-                    <ThemedView 
-                      key={bIndex} 
+                    <ThemedView
+                      key={bIndex}
                       style={[
                         styles.tableRow,
-                        bIndex % 2 === 0 
+                        bIndex % 2 === 0
                           ? { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(74,53,49,0.03)' }
                           : { backgroundColor: isDark ? 'transparent' : '#fff' }
                       ]}

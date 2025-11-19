@@ -291,11 +291,13 @@ export const useProductStatistics = () => {
 
       const fileName = `aidas_corner_hesabat_${formatDate(startDate)}_${formatDate(endDate)}.xlsx`;
       
-      if (!FileSystem.documentDirectory) {
-        throw new Error('Document directory bulunamadı');
+      const documentDirectory = FileSystem.documentDirectory || FileSystem.cacheDirectory;
+      
+      if (!documentDirectory) {
+        throw new Error('Fayl sistemi mövcud deyil. Zəhmət olmasa standalone versiyada cəhd edin.');
       }
 
-      const filePath = `${FileSystem.documentDirectory}${fileName}`;
+      const filePath = `${documentDirectory}${fileName}`;
 
       const wbout = XLSX.write(wb, { 
         type: 'base64', 
