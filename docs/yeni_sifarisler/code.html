@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Yeni Sifariş - Aidas Corners</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#ee2b4b",
+            "background-light": "#f8f6f6",
+            "background-dark": "#221013",
+          },
+          fontFamily: {
+            "display": ["Plus Jakarta Sans", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+    .date-input-container:focus-within label p, .date-input-container input:not(:placeholder-shown) + label p {
+        transform: translateY(-1.6rem) scale(0.8);
+        color: #ee2b4b;}
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-800 dark:text-slate-200">
+<div class="relative flex min-h-screen w-full flex-col">
+<header class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200/80 bg-background-light/80 p-4 pb-3 dark:border-slate-800/80 dark:bg-background-dark/80 backdrop-blur-sm">
+<button class="flex size-10 shrink-0 items-center justify-center rounded-full text-slate-700 dark:text-slate-300">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</button>
+<h1 class="flex-1 text-center text-lg font-bold text-slate-900 dark:text-slate-100">Yeni Sifariş</h1>
+<div class="flex size-10 shrink-0 items-center justify-center"></div>
+</header>
+<main class="flex-1 overflow-y-auto pb-28 pt-6">
+<div class="flex flex-col gap-4 px-4">
+<div class="flex flex-col">
+<label class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal pb-2" for="order_date">Sifariş Tarixi</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-4 text-slate-500">calendar_today</span>
+<input class="form-input h-14 w-full rounded-xl border border-slate-300 bg-transparent pl-12 pr-4 text-base text-slate-900 focus:border-primary focus:outline-none focus:ring-0 dark:border-slate-700 dark:text-slate-100 dark:focus:border-primary" id="order_date" placeholder="DD.MM.YYYY" type="date" value="2024-05-23"/>
+</div>
+</div>
+<div class="flex flex-col">
+<label class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal pb-2" for="cafeteria-select">Kafeteriya</label>
+<button class="form-select flex h-14 w-full items-center rounded-xl border-slate-300 bg-background-light pl-4 pr-4 text-left dark:border-slate-700 dark:bg-background-dark dark:text-slate-100 text-slate-900 focus:border-primary focus:ring-primary text-base font-normal">
+<span class="material-symbols-outlined mr-2 text-slate-500">storefront</span>
+<span class="flex-1">Seçim edin</span>
+<span class="material-symbols-outlined text-slate-500">expand_more</span>
+</button>
+</div>
+<div class="flex flex-col">
+<label class="text-slate-700 dark:text-slate-300 text-sm font-medium leading-normal pb-2" for="order-notes">Sifariş Məlumatları</label>
+<textarea class="form-textarea flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl border-slate-300 bg-background-light p-4 text-base font-normal placeholder:text-slate-400 focus:border-primary focus:ring-primary dark:border-slate-700 dark:bg-background-dark dark:text-slate-100 dark:placeholder:text-slate-500" id="order-notes" placeholder="Xüsusi qeydlərinizi əlavə edin..." rows="5"></textarea>
+</div>
+</div>
+</main>
+<footer class="fixed bottom-0 left-0 right-0 z-10 border-t border-slate-200/80 bg-background-light/80 p-4 backdrop-blur-sm dark:border-slate-800/80 dark:bg-background-dark/80">
+<button class="flex h-14 w-full min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl bg-primary text-base font-bold leading-normal tracking-[0.015em] text-white shadow-lg shadow-primary/30 transition-all hover:bg-primary/90 active:scale-95">
+<span class="truncate">Sifarişi Yadda Saxla</span>
+</button>
+</footer>
+</div>
+
+</body></html>

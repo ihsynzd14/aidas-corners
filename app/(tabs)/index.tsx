@@ -1,145 +1,209 @@
-import { StyleSheet, SafeAreaView, Dimensions, Platform } from 'react-native';
-import { TopBar } from '../../components/TopBar';
-import { MenuContainer } from '../../components/MenuContainer';
-import { ThemedView } from '../../components/ThemedView';
-import { useColorScheme } from '../../hooks/useColorScheme';
-import { IconSymbolName } from '../../components/ui/IconSymbol';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StatusBar,
+  Platform,
+  Dimensions,
+} from 'react-native';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import {
+  ShoppingCart,
+  Package,
+  Bell,
+  Sparkles,
+  Bot,
+  Truck,
+  Monitor,
+  RefreshCw,
+  TrendingDown,
+  Minus,
+} from 'lucide-react-native';
+import { styles } from '@/components/ui/styles/index.styles';
+import BottomNavigationBar from '@/components/navigation/BottomNavigationBar';
+import { StatCard } from '@/components/cards/StatCard';
+import { QuickActionCard } from '@/components/cards/QuickActionCard';
+import { StatisticsCard } from '@/components/cards/StatisticsCard';
+import { ManagementCard } from '@/components/cards/ManagementCard';
+import { colorScheme } from '@/constants/colorScheme';
+import useDailyOrderComparison from '@/hooks/useDailyOrderComparison';
 
 export default function HomeScreen() {
-  const colorScheme = useColorScheme();
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const router = useRouter();
-  const handleSettingsPress = () => {
-    // Handle settings press
+  const insets = useSafeAreaInsets();
+  const dailyComparison = useDailyOrderComparison();
+  const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+  // Determine colors based on theme
+  const theme = {
+    background: isDarkMode ? colorScheme.backgroundDark : colorScheme.backgroundLight,
+    card: isDarkMode ? colorScheme.cardDark : colorScheme.cardLight,
+    text: isDarkMode ? colorScheme.textDark : colorScheme.textLight,
+    textSubtle: isDarkMode ? colorScheme.textSubtleDark : colorScheme.textSubtleLight,
+    shadow: isDarkMode
+      ? '8px 8px 16px rgba(0, 0, 0, 0.3), -8px -8px 16px rgba(61, 58, 56, 0.5)'
+      : '8px 8px 16px rgba(217, 166, 163, 0.2), -8px -8px 16px rgba(255, 255, 255, 0.7)',
   };
 
-  const menuItems: Array<{
-    title: string;
-    description: string;
-    iconName: IconSymbolName;
-    gradient?: string[];
-  }> = [
-    {
-      title: 'Yeni Sifarişlər',
-      description: 'Daxil olan sifarişləri və sorğuları idarə edin',
-      iconName: 'bell.fill',
-      gradient: ['#FF6B6B', '#EE5D5D'],
-    },
-    {
-      title: 'Stoklar və Hazırlıq',
-      description: 'İnventarı və mətbəx hazırlığını izləyin',
-      iconName: 'cart.fill',
-      gradient: ['#4ECDC4', '#45B7AF'],
-    },
-    {
-      title: 'Məhsul Statistikası',
-      description: 'Məhsulların satış statistikasını izləyin',
-      iconName: 'list.clipboard.fill',
-      gradient: ['#FFD93D', '#F4C000'],
-    },
-    {
-      title: 'AI Asistan',
-      description: 'Suni intellekt dəstəkli analiz ve önərilər',
-      iconName: 'ai.fill',
-      gradient: ['#95DAB6', '#7CC49E'],
-    },
-    {
-      title: 'Ərzaq Təqibi',
-      description: 'Ərzaqların vəziyyətindən xəbərdar olun və onları idarə edin',
-      iconName: 'paperplane.fill',
-      gradient: ['#6C5CE7', '#5A4BD1'],
-    },
-    {
-      title: 'Analizlər',
-      description: 'Məhsulların satış statistikasını izləyin',
-      iconName: 'chart.bar.fill',
-      gradient: ['#FFD93D', '#F4C000'],
-    },
-  ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <ThemedView style={styles.container}>
-        <TopBar 
-          title="Aida's Corner" 
-          style={styles.topBar}
-        />
-        
-        <ThemedView style={styles.content}>
-          <ThemedView style={styles.grid}>
-            <ThemedView style={styles.row}>
-            <MenuContainer
-              {...menuItems[0]}
-              onPress={() => router.push('/new_orders')}
-              delay={100}
-            />
-              <MenuContainer
-                {...menuItems[1]}
-                onPress={() =>  router.push('/orders_summary')}
-                delay={200}
-              />
-            </ThemedView>
+    <View style={[styles.container, { backgroundColor: theme.background, flex: 1 }]}>
+      <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
+      
+      <View style={{ flex: 1, paddingTop: insets.top }}>
+        {/* Header */}
+        <View style={[styles.header, { paddingTop: 12 }]}>
+          <View style={styles.headerContent}>
+            <View>
+              <Text style={[styles.greeting, { color: theme.text }]}>
+                Salam, Aidas Corners!
+              </Text>
+              <TouchableOpacity
+                style={[
+                  styles.insightBadge,
+                  {
+                    backgroundColor: dailyComparison.messageParts.color === 'green'
+                      ? '#5D9C5910'  // Green background with opacity
+                      : dailyComparison.messageParts.color === 'red'
+                        ? '#FF6B6B10'  // Red background with opacity
+                        : '#5D9C5910', // Default green background
+                    minWidth: 305,
+                    maxWidth: SCREEN_WIDTH - 60
+                  }
+                ]}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  dailyComparison.refresh();
+                }}
+                disabled={dailyComparison.isLoading}
+              >
+                {dailyComparison.messageParts.color === 'green' ? (
+                  <Sparkles size={16} color={colorScheme.accentGreen} />
+                ) : dailyComparison.messageParts.color === 'red' ? (
+                  <TrendingDown size={16} color={colorScheme.accentRed} />
+                ) : (
+                  <Minus size={16} color={colorScheme.accentGreen} />
+                )}
+                <Text
+                  style={[styles.insightText, {
+                    flex: 1,
+                    color: dailyComparison.messageParts.color === 'green'
+                      ? colorScheme.accentGreen
+                      : dailyComparison.messageParts.color === 'red'
+                        ? colorScheme.accentRed
+                        : colorScheme.accentGreen,
+                    fontWeight: '600'
+                  }]}
+                  numberOfLines={1}
+                >
+                  {dailyComparison.isLoading ? 'Yüklənir...' : dailyComparison.error || dailyComparison.message}
+                </Text>
+                {dailyComparison.isLoading && (
+                  <RefreshCw size={14} color={colorScheme.accentGreen} style={{ marginLeft: 8 }} />
+                )}
+              </TouchableOpacity>
+            </View>
 
-            <ThemedView style={[styles.row, styles.centerRow]}>
-              <MenuContainer
-                {...menuItems[2]}
-                onPress={() => router.push('/(tabs)/product_statistics')}
-                delay={300}
-                compact={true}
-              />
-               <MenuContainer
-                {...menuItems[5]}
-                onPress={() => router.push('/(tabs)/analytics')}
-                delay={500}
-              />
-            </ThemedView>
-            <ThemedView style={styles.row}>
-              <MenuContainer
-                {...menuItems[3]}
-                onPress={() => router.push('/(tabs)/ai_assistant')}
-                delay={400}
-              />
-              <MenuContainer
-                {...menuItems[4]}
-                onPress={() => router.push('/pages/daily-needs')}
-                delay={500}
-              />
-             
-            </ThemedView>
-          </ThemedView>
-        </ThemedView>
-      </ThemedView>
-    </SafeAreaView>
+            <TouchableOpacity
+              style={[styles.notificationButton, { backgroundColor: theme.card }]}
+              onPress={() => {
+                router.push('/notification_history');
+              }}
+            >
+              <Bell size={24} color={theme.text} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Main Content - Fixed Size, No Scroll */}
+        <View style={styles.mainContent}>
+          {/* Top Stats Cards */}
+          <View style={styles.statsRow}>
+            <StatCard
+              title="Yeni Sifarişlər"
+              subtitle="Məhsulları əlavə et"
+              count="5"
+              icon={ShoppingCart}
+              color={colorScheme.primary}
+              onPress={() => {
+                router.push('/(tabs)/new_orders');
+              }}
+              isDarkMode={isDarkMode}
+              theme={theme}
+            />
+            <StatCard
+              title="Stoklar və Hazırlıq"
+              subtitle="Sifarişləri idarə et"
+              count="3"
+              icon={Package}
+              color={colorScheme.accentRed}
+              onPress={() => {
+                router.push('/(tabs)/orders_summary');
+              }}
+              isDarkMode={isDarkMode}
+              theme={theme}
+            />
+          </View>
+
+          {/* Statistics Card - Expanded */}
+          <StatisticsCard 
+            isDarkMode={isDarkMode}
+            theme={theme}
+            colors={colorScheme}
+          />
+
+          {/* Quick Actions */}
+          <View style={styles.quickActionsRow}>
+            <QuickActionCard
+              title="AI Asistan"
+              icon={Bot}
+              onPress={() => {
+                router.push('/(tabs)/ai_assistant');
+              }}
+              isDarkMode={isDarkMode}
+              theme={theme}
+              primaryColor={colorScheme.primary}
+            />
+            <QuickActionCard
+              title="Ərzaq Təqibi"
+              icon={Truck}
+              onPress={() => {
+                router.push('/pages/daily-needs');
+              }}
+              isDarkMode={isDarkMode}
+              theme={theme}
+              primaryColor={colorScheme.primary}
+            />
+            <QuickActionCard
+              title="Analizlər"
+              icon={Monitor}
+              onPress={() => {
+                router.push('/(tabs)/analytics');
+              }}
+              isDarkMode={isDarkMode}
+              theme={theme}
+              primaryColor={colorScheme.primary}
+            />
+          </View>
+
+          {/* Management Card */}
+          <ManagementCard
+            onPress={() => {
+              router.push('/(tabs)/product_statistics');
+            }}
+            isDarkMode={isDarkMode}
+            theme={theme}
+            primaryColor={colorScheme.primary}
+          />
+        </View>
+      </View>
+    
+      {/* Bottom Navigation */}
+      <BottomNavigationBar isDarkMode={isDarkMode} />
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-  topBar: {
-    paddingHorizontal: Dimensions.get('window').width * 0.06,
-    paddingTop: Platform.OS === 'ios' ? 12 : 24,
-  },
-  content: {
-    flex: 1,
-    paddingTop: Dimensions.get('window').height * 0.02,
-    paddingBottom: Dimensions.get('window').height * 0.1,
-  },
-  grid: {
-    flex: 1,
-    padding: Dimensions.get('window').width * 0.02,
-    gap: Dimensions.get('window').height * 0.01,
-  },
-  row: {
-    flexDirection: 'row',
-    flex: 1,
-    gap: Dimensions.get('window').width * 0.02,
-  },
-  centerRow: {
-    paddingVertical: Dimensions.get('window').height * 0.015,
-  },
-});

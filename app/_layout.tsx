@@ -8,14 +8,16 @@ import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Platform, View, LogBox } from 'react-native';
-import * as Updates from 'expo-updates';
 import * as Notifications from 'expo-notifications';
 import { NotificationService } from '@/services/NotificationService';
 import AppUpdater from '@/components/AppUpdater';
 import Constants from 'expo-constants';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+
+
 
 // Expo Go'da remote push notification uyarısını bastır
-if (__DEV__ && Constants.appOwnership === 'expo') {
+if (__DEV__ ? Constants.appOwnership === 'expo' : []) {
   LogBox.ignoreLogs([
     'expo-notifications',
     'Android Push notifications',
@@ -39,6 +41,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -90,47 +93,57 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            animation: Platform.select({
-              ios: 'default',
-              android: 'fade_from_bottom',
-              default: 'fade'
-            }),
-            animationDuration: 200,
-          }}>
-          <Stack.Screen 
-            name="(tabs)" 
-            options={{ 
-              headerShown: false,
-              animation: 'fade',
-            }} 
-          />
-          <Stack.Screen 
-            name="settings" 
-            options={{ 
-              presentation: 'card',
-              animation: Platform.select({
-                ios: 'default',
-                android: 'slide_from_right',
-                default: 'fade'
-              }),
-            }} 
-          />
-          <Stack.Screen 
-            name="+not-found" 
-            options={{
-              presentation: 'modal',
-              animation: 'slide_from_bottom',
-            }}
-          />
-        </Stack>
-        <StatusBar hidden style={colorScheme === 'dark' ? 'light' : 'dark'} translucent backgroundColor='transparent' />
-        <AppUpdater />
-      </ThemeProvider>
-    </GestureHandlerRootView>
+  <SafeAreaProvider>
+     <View style={{ flex: 1, }}>
+          <GestureHandlerRootView style={{ flex: 1,  }}>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: Platform.select({
+                  ios: 'default',
+                  android: 'fade_from_bottom',
+                  default: 'fade'
+                }),
+                animationDuration: 200,
+              }}>
+              <Stack.Screen 
+                name="(tabs)" 
+                options={{ 
+                  headerShown: false,
+                  animation: 'fade',
+                }} 
+              />
+              <Stack.Screen 
+                name="settings" 
+                options={{ 
+                  presentation: 'card',
+                  animation: Platform.select({
+                    ios: 'default',
+                    android: 'slide_from_right',
+                    default: 'fade'
+                  }),
+                }} 
+              />
+              <Stack.Screen 
+                name="+not-found" 
+                options={{
+                  presentation: 'modal',
+                  animation: 'slide_from_bottom',
+                }}
+              />
+            </Stack>
+           
+              <StatusBar hidden style={colorScheme === 'dark' ? 'light' : 'dark'} translucent backgroundColor='transparent' />
+             
+              <AppUpdater />
+              
+            </ThemeProvider>
+         
+          </GestureHandlerRootView>
+
+   </View>
+   
+   </SafeAreaProvider> 
   );
 }

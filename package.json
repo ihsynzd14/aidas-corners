@@ -49,6 +49,7 @@
     "expo-web-browser": "~15.0.9",
     "firebase": "^10.8.0",
     "groq-sdk": "^0.15.0",
+    "lucide-react-native": "^0.554.0",
     "nativewind": "^4.1.23",
     "react": "19.1.0",
     "react-dom": "19.1.0",

@@ -21,9 +21,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff",
-        "translucent": true
+        "backgroundColor": "#ffffff"
       },
+      "softwareKeyboardLayoutMode": "pan",
       "package": "com.ihsynzd.aidascorners",
       "permissions": [
         "QUERY_ALL_PACKAGES",
@@ -56,9 +56,14 @@
     },
     "androidStatusBar": {
       "barStyle": "dark-content",
-      "backgroundColor": "#000000",
-      "hidden": true,
+      "backgroundColor": "#00000000",
+      "hidden": false,
       "translucent": true
+    },
+    "androidNavigationBar": {
+      "visible": "immersive",
+      "barStyle": "dark-content",
+      "backgroundColor": "#00000000"
     },
     "web": {
       "bundler": "metro",
