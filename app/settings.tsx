@@ -1,4 +1,4 @@
-import { Stack , useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { Appearance, StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { useColorScheme } from '@/hooks/useColorScheme';
@@ -29,10 +29,10 @@ export default function SettingsScreen() {
 
   const loadApiKeys = async () => {
     try {
-      const savedGroqKey = await AsyncStorage.getItem('groq_api_key') || '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';
+      const savedGroqKey = await AsyncStorage.getItem('groq_api_key') || '';
       const savedOpenrouterKey = await AsyncStorage.getItem('openrouter_api_key') || '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';
       const savedGeminiKey = await AsyncStorage.getItem('gemini_api_key') || 'AIzaSyCFJn84h0V3mMwP2Vaa7_T18Ul2ALrvHsU';
-      
+
       setGroqApiKey(savedGroqKey);
       setOpenrouterApiKey(savedOpenrouterKey);
       setGeminiApiKey(savedGeminiKey);
@@ -99,11 +99,11 @@ export default function SettingsScreen() {
   return (
     <ThemedView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
-      <TopBar 
+      <TopBar
         title="Tənzimləmələr"
         style={styles.topBar}
       />
-      
+
       <ScrollView>
         <ThemedView style={styles.content}>
           <ThemedView style={styles.section}>
@@ -153,7 +153,7 @@ export default function SettingsScreen() {
               icon="cart.fill"
             />
           </ThemedView>
-   {/*
+          {/*
           <ThemedView style={styles.section}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>Bildiriş Testləri</ThemedText>
             
@@ -215,7 +215,7 @@ export default function SettingsScreen() {
 
           <ThemedView style={styles.section}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>AI Tənzimləmələri</ThemedText>
-            
+
             <ThemedView style={styles.apiKeyContainer}>
               <View style={styles.apiKeyRow}>
                 <ThemedText style={styles.apiKeyLabel}>Groq</ThemedText>
