@@ -668,7 +668,7 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
       "chia cup matcha"
     ]
   },
-  
+
 ];
 
 interface OrderItem {
@@ -694,33 +694,33 @@ function normalizeText(text: string): string {
 
 function findBestMatch(input: string, variations: string[]): string | null {
   const normalizedInput = normalizeText(input);
-  
+
   // Try exact match first
   const exactMatch = variations.find(v => normalizeText(v) === normalizedInput);
   if (exactMatch) return exactMatch;
-  
+
   // Try contains match
   const containsMatch = variations.find(v => {
     const normalizedVariation = normalizeText(v);
-    return normalizedInput.includes(normalizedVariation) || 
-           normalizedVariation.includes(normalizedInput);
+    return normalizedInput.includes(normalizedVariation) ||
+      normalizedVariation.includes(normalizedInput);
   });
   if (containsMatch) return containsMatch;
-  
+
   // Try fuzzy match (allowing for small typos)
   const fuzzyMatch = variations.find(v => {
     const normalizedVariation = normalizeText(v);
     let diffCount = 0;
     const shorter = normalizedInput.length < normalizedVariation.length ? normalizedInput : normalizedVariation;
     const longer = normalizedInput.length < normalizedVariation.length ? normalizedVariation : normalizedInput;
-    
+
     for (let i = 0; i < shorter.length; i++) {
       if (shorter[i] !== longer[i]) diffCount++;
     }
-    
+
     return diffCount <= 2 && Math.abs(normalizedInput.length - normalizedVariation.length) <= 2;
   });
-  
+
   return fuzzyMatch || null;
 }
 
@@ -757,17 +757,17 @@ export function correctOrderText(inputText: string): string {
 
   lines.forEach(line => {
     if (!line.trim()) return;
-    
+
     // Split the line into product name and quantity
     const parts = line.split(/[-–:]|\s{2,}/).map(part => part.trim());
     if (parts.length < 1) return;
-    
+
     const productPart = parts[0];
     const quantityPart = parts[parts.length - 1];
-    
+
     // Find matching product
     let matchedProduct: ProductDefinition | undefined;
-    
+
     for (const product of PRODUCT_CORRECTIONS) {
       const matchedVariation = findBestMatch(productPart, [product.correct, ...product.variations]);
       if (matchedVariation) {
@@ -775,12 +775,12 @@ export function correctOrderText(inputText: string): string {
         break;
       }
     }
-    
+
     if (!matchedProduct) return;
 
     // Parse quantity
     const { value, unit } = parseQuantity(quantityPart);
-    
+
     // Aggregate quantities
     const existingItem = orderItems.get(matchedProduct.correct);
     if (existingItem) {
@@ -798,8 +798,7 @@ export function correctOrderText(inputText: string): string {
 
   // Convert aggregated items to formatted strings
   const correctedLines = Array.from(orderItems.values())
-    .map(item => `${item.product} - ${item.quantity}${item.unit === 'əd' ? '' : ' ' + item.unit}`)
-    .sort();
+    .map(item => `${item.product} - ${item.quantity}${item.unit === 'əd' ? '' : ' ' + item.unit}`);
 
   return correctedLines.join('\n');
 }

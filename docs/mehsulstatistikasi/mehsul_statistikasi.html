@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Məhsul Statistikası</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#eb4763",
+              "background-light": "#fcf8f9",
+              "background-dark": "#211114",
+              "text-light": "#1b0e10",
+              "text-dark": "#f3e7e9",
+              "text-secondary-light": "#974e5a",
+              "text-secondary-dark": "#e7d0d4",
+              "border-light": "#e7d0d4",
+              "border-dark": "#522a32",
+              "card-light": "#ffffff",
+              "card-dark": "#2a1518",
+              "progress-light": "#f3e7e9",
+              "progress-dark": "#3c2125"
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "0.75rem", "xl": "1rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
+<div class="relative flex min-h-screen w-full flex-col">
+<header class="sticky top-0 z-10 flex h-16 items-center border-b border-border-light/50 dark:border-border-dark/50 bg-background-light/80 dark:bg-background-dark/80 px-4 backdrop-blur-sm">
+<div class="flex h-12 w-12 items-center justify-start">
+<span class="material-symbols-outlined text-2xl">arrow_back</span>
+</div>
+<h1 class="flex-1 text-center text-lg font-bold">Məhsul Statistikası</h1>
+<div class="flex h-12 w-12 items-center justify-end">
+<button class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-black/5 dark:hover:bg-white/5">
+<span class="material-symbols-outlined text-2xl">ios_share</span>
+</button>
+</div>
+</header>
+<main class="flex-1">
+<nav class="sticky top-16 z-10 border-b border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark">
+<div class="flex px-4">
+<a class="flex flex-1 flex-col items-center justify-center border-b-[3px] border-primary py-3.5" href="#">
+<p class="text-sm font-bold text-text-light dark:text-text-dark">Ümumi Baxış</p>
+</a>
+<a class="flex flex-1 flex-col items-center justify-center border-b-[3px] border-transparent py-3.5" href="#">
+<p class="text-sm font-bold text-text-secondary-light dark:text-text-secondary-dark">Tək Filial Baxış</p>
+</a>
+</div>
+</nav>
+<div class="p-4">
+<div class="mb-4 flex cursor-pointer items-center gap-4 rounded-lg bg-card-light dark:bg-card-dark p-4 shadow-sm shadow-primary/5">
+<div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-2xl">calendar_month</span>
+</div>
+<p class="flex-1 text-base font-medium">01 Fev - 28 Fev, 2024</p>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-2xl text-text-secondary-light dark:text-text-secondary-dark">expand_more</span>
+</div>
+</div>
+<div class="mb-4 grid grid-cols-2 gap-4">
+<div class="flex flex-1 flex-col gap-1.5 rounded-lg border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark p-4">
+<p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Satılan Ümumi Məhsul</p>
+<p class="text-xl font-bold tracking-tight">2,168</p>
+</div>
+<div class="flex flex-1 flex-col gap-1.5 rounded-lg border border-border-light dark:border-border-dark bg-card-light dark:bg-card-dark p-4">
+<p class="text-xs font-medium text-text-secondary-light dark:text-text-secondary-dark">Ən Çox Satılan</p>
+<p class="truncate text-xl font-bold tracking-tight">Napoleon T...</p>
+</div>
+</div>
+<div class="mb-2 px-1">
+<h2 class="text-lg font-bold">Məhsullar üzrə satış</h2>
+</div>
+<div class="flex flex-col gap-2">
+<div class="flex cursor-pointer flex-col gap-3 rounded-lg bg-card-light dark:bg-card-dark p-4 shadow-sm shadow-primary/5">
+<div class="flex items-start justify-between gap-4">
+<div class="flex flex-col gap-1">
+<p class="text-base font-medium">Napoleon Tortu</p>
+<p class="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">542 ədəd</p>
+</div>
+<span class="material-symbols-outlined text-text-secondary-light dark:text-text-secondary-dark">expand_less</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-2 flex-1 rounded-full bg-progress-light dark:bg-progress-dark">
+<div class="h-2 rounded-full bg-primary" style="width: 25%;"></div>
+</div>
+<p class="w-10 text-right text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">25%</p>
+</div>
+<div class="mt-2 border-t border-border-light/70 pt-3 dark:border-border-dark/70">
+<div class="grid grid-cols-3 gap-x-4 gap-y-2 text-sm">
+<p class="font-medium text-text-secondary-light dark:text-text-secondary-dark">Filial</p>
+<p class="font-medium text-text-secondary-light dark:text-text-secondary-dark">Miqdar</p>
+<p class="font-medium text-text-secondary-light dark:text-text-secondary-dark">Faiz</p>
+<p class="text-left font-semibold">Ahmadli</p>
+<p class="text-left font-semibold">20</p>
+<p class="text-left font-semibold">33.3%</p>
+<p class="text-left font-semibold">Neftchilar</p>
+<p class="text-left font-semibold">20</p>
+<p class="text-left font-semibold">33.3%</p>
+<p class="text-left font-semibold">28 May</p>
+<p class="text-left font-semibold">20</p>
+<p class="text-left font-semibold">33.3%</p>
+</div>
+</div>
+</div>
+<div class="flex cursor-pointer flex-col gap-3 rounded-lg bg-card-light dark:bg-card-dark p-4 shadow-sm shadow-primary/5">
+<div class="flex items-start justify-between gap-4">
+<div class="flex flex-col gap-1">
+<p class="text-base font-medium">Ballı Tort</p>
+<p class="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">310 ədəd</p>
+</div>
+<span class="material-symbols-outlined text-text-secondary-light dark:text-text-secondary-dark">expand_more</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-2 flex-1 rounded-full bg-progress-light dark:bg-progress-dark">
+<div class="h-2 rounded-full bg-primary" style="width: 14%;"></div>
+</div>
+<p class="w-10 text-right text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">14%</p>
+</div>
+</div>
+<div class="flex cursor-pointer flex-col gap-3 rounded-lg bg-card-light dark:bg-card-dark p-4 shadow-sm shadow-primary/5">
+<div class="flex items-start justify-between gap-4">
+<div class="flex flex-col gap-1">
+<p class="text-base font-medium">Ekler</p>
+<p class="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">250 ədəd</p>
+</div>
+<span class="material-symbols-outlined text-text-secondary-light dark:text-text-secondary-dark">expand_more</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-2 flex-1 rounded-full bg-progress-light dark:bg-progress-dark">
+<div class="h-2 rounded-full bg-primary" style="width: 11%;"></div>
+</div>
+<p class="w-10 text-right text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">11%</p>
+</div>
+</div>
+<div class="flex cursor-pointer flex-col gap-3 rounded-lg bg-card-light dark:bg-card-dark p-4 shadow-sm shadow-primary/5">
+<div class="flex items-start justify-between gap-4">
+<div class="flex flex-col gap-1">
+<p class="text-base font-medium">Profitrol</p>
+<p class="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">198 ədəd</p>
+</div>
+<span class="material-symbols-outlined text-text-secondary-light dark:text-text-secondary-dark">expand_more</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-2 flex-1 rounded-full bg-progress-light dark:bg-progress-dark">
+<div class="h-2 rounded-full bg-primary" style="width: 9%;"></div>
+</div>
+<p class="w-10 text-right text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">9%</p>
+</div>
+</div>
+<div class="flex cursor-pointer flex-col gap-3 rounded-lg bg-card-light dark:bg-card-dark p-4 shadow-sm shadow-primary/5">
+<div class="flex items-start justify-between gap-4">
+<div class="flex flex-col gap-1">
+<p class="text-base font-medium">Cheesecake</p>
+<p class="text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">155 ədəd</p>
+</div>
+<span class="material-symbols-outlined text-text-secondary-light dark:text-text-secondary-dark">expand_more</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="h-2 flex-1 rounded-full bg-progress-light dark:bg-progress-dark">
+<div class="h-2 rounded-full bg-primary" style="width: 7%;"></div>
+</div>
+<p class="w-10 text-right text-sm font-medium text-text-secondary-light dark:text-text-secondary-dark">7%</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>
