@@ -38,26 +38,26 @@ export default function AiAssistant() {
   const loadApiKeys = async () => {
     try {
       let savedGroqKey, savedOpenrouterKey, savedGeminiKey;
-      
+
       try {
         savedGroqKey = await AsyncStorage.getItem('groq_api_key');
       } catch (e) {
         console.warn('Groq key yüklenirken hata:', e);
       }
-      
+
       try {
         savedOpenrouterKey = await AsyncStorage.getItem('openrouter_api_key');
       } catch (e) {
         console.warn('Openrouter key yüklenirken hata:', e);
       }
-      
+
       try {
         savedGeminiKey = await AsyncStorage.getItem('gemini_api_key');
       } catch (e) {
         console.warn('Gemini key yüklenirken hata:', e);
       }
-      
-      API_KEYS.groq = savedGroqKey || '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';
+
+      API_KEYS.groq = savedGroqKey || '';
       API_KEYS.openrouter = savedOpenrouterKey || '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';
       API_KEYS.gemini = savedGeminiKey || 'AIzaSyC26TIDS26c5rve0bM2OQkkxEdoWNUtNhg';
 
@@ -71,12 +71,12 @@ export default function AiAssistant() {
     } catch (error) {
       console.error('API anahtarları yüklenirken xəta:', error);
       Alert.alert('Xəta', 'API açarları yüklənərkən xəta baş verdi');
-      
+
       // Hata durumunda varsayılan anahtarları kullan
       API_KEYS.groq = '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';
       API_KEYS.openrouter = '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';
       API_KEYS.gemini = 'AIzaSyC26TIDS26c5rve0bM2OQkkxEdoWNUtNhg';
-      
+
       initializeAI();
     }
   };
@@ -84,16 +84,16 @@ export default function AiAssistant() {
   const initializeAI = async () => {
     try {
       let savedProvider;
-      
+
       try {
         savedProvider = await AsyncStorage.getItem('ai_provider') as AIProvider;
         console.log('Saved provider loaded:', savedProvider);
       } catch (e) {
         console.warn('AI provider yüklenirken hata:', e);
       }
-      
+
       const currentProvider = savedProvider || provider;
-      
+
       if (savedProvider && savedProvider !== provider) {
         setProvider(savedProvider);
       }
@@ -151,7 +151,7 @@ export default function AiAssistant() {
             const newGroqClient = new Groq({ apiKey: API_KEYS.groq });
             setGroqClient(newGroqClient);
             setModel(newGroqClient);
-            
+
             const completion = await newGroqClient.chat.completions.create({
               messages: [{ role: 'user', content: prompt }],
               model: 'mixtral-8x7b-32768',
@@ -160,7 +160,7 @@ export default function AiAssistant() {
             });
             return completion.choices[0]?.message?.content || '';
           }
-          
+
           const completion = await groqClient.chat.completions.create({
             messages: [{ role: 'user', content: prompt }],
             model: 'mixtral-8x7b-32768',
@@ -175,8 +175,8 @@ export default function AiAssistant() {
             const newGenAI = new GoogleGenerativeAI(API_KEYS.gemini);
             setGenAI(newGenAI);
             setModel(newGenAI);
-            
-            const geminiModel = newGenAI.getGenerativeModel({ 
+
+            const geminiModel = newGenAI.getGenerativeModel({
               model: "gemini-2.0-flash",
               generationConfig: {
                 temperature: 0.7,
@@ -185,7 +185,7 @@ export default function AiAssistant() {
                 maxOutputTokens: 2048,
               }
             });
-            
+
             try {
               const result = await geminiModel.generateContent({
                 contents: [{ role: "user", parts: [{ text: prompt }] }]
@@ -194,7 +194,7 @@ export default function AiAssistant() {
               return response.text();
             } catch (error) {
               console.error('Gemini API hatası (yeni format):', error);
-              
+
               try {
                 // Eski format ile deneyelim
                 console.log('Eski format ile deneniyor...');
@@ -204,7 +204,7 @@ export default function AiAssistant() {
                 return oldFormatResponse.text();
               } catch (oldError) {
                 console.error('Gemini API hatası (eski format):', oldError);
-                
+
                 // Son çare olarak başka bir modeli deneyelim
                 console.log('Son çare: gemini-pro');
                 try {
@@ -219,8 +219,8 @@ export default function AiAssistant() {
               }
             }
           }
-          
-          const geminiModel = genAI.getGenerativeModel({ 
+
+          const geminiModel = genAI.getGenerativeModel({
             model: "gemini-2.0-flash",
             generationConfig: {
               temperature: 0.7,
@@ -229,7 +229,7 @@ export default function AiAssistant() {
               maxOutputTokens: 2048,
             }
           });
-          
+
           try {
             const result = await geminiModel.generateContent({
               contents: [{ role: "user", parts: [{ text: prompt }] }]
@@ -267,7 +267,7 @@ export default function AiAssistant() {
 
           const completionData = await openrouterResponse.json();
           return completionData.choices[0]?.message?.content || '';
-          
+
         default:
           throw new Error('Bilinməyən AI təchizatçısı');
       }
@@ -282,8 +282,8 @@ export default function AiAssistant() {
     console.log('Kullanıcı Mesajı:', inputMessage);
     console.log('AI Provider:', provider);
 
-    const userMessage: Message = { 
-      role: 'user', 
+    const userMessage: Message = {
+      role: 'user',
       content: inputMessage,
       timestamp: new Date(),
       opacity: new Animated.Value(0),
@@ -316,7 +316,7 @@ export default function AiAssistant() {
         const response = await fetch(
           `${API_BASE_URL}/orders?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`
         );
-        
+
         if (!response.ok) {
           console.error('API yanıtı başarısız:', response.status, response.statusText);
           throw new Error(`API yanıtı alınamadı: ${response.status} ${response.statusText}`);
@@ -359,7 +359,7 @@ export default function AiAssistant() {
         opacity: new Animated.Value(0),
         translateY: new Animated.Value(20)
       };
-      
+
       setMessages(prev => [...prev, assistantMessage]);
 
       Animated.parallel([
@@ -434,14 +434,14 @@ export default function AiAssistant() {
   const extractDateRange = (message: string): DateRange => {
     // Tarih aralığı formatı: DD.MM.YYYY - DD.MM.YYYY
     const dateRangeMatch = message.match(/(\d{2})\.(\d{2})\.(\d{4})\s*-\s*(\d{2})\.(\d{2})\.(\d{4})/);
-    
+
     if (dateRangeMatch) {
       const [_, startDay, startMonth, startYear, endDay, endMonth, endYear] = dateRangeMatch;
       console.log('Tarih aralığı bulundu:', {
         start: `${startDay}.${startMonth}.${startYear}`,
         end: `${endDay}.${endMonth}.${endYear}`
       });
-      
+
       return {
         startDate: `${startYear}-${startMonth}-${startDay}`,
         endDate: `${endYear}-${endMonth}-${endDay}`
@@ -453,7 +453,7 @@ export default function AiAssistant() {
     if (singleDateMatch) {
       const [_, day, month, year] = singleDateMatch;
       console.log('Tek tarih bulundu:', `${day}.${month}.${year}`);
-      
+
       return {
         startDate: `${year}-${month}-${day}`,
         endDate: `${year}-${month}-${day}`
@@ -464,7 +464,7 @@ export default function AiAssistant() {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - 30);
-    
+
     console.log('Varsayılan tarih aralığı:', {
       start: startDate.toISOString().split('T')[0],
       end: endDate.toISOString().split('T')[0]
