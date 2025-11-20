@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Dimensions, ScrollView as RNScrollView, RefreshControl, TouchableOpacity } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
-import { ModernDatePicker } from './ModernDatePicker';
+
 import { ModernOrdersSummaryTable } from './ModernOrdersSummaryTable';
 import { OrdersTotalSummary } from './OrdersTotalSummary';
 import { fetchOrdersByDate } from '@/utils/ordersData';
@@ -9,7 +9,7 @@ import { useColorScheme } from '@/hooks/useColorScheme';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
-import { SkeletonOrdersTable, SkeletonDatePicker } from './SkeletonLoader';
+import { SkeletonOrdersTable } from './SkeletonLoader';
 import { EnhancedErrorState } from './EnhancedErrorState';
 import { SuccessToast } from './FeedbackComponents';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,8 +19,21 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 const MIN_SHEET_HEIGHT = 250;
 const EXPANDED_HEIGHT = SCREEN_HEIGHT * 0.8;
 
-export function OrdersSummaryContent() {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+interface OrdersSummaryContentProps {
+  selectedDate?: Date;
+  onDateChange?: (date: Date) => void;
+}
+
+export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateChange }: OrdersSummaryContentProps) {
+  const [internalSelectedDate, setInternalSelectedDate] = useState(new Date());
+  
+  // Use prop date if provided, otherwise use internal state
+  const selectedDate = propSelectedDate || internalSelectedDate;
+  
+  const handleDateChange = (date: Date) => {
+    setInternalSelectedDate(date);
+    onDateChange?.(date);
+  };
   const [ordersData, setOrdersData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -96,7 +109,6 @@ export function OrdersSummaryContent() {
     return (
       <ThemedView style={{ flex: 1 }}>
         <ThemedView style={{ padding: 16 }}>
-          <SkeletonDatePicker />
           <SkeletonOrdersTable />
         </ThemedView>
       </ThemedView>
@@ -144,7 +156,7 @@ export function OrdersSummaryContent() {
           />
         }
       >
-        <ModernDatePicker selectedDate={selectedDate} onDateChange={setSelectedDate} />
+
         <ModernOrdersSummaryTable 
           ordersData={ordersData} 
           selectedDate={selectedDate}

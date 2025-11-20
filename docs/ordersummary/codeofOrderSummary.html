@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sifarişlər Cədvəli - Aidas Corners</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style type="text/tailwindcss">
+    @tailwind base;
+    @tailwind components;
+    @tailwind utilities;
+    :root {
+      --primary: #D9A6A3;
+      --backgroundLight: #FDF7F3;
+      --backgroundDark: #2C2A29;
+      --cardLight: #FFFBF8;
+      --cardDark: #3D3A38;
+      --textLight: #4F4544;
+      --textDark: #EAE3DD;
+      --textSubtleLight: #897E7C;
+      --textSubtleDark: #A89F9A;
+      --accentGreen: #5D9C59;
+      --borderRed: #fccdc593;
+      --lightRed: #fccdc541;
+      --accentRed: #DF6751;
+      --accentRedlight: #dd7664ff;
+      --accentBlue: #6B9080;
+      --white: #FFFFFF;
+      --black: #000000;
+    }
+    .haptic {
+        -webkit-tap-highlight-color: transparent;
+    }
+  </style>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "var(--primary)",
+            "background-light": "var(--backgroundLight)",
+            "background-dark": "var(--backgroundDark)",
+            "card-light": "var(--cardLight)",
+            "card-dark": "var(--cardDark)",
+            "text-light": "var(--textLight)",
+            "text-dark": "var(--textDark)",
+            "text-subtle-light": "var(--textSubtleLight)",
+            "text-subtle-dark": "var(--textSubtleDark)",
+            "accent-green": "var(--accentGreen)",
+            "border-red": "var(--borderRed)",
+            "light-red": "var(--lightRed)",
+            "accent-red": "var(--accentRed)",
+            "accent-red-light": "var(--accentRedlight)",
+            "accent-blue": "var(--accentBlue)",
+            "white": "var(--white)",
+            "black": "var(--black)",
+          },
+          fontFamily: {
+            "display": ["Inter", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.75rem",
+            "lg": "1rem",
+            "xl": "1.25rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    body {
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark text-text-light dark:text-text-dark">
+<div class="relative flex min-h-screen w-full flex-col">
+<header class="sticky top-0 z-20 flex flex-col bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-lg">
+<div class="flex items-center justify-between px-4 pt-4">
+<div class="flex size-10 items-center justify-center">
+</div>
+<h1 class="text-lg font-bold">Sifarişlər Cədvəli</h1>
+<div class="flex size-10 items-center justify-center">
+</div>
+</div>
+<div class="flex items-center justify-between px-4 pt-4 pb-3">
+<button class="haptic flex size-9 items-center justify-center rounded-full bg-card-light dark:bg-card-dark shadow-sm">
+<span class="material-symbols-outlined text-xl text-text-subtle-light dark:text-text-subtle-dark">chevron_left</span>
+</button>
+<div class="flex flex-col items-center">
+<p class="text-base font-semibold text-text-light dark:text-text-dark">15 İyul 2024</p>
+<p class="text-xs font-medium text-text-subtle-light dark:text-text-subtle-dark">Bu gün</p>
+</div>
+<button class="haptic flex size-9 items-center justify-center rounded-full bg-card-light dark:bg-card-dark shadow-sm">
+<span class="material-symbols-outlined text-xl text-text-subtle-light dark:text-text-subtle-dark">chevron_right</span>
+</button>
+</div>
+<div class="h-px bg-black/5 dark:bg-white/5"></div>
+</header>
+<main class="flex-1 px-4 pt-5 pb-40">
+<div class="flex flex-col gap-3">
+<div class="overflow-hidden rounded-xl bg-card-light dark:bg-card-dark shadow-sm">
+<div class="flex items-center justify-between px-4 py-3.5">
+<span class="font-medium">Nərimanov</span>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end">
+<span class="text-sm font-medium">52</span>
+<span class="text-xs text-text-subtle-light dark:text-text-subtle-dark">Sifarişlər</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-sm font-medium">₼1,950.25</span>
+<span class="text-xs text-text-subtle-light dark:text-text-subtle-dark">Məbləğ</span>
+</div>
+<span class="material-symbols-outlined text-xl text-text-subtle-light dark:text-text-subtle-dark -rotate-90">expand_more</span>
+</div>
+</div>
+<div class="flex flex-col border-t border-black/5 dark:border-white/5">
+<div class="flex items-start gap-4 p-4">
+<img alt="Product image" class="h-14 w-14 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrQvA0GtcHgKqLsD_NBMIckgtLwSgjdtXNcU3DTG6-90Jpr91K_yPZUbYRAKLse7nhmE7YFMrPDr-r8LWfI_SSliuvglpFk_VoGr1ofnTdXX80jK1YNmklcuWunzTkx3tQq8b2J28YFBfhj9tvsOeg_iBLZhMYwYcJRJKMuOg7YdOl7y_8HPgtdcG3-T9fUKnu-o2bvZHcHMviG04LO2qUUGYRLUUhouF7fuXxBQd0qJDUBccX5yv9y83-26pGciir3P8tUUmZnl0"/>
+<div class="flex-1">
+<p class="font-medium">Product Name</p>
+<p class="text-sm text-text-subtle-light dark:text-text-subtle-dark">2x ₼12.50</p>
+</div>
+<div class="flex items-center gap-1 text-text-subtle-light dark:text-text-subtle-dark">
+<button class="flex h-8 w-8 items-center justify-center rounded-full active:bg-black/5 dark:active:bg-white/5">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="flex h-8 w-8 items-center justify-center rounded-full active:bg-black/5 dark:active:bg-white/5">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</div>
+<div class="flex items-start gap-4 p-4 border-t border-black/5 dark:border-white/5">
+<img alt="Product image" class="h-14 w-14 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwGw1Fjt5a0SkRXaH4N5a_RlB92086KDMaWBxFy6W2aFFLppdDWyKA9LBmsm5yHMNWokcrMgfBYiCf1dykVY9_4xSScU_j1oF7FqlLx8Bc0cq3BRoiFBc3xNZCFWHXevgYn7NuBruwvPlRSkJrmtJeueIOBlAhcwPc6sYfs8TNbNbp_QFNs7f_x42aRwcXu8kCvz4ZPLaFpROw9ZyewI15OdFjaODjOgyL5-F2FCkyVtWbjmfzhg3b-2uyaPmYml4rPuKRT2SQb1Y"/>
+<div class="flex-1">
+<p class="font-medium">Product Name</p>
+<p class="text-sm text-text-subtle-light dark:text-text-subtle-dark">1x ₼25.00</p>
+</div>
+<div class="flex items-center gap-1 text-text-subtle-light dark:text-text-subtle-dark">
+<button class="flex h-8 w-8 items-center justify-center rounded-full active:bg-black/5 dark:active:bg-white/5">
+<span class="material-symbols-outlined text-lg">edit</span>
+</button>
+<button class="flex h-8 w-8 items-center justify-center rounded-full active:bg-black/5 dark:active:bg-white/5">
+<span class="material-symbols-outlined text-lg">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<div class="overflow-hidden rounded-xl bg-card-light dark:bg-card-dark shadow-sm">
+<div class="flex items-center justify-between px-4 py-3.5">
+<span class="font-medium">28 May</span>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end">
+<span class="text-sm font-medium">45</span>
+<span class="text-xs text-text-subtle-light dark:text-text-subtle-dark">Sifarişlər</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-sm font-medium">₼1,630.50</span>
+<span class="text-xs text-text-subtle-light dark:text-text-subtle-dark">Məbləğ</span>
+</div>
+<span class="material-symbols-outlined text-xl text-text-subtle-light dark:text-text-subtle-dark">expand_more</span>
+</div>
+</div>
+</div>
+<div class="overflow-hidden rounded-xl bg-card-light dark:bg-card-dark shadow-sm">
+<div class="flex items-center justify-between px-4 py-3.5">
+<span class="font-medium">Gənclik</span>
+<div class="flex items-center gap-4">
+<div class="flex flex-col items-end">
+<span class="text-sm font-medium">27</span>
+<span class="text-xs text-text-subtle-light dark:text-text-subtle-dark">Sifarişlər</span>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-sm font-medium">₼999.25</span>
+<span class="text-xs text-text-subtle-light dark:text-text-subtle-dark">Məbləğ</span>
+</div>
+<span class="material-symbols-outlined text-xl text-text-subtle-light dark:text-text-subtle-dark">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<div class="fixed inset-x-0 bottom-0 z-10 mx-auto w-full max-w-md" id="bottom-sheet">
+<div class="flex flex-col rounded-t-xl bg-card-light dark:bg-card-dark shadow-[0_-4px_16px_rgba(0,0,0,0.05)] dark:shadow-[0_-4px_16px_rgba(0,0,0,0.2)]">
+<div class="flex justify-center py-3">
+<div class="h-1.5 w-10 rounded-full bg-black/10 dark:bg-white/10"></div>
+</div>
+<div class="px-4 pb-4 pt-1">
+<div class="flex items-center justify-between">
+<p class="text-base font-semibold text-text-light dark:text-text-dark">Ümumi Yekun</p>
+<button class="haptic -mr-2 flex h-9 w-9 items-center justify-center rounded-full text-text-subtle-light dark:text-text-subtle-dark active:bg-black/5 dark:active:bg-white/5">
+<span class="material-symbols-outlined text-xl">expand_less</span>
+</button>
+</div>
+<div class="mt-4 grid grid-cols-2 gap-4">
+<div class="rounded-lg bg-background-light dark:bg-background-dark p-3">
+<p class="text-xs font-medium text-text-subtle-light dark:text-text-subtle-dark">Cəmi Sifariş</p>
+<p class="mt-1 text-xl font-bold text-text-light dark:text-text-dark">124</p>
+</div>
+<div class="rounded-lg bg-background-light dark:bg-background-dark p-3">
+<p class="text-xs font-medium text-text-subtle-light dark:text-text-subtle-dark">Cəmi Məbləğ</p>
+<p class="mt-1 text-xl font-bold text-text-light dark:text-text-dark">₼4,580</p>
+</div>
+</div>
+<div class="mt-4">
+<div class="flex items-center justify-between py-2">
+<p class="text-sm text-text-subtle-light dark:text-text-subtle-dark">Ortalama sifariş</p>
+<p class="text-sm font-medium text-text-light dark:text-text-dark">₼36.94</p>
+</div>
+<div class="flex items-center justify-between py-2">
+<p class="text-sm text-text-subtle-light dark:text-text-subtle-dark">Uğurlu ödənişlər</p>
+<p class="text-sm font-medium text-accent-green">98%</p>
+</div>
+</div>
+<button class="haptic mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-lg bg-primary text-white transition-transform active:scale-[0.98]">
+<span class="material-symbols-outlined">download</span>
+<span class="text-base font-semibold">Hesabatı Yüklə</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</body></html>

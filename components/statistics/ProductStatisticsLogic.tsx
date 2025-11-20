@@ -390,6 +390,11 @@ export const useProductStatistics = () => {
     await Clipboard.setStringAsync(text);
   };
 
+  const onDateRangeConfirm = useCallback((start: Date, end: Date) => {
+    setStartDate(start);
+    setEndDate(end);
+  }, []);
+
   return {
     loading,
     productStats,
@@ -414,6 +419,7 @@ export const useProductStatistics = () => {
     fetchDailyStats,
     generateExcel,
     generateWhatsAppText,
-    copyToClipboard
+    copyToClipboard,
+    onDateRangeConfirm
   };
-}; 
+};

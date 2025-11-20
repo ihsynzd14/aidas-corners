@@ -3,6 +3,7 @@ import { StyleSheet, TouchableOpacity, ActivityIndicator, useColorScheme as useN
 import { ThemedView } from '@/components/ThemedView';
 import { MaterialIcons } from '@expo/vector-icons';
 import { DatePicker } from '@/components/statistics/DatePicker';
+import { DateRangePickerModal } from '@/components/statistics/DateRangePickerModal';
 import { ViewSwitcher } from '@/components/statistics/ViewSwitcher';
 import { SummaryView } from '@/components/statistics/SummaryView';
 import { DailyView } from '@/components/statistics/DailyView';
@@ -27,8 +28,10 @@ interface ProductStatisticsUIProps {
   dailyStats: DailyStats[];
   availableBranches: string[];
   bottomSheetModalRef: React.RefObject<BottomSheetModal | null>;
+  dateRangeModalRef: React.RefObject<BottomSheetModal | null>;
   onStartDateChange: (event: any, selectedDate?: Date) => void;
   onEndDateChange: (event: any, selectedDate?: Date) => void;
+  onDateRangeConfirm: (start: Date, end: Date) => void;
   setShowStartPicker: (show: boolean) => void;
   setShowEndPicker: (show: boolean) => void;
   setViewMode: (mode: 'summary' | 'daily') => void;
@@ -56,8 +59,10 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
   dailyStats,
   availableBranches,
   bottomSheetModalRef,
+  dateRangeModalRef,
   onStartDateChange,
   onEndDateChange,
+  onDateRangeConfirm,
   setShowStartPicker,
   setShowEndPicker,
   setViewMode,
@@ -84,6 +89,16 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
   const headerBgColor = isDark ? 'rgba(44, 42, 41, 0.8)' : 'rgba(253, 247, 243, 0.8)'; // slightly transparent version of background
   const borderColor = isDark ? colorScheme.cardDark : colorScheme.cardLight; // Using card colors for borders as per scheme
   const textColor = isDark ? colorScheme.textDark : colorScheme.textLight;
+
+  const totalSold = React.useMemo(() => {
+    return productStats.reduce((acc, curr) => acc + curr.totalQuantity, 0);
+  }, [productStats]);
+
+  const topProduct = React.useMemo(() => {
+    if (productStats.length === 0) return '-';
+    const sorted = [...productStats].sort((a, b) => b.totalQuantity - a.totalQuantity);
+    return sorted[0].productName;
+  }, [productStats]);
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: bgColor }]}>
@@ -160,13 +175,56 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
         <DatePicker
           startDate={startDate}
           endDate={endDate}
-          showStartPicker={showStartPicker}
-          showEndPicker={showEndPicker}
-          onStartDateChange={onStartDateChange}
-          onEndDateChange={onEndDateChange}
-          setShowStartPicker={setShowStartPicker}
-          setShowEndPicker={setShowEndPicker}
+          onPress={() => dateRangeModalRef.current?.present()}
         />
+
+        <View style={styles.statsGrid}>
+          <View style={[
+            styles.statCard,
+            {
+              backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
+              borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
+            }
+          ]}>
+            <View style={styles.statCardRow}>
+              <View style={[styles.iconCircle, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(217,166,163,0.1)' }]}>
+                <MaterialIcons name="bar-chart" size={20} color={colorScheme.accentRed} />
+              </View>
+              <View style={styles.statCardContent}>
+                <Text style={[
+                  styles.statLabel,
+                  { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
+                ]}>Satılan Ümumi Məhsul</Text>
+                <Text style={[styles.statValue, { color: textColor }]} adjustsFontSizeToFit={true} minimumFontScale={0.8} numberOfLines={2}>
+                  {totalSold.toLocaleString()}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={[
+            styles.statCard,
+            {
+              backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
+              borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
+            }
+          ]}>
+            <View style={styles.statCardRow}>
+              <View style={[styles.iconCircle, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(217,166,163,0.1)' }]}>
+                <MaterialIcons name="trending-up" size={20} color={colorScheme.accentRed} />
+              </View>
+              <View style={styles.statCardContent}>
+                <Text style={[
+                  styles.statLabel,
+                  { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
+                ]}>Ən Çox Satılan</Text>
+                <Text style={[styles.statValue, { color: textColor }]} adjustsFontSizeToFit={true} minimumFontScale={0.8} numberOfLines={2}>
+                  {topProduct}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
 
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -195,6 +253,13 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
         setSelectedProduct={setSelectedProduct}
         setSelectedBranch={setSelectedBranch}
         setAvailableBranches={setAvailableBranches}
+      />
+
+      <DateRangePickerModal
+        bottomSheetRef={dateRangeModalRef as React.RefObject<BottomSheetModal>}
+        startDate={startDate}
+        endDate={endDate}
+        onConfirm={onDateRangeConfirm}
       />
 
       <ShareBottomSheet
@@ -237,7 +302,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 16, // px-4
     borderBottomWidth: 1,
-    zIndex: 10,
   },
   navTab: {
     flex: 1,
@@ -254,10 +318,47 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 16, // p-4
+    // gap: 16, // Add gap between elements
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  statsGrid: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 16,
+  },
+  statCard: {
+    flex: 1,
+    padding: 16,
+    borderRadius: 12, // rounded-lg
+    borderWidth: 1,
+    gap: 6, // gap-1.5
+  },
+  statCardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  statCardContent: {
+    flex: 1,
+  },
+  statLabel: {
+    fontSize: 12, // text-xs
+    fontWeight: '500', // font-medium
+  },
+  statValue: {
+    fontSize: 20, // text-xl
+    fontWeight: 'bold', // font-bold
+    letterSpacing: -0.5, // tracking-tight
   },
 });

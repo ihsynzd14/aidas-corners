@@ -20,12 +20,12 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: 16,
-        paddingBottom: 12,
+        padding: 8,
+        paddingBottom: 2,
         borderBottomWidth: 1,
     },
     headerLight: {
-        backgroundColor: 'rgba(248, 246, 246, 0.8)', // background-light/80
+        backgroundColor: colorScheme.backgroundLight, // background-light/80
         borderBottomColor: 'rgba(226, 232, 240, 0.8)', // slate-200/80
     },
     headerDark: {
@@ -150,7 +150,7 @@ export const styles = StyleSheet.create({
         padding: 16,
     },
     footerLight: {
-        backgroundColor: 'rgba(248, 246, 246, 0.8)',
+        backgroundColor: colorScheme.backgroundLight,
         borderTopColor: 'rgba(226, 232, 240, 0.8)',
     },
     footerDark: {
@@ -171,8 +171,8 @@ export const styles = StyleSheet.create({
         elevation: 4,
     },
     disabledButton: {
-        opacity: 0.7,
-        backgroundColor: colorScheme.slate400, // Visual feedback for disabled state
+        opacity: 0.4,
+        backgroundColor: colorScheme.accentGreen, // Visual feedback for disabled state
     },
     saveButtonText: {
         color: colorScheme.white, // Requested: text white

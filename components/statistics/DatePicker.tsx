@@ -1,94 +1,87 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
-import { ThemedView } from '@/components/ThemedView';
+import { StyleSheet, TouchableOpacity, View, useColorScheme } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { AntDesign } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { MaterialIcons } from '@expo/vector-icons';
 import { formatDate } from '@/utils/firebase';
+import { colorScheme } from '@/constants/colorScheme';
 
 interface DatePickerProps {
   startDate: Date;
   endDate: Date;
-  showStartPicker: boolean;
-  showEndPicker: boolean;
-  onStartDateChange: (event: any, date?: Date) => void;
-  onEndDateChange: (event: any, date?: Date) => void;
-  setShowStartPicker: (show: boolean) => void;
-  setShowEndPicker: (show: boolean) => void;
+  onPress: () => void;
 }
 
 export const DatePicker: React.FC<DatePickerProps> = ({
   startDate,
   endDate,
-  showStartPicker,
-  showEndPicker,
-  onStartDateChange,
-  onEndDateChange,
-  setShowStartPicker,
-  setShowEndPicker,
+  onPress,
 }) => {
+  const nativeColorScheme = useColorScheme();
+  const isDark = nativeColorScheme === 'dark';
+
   return (
-    <ThemedView style={styles.datePickerContainer}>
-      <TouchableOpacity 
-        style={styles.dateButton} 
-        onPress={() => setShowStartPicker(true)}
+    <View style={styles.datePickerContainer}>
+      <TouchableOpacity
+        style={[
+          styles.dateButton,
+          { backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight }
+        ]}
+        onPress={onPress}
       >
+        <View style={styles.calendarIcon}>
+          <MaterialIcons name="date-range" size={24} color={colorScheme.accentRed} />
+        </View>
         <ThemedText style={styles.dateButtonText}>
-          Başlanğıc: {formatDate(startDate)}
+          {formatDate(startDate)} - {formatDate(endDate)}
         </ThemedText>
-        <AntDesign name="calendar" size={20} color="#4A3531" />
+        <View style={styles.expandIcon}>
+          <MaterialIcons 
+            name="expand-more" 
+            size={24} 
+            color={isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight} 
+          />
+        </View>
       </TouchableOpacity>
-
-      <TouchableOpacity 
-        style={styles.dateButton} 
-        onPress={() => setShowEndPicker(true)}
-      >
-        <ThemedText style={styles.dateButtonText}>
-          Son: {formatDate(endDate)}
-        </ThemedText>
-        <AntDesign name="calendar" size={20} color="#4A3531" />
-      </TouchableOpacity>
-
-      {showStartPicker && (
-        <DateTimePicker
-          value={startDate}
-          mode="date"
-          onChange={onStartDateChange}
-        />
-      )}
-
-      {showEndPicker && (
-        <DateTimePicker
-          value={endDate}
-          mode="date"
-          onChange={onEndDateChange}
-        />
-      )}
-    </ThemedView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   datePickerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    padding: 16,
-    backgroundColor: '#fff',
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(74, 53, 49, 0.1)',
+    marginBottom: 16, // mb-4
   },
   dateButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(74, 53, 49, 0.05)',
-    padding: 12,
-    borderRadius: 8,
-    flex: 0.48,
+    gap: 16, // gap-4
+    backgroundColor: colorScheme.cardLight,
+    borderRadius: 8, // rounded-lg
+    padding: 16, // p-4
+    shadowColor: colorScheme.primary,
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05, // shadow-sm shadow-primary/5
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  calendarIcon: {
+    width: 40, // size-10
+    height: 40, // size-10
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20, // rounded-full
+    backgroundColor: `${colorScheme.primary}10`, // bg-primary/10
+  },
+  expandIcon: {
+    flexShrink: 0,
   },
   dateButtonText: {
-    fontSize: 14,
-    color: '#4A3531',
-    marginRight: 8,
     flex: 1,
+    fontSize: 16, // text-base
+    fontWeight: '500', // font-medium
+    textAlign: 'center',
+    color: colorScheme.textLight,
   },
 }); 

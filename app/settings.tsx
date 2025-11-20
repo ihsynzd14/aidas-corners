@@ -1,19 +1,36 @@
 import { Stack, useRouter } from 'expo-router';
-import { Appearance, StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput, Alert } from 'react-native';
-import { ThemedView } from '@/components/ThemedView';
+import { Appearance, StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput, Alert, Switch } from 'react-native';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { TopBar } from '@/components/TopBar';
-import { SettingItem } from '@/components/settings/SettingItem';
-import { ThemedText } from '@/components/ThemedText';
 import { NotificationService } from '@/services/NotificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
+// Material Symbols Outlined Icons
+const MaterialIcon = ({ name, size = 24, color }: { name: string; size?: number; color: string }) => {
+  const iconMap: { [key: string]: string } = {
+    dark_mode: '🌙',
+    storefront: '🏪',
+    inventory_2: '📦',
+    local_shipping: '🚚',
+    analytics: '📊',
+    trending_up: '📈',
+    calendar_month: '📅',
+    chevron_right: '›',
+    done: '✓',
+  };
+  
+  return (
+    <Text style={{ fontSize: size, color, lineHeight: size * 1.2 }}>
+      {iconMap[name] || '?'}
+    </Text>
+  );
+};
+
 export default function SettingsScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const isDarkMode = colorScheme === 'dark';
+  const systemColorScheme = useColorScheme();
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [apiKey, setApiKey] = useState('');
   const [notificationTimes, setNotificationTimes] = useState<{ type: string; hour: number; minute: number }[]>([]);
   const [showTimePicker, setShowTimePicker] = useState(false);
@@ -25,7 +42,27 @@ export default function SettingsScreen() {
   useEffect(() => {
     loadApiKeys();
     loadNotificationTimes();
+    loadThemePreference();
   }, []);
+
+  const loadThemePreference = async () => {
+    try {
+      const savedTheme = await AsyncStorage.getItem('theme_preference');
+      if (savedTheme !== null) {
+        const isDark = savedTheme === 'dark';
+        setIsDarkMode(isDark);
+        Appearance.setColorScheme(isDark ? 'dark' : 'light');
+      } else {
+        // Use system theme as default
+        const isDark = systemColorScheme === 'dark';
+        setIsDarkMode(isDark);
+      }
+    } catch (error) {
+      console.error('Error loading theme preference:', error);
+      // Fallback to system theme
+      setIsDarkMode(systemColorScheme === 'dark');
+    }
+  };
 
   const loadApiKeys = async () => {
     try {
@@ -44,6 +81,7 @@ export default function SettingsScreen() {
   const loadNotificationTimes = async () => {
     const notificationService = NotificationService.getInstance();
     const times = await notificationService.getNotificationTimes();
+    console.log('Loaded notification times:', times);
     setNotificationTimes(times);
   };
 
@@ -57,10 +95,19 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleThemeToggle = (value: boolean) => {
-    requestAnimationFrame(() => {
-      Appearance.setColorScheme(value ? 'dark' : 'light');
-    });
+  const handleThemeToggle = async (value: boolean) => {
+    try {
+      // Save user preference
+      await AsyncStorage.setItem('theme_preference', value ? 'dark' : 'light');
+      
+      // Update state and appearance
+      setIsDarkMode(value);
+      requestAnimationFrame(() => {
+        Appearance.setColorScheme(value ? 'dark' : 'light');
+      });
+    } catch (error) {
+      console.error('Error saving theme preference:', error);
+    }
   };
 
   const handleTestNotification = async (type: 'comparison' | 'topSelling' | 'insight') => {
@@ -97,102 +144,233 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <View style={[styles.container, { backgroundColor: isDarkMode ? '#211114' : '#f8f6f6' }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      <TopBar
-        title="Tənzimləmələr"
-        style={styles.topBar}
-      />
+      
+      {/* Main Container - matches HTML w-full max-w-2xl mx-auto */}
+      <View style={styles.mainContainer}>
+        {/* Header - matches HTML p-4 pt-6 */}
+        <View style={[styles.header, { backgroundColor: isDarkMode ? '#211114' : '#f8f6f6' }]}>
+          <View style={styles.headerContent}>
+            <TouchableOpacity 
+              style={styles.backButton}
+              onPress={() => router.back()}
+            >
+              <MaterialIcon name="chevron_right" size={32} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+            </TouchableOpacity>
+            <Text style={[styles.headerTitle, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+              Tənzimləmələr
+            </Text>
+          </View>
+        </View>
 
-      <ScrollView>
-        <ThemedView style={styles.content}>
-          <ThemedView style={styles.section}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>Görünüş</ThemedText>
-            <SettingItem
-              title="Qaranlıq Rejim"
-              description="İşıqlı və qaranlıq mövzu arasında keçid"
-              icon="gearshape.fill"
-              isSwitch={true}
-              value={isDarkMode}
-              onToggle={handleThemeToggle}
-            />
-          </ThemedView>
+        {/* Content - matches HTML flex flex-col gap-8 p-4 pt-2 */}
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+          <View style={styles.content}>
+            {/* Görünüş Section */}
+            <View style={styles.sectionContainer}>
+              <Text style={[styles.sectionTitle, { color: isDarkMode ? '#f8f6f6' : '#1b0e10', opacity: 0.6 }]}>
+                Görünüş
+              </Text>
+              <View style={[styles.card, { backgroundColor: isDarkMode ? '#2c1e20' : '#ffffff' }]}>
+                <View style={styles.settingRow}>
+                  <View style={styles.settingLeft}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
+                      <MaterialIcon name="dark_mode" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                    </View>
+                    <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+                      Qaranlıq Rejim
+                    </Text>
+                  </View>
+                  <View style={styles.toggleContainer}>
+                    <View style={[styles.toggleTrack, { backgroundColor: isDarkMode ? '#eb4763' : '#f3e7e9' }]}>
+                      <View style={[styles.toggleThumb, { transform: [{ translateX: isDarkMode ? 20 : 0 }], backgroundColor: '#ffffff' }]} />
+                    </View>
+                    <Switch
+                      value={isDarkMode}
+                      onValueChange={handleThemeToggle}
+                      trackColor={{ false: 'transparent', true: 'transparent' }}
+                      thumbColor="transparent"
+                      ios_backgroundColor="transparent"
+                      style={styles.hiddenSwitch}
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
 
-          <ThemedView style={styles.section}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>İdarəetmə</ThemedText>
-            <SettingItem
-              title="Filiallar"
-              description="Filialları idarə edin"
-              icon="box.truck.fill"
-              onPress={() => router.push('/pages/branches')}
-            />
-            <SettingItem
-              title="Məhsullar"
-              description="Məhsul siyahısını idarə edin"
-              icon="cart.fill"
-              onPress={() => router.push('/pages/products_list')}
-            />
-            <SettingItem
-              title="Ərzaqlar"
-              description="Ərzaqları idarə edin"
-              icon="cart.fill"
-              onPress={() => router.push('/pages/needs')}
-            />
-          </ThemedView>
+            {/* İdarəetmə Section */}
+            <View style={styles.sectionContainer}>
+              <Text style={[styles.sectionTitle, { color: isDarkMode ? '#f8f6f6' : '#1b0e10', opacity: 0.6 }]}>
+                İdarəetmə
+              </Text>
+              <View style={[styles.card, { backgroundColor: isDarkMode ? '#2c1e20' : '#ffffff' }]}>
+                <TouchableOpacity 
+                  style={styles.settingRow}
+                  onPress={() => router.push('/pages/branches')}
+                >
+                  <View style={styles.settingLeft}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
+                      <MaterialIcon name="storefront" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                    </View>
+                    <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+                      Filiallar
+                    </Text>
+                  </View>
+                  <View style={styles.chevronContainer}>
+                    <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                  </View>
+                </TouchableOpacity>
+                <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
+                <TouchableOpacity 
+                  style={styles.settingRow}
+                  onPress={() => router.push('/pages/products_list')}
+                >
+                  <View style={styles.settingLeft}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
+                      <MaterialIcon name="inventory_2" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                    </View>
+                    <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+                      Məhsullar
+                    </Text>
+                  </View>
+                  <View style={styles.chevronContainer}>
+                    <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                  </View>
+                </TouchableOpacity>
+                <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
+                <TouchableOpacity 
+                  style={styles.settingRow}
+                  onPress={() => router.push('/pages/needs')}
+                >
+                  <View style={styles.settingLeft}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
+                      <MaterialIcon name="local_shipping" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                    </View>
+                    <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+                      Ehtiyaclar
+                    </Text>
+                  </View>
+                  <View style={styles.chevronContainer}>
+                    <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
 
-          <ThemedView style={styles.section}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>Ümumi</ThemedText>
-            <SettingItem
-              title="Dil"
-              description="Tətbiq dilini dəyişin"
-              icon="list.clipboard.fill"
-            />
-            <SettingItem
-              title="Haqqında"
-              description="Tətbiq məlumatları və versiya"
-              icon="cart.fill"
-            />
-          </ThemedView>
-          {/*
-          <ThemedView style={styles.section}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>Bildiriş Testləri</ThemedText>
-            
-            <SettingItem
-              title="📊 Həftəlik Müqayisə Bildirişi"
-              description="Ötən həftə ilə müqayisəli satış analizi"
-              icon="bell.fill"
-              onPress={() => handleTestNotification('comparison')}
-            />
+            {/* Bildiriş Zamanları Section */}
+            <View style={styles.sectionContainer}>
+              <Text style={[styles.sectionTitle, { color: isDarkMode ? '#f8f6f6' : '#1b0e10', opacity: 0.6 }]}>
+                Bildiriş Zamanları
+              </Text>
+              <View style={[styles.card, { backgroundColor: isDarkMode ? '#2c1e20' : '#ffffff' }]}>
+                {notificationTimes.map((notification, index) => (
+                  <View key={notification.type}>
+                    <TouchableOpacity 
+                      style={styles.settingRow}
+                      onPress={() => {
+                        setSelectedType(notification.type);
+                        setShowTimePicker(true);
+                      }}
+                    >
+                      <View style={styles.settingLeft}>
+                        <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
+                          <MaterialIcon 
+                            name={notification.type === 'comparison' ? 'calendar_month' : 
+                                  notification.type === 'topSelling' ? 'trending_up' : 'analytics'} 
+                            size={24} 
+                            color={isDarkMode ? '#f8f6f6' : '#1b0e10'} 
+                          />
+                        </View>
+                        <View style={styles.settingTextContainer}>
+                          <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+                            {getNotificationTitle(notification.type)}
+                          </Text>
+                          <Text style={[styles.settingSubtext, { color: isDarkMode ? '#f8f6f6' : '#1b0e10', opacity: 0.6 }]}>
+                            Bildiriş Zamanı: {formatTime(notification.hour, notification.minute)}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.chevronContainer}>
+                        <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                      </View>
+                    </TouchableOpacity>
+                    {index < notificationTimes.length - 1 && (
+                      <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
+                    )}
+                  </View>
+                ))}
+              </View>
+            </View>
 
-            <SettingItem
-              title="🏆 Ən Çox Satılanlar Bildirişi"
-              description="Həftənin ən populyar məhsulları"
-              icon="bell.fill"
-              onPress={() => handleTestNotification('topSelling')}
-            />
+            {/* AI Tənzimləmələri Section */}
+            <View style={styles.sectionContainer}>
+              <Text style={[styles.sectionTitle, { color: isDarkMode ? '#f8f6f6' : '#1b0e10', opacity: 0.6 }]}>
+                AI Tənzimləmələri
+              </Text>
+              <View style={[styles.card, { backgroundColor: isDarkMode ? '#2c1e20' : '#ffffff', padding: 16, gap: 16 }]}>
+                <View style={styles.apiKeyRow}>
+                  <TextInput
+                    style={[styles.apiKeyInput, { 
+                      backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9',
+                      color: isDarkMode ? '#f8f6f6' : '#1b0e10'
+                    }]}
+                    value={groqApiKey}
+                    onChangeText={setGroqApiKey}
+                    placeholder="Groq API Key"
+                    placeholderTextColor={isDarkMode ? 'rgba(248, 246, 246, 0.5)' : 'rgba(27, 14, 16, 0.5)'}
+                    secureTextEntry
+                  />
+                  <TouchableOpacity
+                    style={[styles.saveButton, { backgroundColor: '#eb4763' }]}
+                    onPress={() => handleApiKeySave('groq', groqApiKey)}
+                  >
+                    <MaterialIcon name="done" size={24} color="#ffffff" />
+                  </TouchableOpacity>
+                </View>
 
-            <SettingItem
-              title="📈 Gündəlik Analiz Bildirişi"
-              description="Bu günün ən yaxşı filialı və satış məlumatları"
-              icon="bell.fill"
-              onPress={() => handleTestNotification('insight')}
-            />
-          </ThemedView>
-   */}
-          <ThemedView style={styles.section}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>Bildiriş Zamanları</ThemedText>
-            {notificationTimes.map((notification) => (
-              <SettingItem
-                key={notification.type}
-                title={getNotificationTitle(notification.type)}
-                description={`Bildiriş zamanı: ${formatTime(notification.hour, notification.minute)}`}
-                icon="bell.fill"
-                onPress={() => {
-                  setSelectedType(notification.type);
-                  setShowTimePicker(true);
-                }}
-              />
-            ))}
+                <View style={styles.apiKeyRow}>
+                  <TextInput
+                    style={[styles.apiKeyInput, { 
+                      backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9',
+                      color: isDarkMode ? '#f8f6f6' : '#1b0e10'
+                    }]}
+                    value={openrouterApiKey}
+                    onChangeText={setOpenrouterApiKey}
+                    placeholder="OpenRouter API Key"
+                    placeholderTextColor={isDarkMode ? 'rgba(248, 246, 246, 0.5)' : 'rgba(27, 14, 16, 0.5)'}
+                    secureTextEntry
+                  />
+                  <TouchableOpacity
+                    style={[styles.saveButton, { backgroundColor: '#eb4763' }]}
+                    onPress={() => handleApiKeySave('openrouter', openrouterApiKey)}
+                  >
+                    <MaterialIcon name="done" size={24} color="#ffffff" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.apiKeyRow}>
+                  <TextInput
+                    style={[styles.apiKeyInput, { 
+                      backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9',
+                      color: isDarkMode ? '#f8f6f6' : '#1b0e10'
+                    }]}
+                    value={geminiApiKey}
+                    onChangeText={setGeminiApiKey}
+                    placeholder="Gemini API Key"
+                    placeholderTextColor={isDarkMode ? 'rgba(248, 246, 246, 0.5)' : 'rgba(27, 14, 16, 0.5)'}
+                    secureTextEntry
+                  />
+                  <TouchableOpacity
+                    style={[styles.saveButton, { backgroundColor: '#eb4763' }]}
+                    onPress={() => handleApiKeySave('gemini', geminiApiKey)}
+                  >
+                    <MaterialIcon name="done" size={24} color="#ffffff" />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+
             {showTimePicker && selectedType && (
               <DateTimePicker
                 value={new Date()}
@@ -211,77 +389,10 @@ export default function SettingsScreen() {
                 }}
               />
             )}
-          </ThemedView>
-
-          <ThemedView style={styles.section}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>AI Tənzimləmələri</ThemedText>
-
-            <ThemedView style={styles.apiKeyContainer}>
-              <View style={styles.apiKeyRow}>
-                <ThemedText style={styles.apiKeyLabel}>Groq</ThemedText>
-                <TextInput
-                  style={[
-                    styles.apiKeyInput,
-                    { color: isDarkMode ? '#fff' : '#000', borderColor: isDarkMode ? '#444' : '#ddd' }
-                  ]}
-                  value={groqApiKey}
-                  onChangeText={setGroqApiKey}
-                  placeholder="API açarı"
-                  placeholderTextColor={isDarkMode ? '#888' : '#999'}
-                />
-                <TouchableOpacity
-                  style={[styles.saveButton, { backgroundColor: isDarkMode ? '#492500' : '#efc4c4' }]}
-                  onPress={() => handleApiKeySave('groq', groqApiKey)}
-                >
-                  <ThemedText>✓</ThemedText>
-                </TouchableOpacity>
-              </View>
-
-              <View style={[styles.apiKeyRow, { marginTop: 8 }]}>
-                <ThemedText style={styles.apiKeyLabel}>OpenRouter</ThemedText>
-                <TextInput
-                  style={[
-                    styles.apiKeyInput,
-                    { color: isDarkMode ? '#fff' : '#000', borderColor: isDarkMode ? '#444' : '#ddd' }
-                  ]}
-                  value={openrouterApiKey}
-                  onChangeText={setOpenrouterApiKey}
-                  placeholder="API açarı"
-                  placeholderTextColor={isDarkMode ? '#888' : '#999'}
-                />
-                <TouchableOpacity
-                  style={[styles.saveButton, { backgroundColor: isDarkMode ? '#492500' : '#efc4c4' }]}
-                  onPress={() => handleApiKeySave('openrouter', openrouterApiKey)}
-                >
-                  <ThemedText>✓</ThemedText>
-                </TouchableOpacity>
-              </View>
-
-              <View style={[styles.apiKeyRow, { marginTop: 8 }]}>
-                <ThemedText style={styles.apiKeyLabel}>Gemini</ThemedText>
-                <TextInput
-                  style={[
-                    styles.apiKeyInput,
-                    { color: isDarkMode ? '#fff' : '#000', borderColor: isDarkMode ? '#444' : '#ddd' }
-                  ]}
-                  value={geminiApiKey}
-                  onChangeText={setGeminiApiKey}
-                  placeholder="API açarı"
-                  placeholderTextColor={isDarkMode ? '#888' : '#999'}
-                />
-                <TouchableOpacity
-                  style={[styles.saveButton, { backgroundColor: isDarkMode ? '#492500' : '#efc4c4' }]}
-                  onPress={() => handleApiKeySave('gemini', geminiApiKey)}
-                >
-                  <ThemedText>✓</ThemedText>
-                </TouchableOpacity>
-              </View>
-            </ThemedView>
-          </ThemedView>
-
-        </ThemedView>
-      </ScrollView>
-    </ThemedView>
+          </View>
+        </ScrollView>
+      </View>
+    </View>
   );
 }
 
@@ -289,67 +400,165 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  topBar: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
+  mainContainer: {
+    flex: 1,
+    maxWidth: 672, // max-w-2xl equivalent
+    alignSelf: 'center',
+    width: '100%',
+  },
+  header: {
+    paddingHorizontal: 16, // p-4
+    paddingTop: 24, // pt-6
+    paddingBottom: 16, // p-4
+  },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  backButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    transform: [{ rotate: '180deg' }],
+    position: 'absolute',
+    left: 16,
+    zIndex: 1,
+  },
+  headerTitle: {
+    fontSize: 30, // text-3xl
+    fontWeight: '700', // font-bold
+    letterSpacing: -0.5, // tracking-tighter
+    textAlign: 'center',
+  },
+  scrollView: {
+    flex: 1,
   },
   content: {
-    flex: 1,
-    padding: 16,
+    paddingHorizontal: 16, // p-4
+    paddingTop: 8, // pt-2
+    paddingBottom: 16, // p-4
+    gap: 32, // gap-8 between sections
   },
-  section: {
-    marginBottom: 12,
+  sectionContainer: {
+    gap: 12, // gap-3 between section title and card
   },
   sectionTitle: {
-    marginBottom: 4,
-    marginLeft: 4,
+    fontSize: 14, // text-sm
+    fontWeight: '600', // font-semibold
+    letterSpacing: 0.5, // tracking-wide
+    textTransform: 'uppercase',
+    paddingHorizontal: 8, // px-2
   },
-  button: {
-    backgroundColor: 'grey',
-    padding: 8,
-    borderRadius: 12,
-    marginBottom: 16,
+  card: {
+    borderRadius: 12, // rounded-xl
+    overflow: 'hidden',
     elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: 2,
+  settingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 16, // p-4
+    minHeight: 56, // min-h-14
+    gap: 16, // gap-4
   },
-  buttonDescription: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 13,
-    textAlign: 'center',
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    gap: 16, // gap-4
   },
-  apiKeyContainer: {
-    padding: 8,
-    borderRadius: 8,
+  iconContainer: {
+    width: 40, // size-10
+    height: 40, // size-10
+    borderRadius: 8, // rounded-lg
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  settingText: {
+    fontSize: 16, // text-base
+    fontWeight: '400', // font-normal
+    flex: 1,
+  },
+  settingTextContainer: {
+    flex: 1,
+  },
+  settingSubtext: {
+    fontSize: 14, // text-sm
+    fontWeight: '400', // font-normal
+    marginTop: 2,
+  },
+  divider: {
+    height: 1,
+    marginLeft: 64, // ml-16
   },
   apiKeyRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-  },
-  apiKeyLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    width: 80,
+    gap: 8, // gap-2
   },
   apiKeyInput: {
     flex: 1,
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    fontSize: 14,
+    height: 44,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    borderWidth: 0,
   },
   saveButton: {
-    padding: 6,
-    borderRadius: 6,
+    width: 40, // size-10
+    height: 40, // size-10
+    borderRadius: 8, // rounded-lg
     alignItems: 'center',
     justifyContent: 'center',
-    width: 32,
+  },
+  chevronContainer: {
+    width: 28, // size-7
+    height: 28, // size-7
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  toggleContainer: {
+    position: 'relative',
+    width: 51, // w-[51px]
+    height: 31, // h-[31px]
+  },
+  toggleTrack: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 9999, // rounded-full
+    padding: 2, // p-0.5
+  },
+  toggleThumb: {
+    position: 'absolute',
+    top: 2,
+    left: 2,
+    width: 27, // w-[27px]
+    height: 27, // h-full
+    borderRadius: 9999, // rounded-full
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  hiddenSwitch: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0,
   },
 });

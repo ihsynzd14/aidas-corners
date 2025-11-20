@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable, useColorScheme as useNativeColorScheme, Animated, Dimensions, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable, useColorScheme as useNativeColorScheme, Animated, Dimensions, Platform, LayoutAnimation } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { colorScheme } from '@/constants/colorScheme';
 
@@ -80,7 +80,10 @@ export const ShareBottomSheet: React.FC<ShareBottomSheetProps> = ({
             statusBarTranslucent
         >
             <View style={styles.overlay}>
-                <Pressable style={StyleSheet.absoluteFill} onPress={handleClose}>
+                <Pressable
+                    style={styles.backdropPressable}
+                    onPress={handleClose}
+                >
                     <Animated.View
                         style={[
                             styles.backdrop,
@@ -110,53 +113,62 @@ export const ShareBottomSheet: React.FC<ShareBottomSheetProps> = ({
 
                     <Text style={[styles.title, { color: textColor }]}>Paylaş</Text>
 
-                    <View style={styles.optionsContainer}>
+                    <View style={[styles.buttonGroup, { borderTopColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}>
                         <TouchableOpacity
-                            style={[styles.option, { backgroundColor: isDark ? '#1F2937' : '#F9FAFB' }]}
-                            onPress={() => {
-                                onExcelPress();
-                                handleClose();
-                            }}
-                            activeOpacity={0.7}
-                        >
-                            <View style={[styles.iconContainer, { backgroundColor: '#E6F4EA' }]}>
-                                <MaterialIcons name="table-chart" size={32} color="#10B981" />
-                            </View>
-                            <Text style={[styles.optionText, { color: textColor }]}>Excel</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity
-                            style={[styles.option, { backgroundColor: isDark ? '#1F2937' : '#F9FAFB' }]}
+                            style={[styles.shareButton, styles.whatsappButton]}
                             onPress={() => {
                                 onWhatsAppPress();
                                 handleClose();
                             }}
                             activeOpacity={0.7}
                         >
-                            <View style={[styles.iconContainer, { backgroundColor: '#E0F2F1' }]}>
-                                <MaterialCommunityIcons name="whatsapp" size={32} color="#25D366" />
+                            <View style={styles.buttonContent}>
+                                <MaterialCommunityIcons name="whatsapp" size={20} color="#FFFFFF" />
+                                <Text style={styles.buttonText}>WhatsApp</Text>
                             </View>
-                            <Text style={[styles.optionText, { color: textColor }]}>WhatsApp</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
-                            style={[styles.option, { backgroundColor: isDark ? '#1F2937' : '#F9FAFB' }]}
+                            style={[
+                                styles.shareButton,
+                                styles.outlineButton,
+                                { backgroundColor: bgColor, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }
+                            ]}
+                            onPress={() => {
+                                onExcelPress();
+                                handleClose();
+                            }}
+                            activeOpacity={0.7}
+                        >
+                            <View style={styles.buttonContent}>
+                                <MaterialIcons name="table-chart" size={20} color={iconColor} />
+                                <Text style={[styles.buttonText, { color: textColor }]}>Excel</Text>
+                            </View>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            style={[
+                                styles.shareButton,
+                                styles.outlineButton,
+                                { backgroundColor: bgColor, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }
+                            ]}
                             onPress={() => {
                                 onCopyPress();
                                 handleClose();
                             }}
                             activeOpacity={0.7}
                         >
-                            <View style={[styles.iconContainer, { backgroundColor: buttonBg }]}>
-                                <MaterialIcons name="content-copy" size={32} color={iconColor} />
+                            <View style={styles.buttonContent}>
+                                <MaterialIcons name="content-copy" size={20} color={iconColor} />
+                                <Text style={[styles.buttonText, { color: textColor }]}>Kopyala</Text>
                             </View>
-                            <Text style={[styles.optionText, { color: textColor }]}>Kopyala</Text>
                         </TouchableOpacity>
                     </View>
 
                     <TouchableOpacity
-                        style={[styles.cancelButton, { backgroundColor: buttonBg }]}
+                        style={[styles.cancelButton, { backgroundColor: buttonBg, borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]}
                         onPress={handleClose}
+                        activeOpacity={0.7}
                     >
                         <Text style={[styles.cancelText, { color: textColor }]}>Ləğv et</Text>
                     </TouchableOpacity>
@@ -172,6 +184,9 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     backdrop: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    backdropPressable: {
         ...StyleSheet.absoluteFillObject,
     },
     contentContainer: {
@@ -204,44 +219,46 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         letterSpacing: 0.5,
     },
-    optionsContainer: {
+    buttonGroup: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 32,
-        paddingHorizontal: 12,
-    },
-    option: {
-        alignItems: 'center',
         gap: 12,
-        width: '30%',
-        paddingVertical: 16,
-        borderRadius: 16,
+        marginBottom: 24,
+        borderTopWidth: 1,
+        paddingTop: 24,
     },
-    iconContainer: {
-        width: 64,
-        height: 64,
-        borderRadius: 32,
-        justifyContent: 'center',
+    shareButton: {
+        flex: 1,
+        padding: 12,
+        borderRadius: 8,
+    },
+    buttonContent: {
+        flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'center',
+        gap: 8,
+    },
+    whatsappButton: {
+        backgroundColor: '#25D366',
         shadowColor: "#000",
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.05,
-        shadowRadius: 4,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
         elevation: 2,
     },
-    optionText: {
+    outlineButton: {
+        borderWidth: 1,
+    },
+    buttonText: {
         fontSize: 14,
         fontWeight: '600',
-        textAlign: 'center',
     },
     cancelButton: {
-        paddingVertical: 16,
-        borderRadius: 16,
+        paddingVertical: 14,
+        paddingHorizontal: 24,
+        borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
+        borderWidth: 1,
     },
     cancelText: {
         fontSize: 16,

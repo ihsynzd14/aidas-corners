@@ -17,6 +17,7 @@ export const colorScheme = {
   borderRed: '#fccdc593',
   lightRed: '#fccdc541',
   accentRed: '#DF6751',
+  accentRedlight: '#dd7664ff',
   accentBlue: '#6B9080',
   white: '#FFFFFF',
   black: '#000000',

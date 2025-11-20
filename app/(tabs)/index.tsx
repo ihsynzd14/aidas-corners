@@ -126,7 +126,6 @@ export default function HomeScreen() {
             <StatCard
               title="Yeni Sifarişlər"
               subtitle="Məhsulları əlavə et"
-              count="5"
               icon={ShoppingCart}
               color={colorScheme.primary}
               onPress={() => {
@@ -138,7 +137,6 @@ export default function HomeScreen() {
             <StatCard
               title="Stoklar və Hazırlıq"
               subtitle="Sifarişləri idarə et"
-              count="3"
               icon={Package}
               color={colorScheme.accentRed}
               onPress={() => {

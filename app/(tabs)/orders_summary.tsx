@@ -1,17 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
-import { TopBar } from '@/components/TopBar';
+import { OrdersSummaryTopBar } from '@/components/stocks/OrdersSummaryTopBar';
 import { OrdersSummaryContent } from '@/components/stocks/OrdersSummaryContent';
+import { colorScheme } from '@/constants/colorScheme';
 
 export default function OrdersSummaryScreen() {
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const handleDateChange = (date: Date) => {
+    setSelectedDate(date);
+  };
+
   return (
     <ThemedView style={styles.container}>
-      <TopBar 
-        title="Sifarişlər Cədvəli" 
+      <OrdersSummaryTopBar 
+        selectedDate={selectedDate}
+        onDateChange={handleDateChange}
         style={styles.topBar}
       />
-      <OrdersSummaryContent />
+      <OrdersSummaryContent 
+        selectedDate={selectedDate}
+        onDateChange={handleDateChange}
+      />
     </ThemedView>
   );
 }
@@ -21,7 +32,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   topBar: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingHorizontal: 0,
+    color: colorScheme.backgroundLight
   },
 });

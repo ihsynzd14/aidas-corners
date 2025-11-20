@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tənzimləmələr</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#eb4763",
+            "background-light": "#f8f6f6",
+            "background-dark": "#211114",
+            "card-light": "#ffffff",
+            "card-dark": "#2c1e20",
+            "text-light": "#1b0e10",
+            "text-dark": "#f8f6f6",
+            "icon-bg-light": "#f3e7e9",
+            "icon-bg-dark": "#3a282b",
+          },
+          fontFamily: {
+            "display": ["Inter", "sans-serif"]
+          },
+          borderRadius: {
+            "DEFAULT": "0.5rem",
+            "lg": "1rem",
+            "xl": "1.5rem",
+            "full": "9999px"
+          },
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0,
+      'wght' 400,
+      'GRAD' 0,
+      'opsz' 24
+    }
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-light dark:text-text-dark">
+<div class="w-full max-w-2xl mx-auto">
+<div class="p-4 pt-6 bg-background-light dark:bg-background-dark">
+<h1 class="text-3xl font-bold tracking-tighter">Tənzimləmələr</h1>
+</div>
+<div class="flex flex-col gap-8 p-4 pt-2">
+<section class="flex flex-col gap-3">
+<h2 class="px-2 text-sm font-semibold tracking-wide uppercase text-text-light/60 dark:text-text-dark/60">Görünüş</h2>
+<div class="flex flex-col overflow-hidden bg-card-light dark:bg-card-dark rounded-xl">
+<div class="flex items-center justify-between gap-4 p-4 min-h-14">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center shrink-0 size-10 bg-icon-bg-light dark:bg-icon-bg-dark rounded-lg">
+<span class="material-symbols-outlined">dark_mode</span>
+</div>
+<p class="flex-1 text-base font-normal leading-normal truncate">Qaranlıq Rejim</p>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-icon-bg-light dark:bg-icon-bg-dark p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+<div class="h-full w-[27px] rounded-full bg-white transition-transform" style="box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px;"></div>
+<input class="absolute invisible" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3">
+<h2 class="px-2 text-sm font-semibold tracking-wide uppercase text-text-light/60 dark:text-text-dark/60">İdarəetmə</h2>
+<div class="flex flex-col overflow-hidden bg-card-light dark:bg-card-dark rounded-xl">
+<div class="flex items-center justify-between gap-4 p-4 cursor-pointer min-h-14 hover:bg-black/5 dark:hover:bg-white/5">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center shrink-0 size-10 bg-icon-bg-light dark:bg-icon-bg-dark rounded-lg">
+<span class="material-symbols-outlined">storefront</span>
+</div>
+<p class="flex-1 text-base font-normal leading-normal truncate">Filiallar</p>
+</div>
+<div class="flex items-center justify-center shrink-0 size-7">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+<hr class="border-gray-200/50 dark:border-gray-700/50 ml-16"/>
+<div class="flex items-center justify-between gap-4 p-4 cursor-pointer min-h-14 hover:bg-black/5 dark:hover:bg-white/5">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center shrink-0 size-10 bg-icon-bg-light dark:bg-icon-bg-dark rounded-lg">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+<p class="flex-1 text-base font-normal leading-normal truncate">Məhsullar</p>
+</div>
+<div class="flex items-center justify-center shrink-0 size-7">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+<hr class="border-gray-200/50 dark:border-gray-700/50 ml-16"/>
+<div class="flex items-center justify-between gap-4 p-4 cursor-pointer min-h-14 hover:bg-black/5 dark:hover:bg-white/5">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center shrink-0 size-10 bg-icon-bg-light dark:bg-icon-bg-dark rounded-lg">
+<span class="material-symbols-outlined">local_shipping</span>
+</div>
+<p class="flex-1 text-base font-normal leading-normal truncate">Ehtiyaclar</p>
+</div>
+<div class="flex items-center justify-center shrink-0 size-7">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3">
+<h2 class="px-2 text-sm font-semibold tracking-wide uppercase text-text-light/60 dark:text-text-dark/60">Bildiriş Zamanları</h2>
+<div class="flex flex-col overflow-hidden bg-card-light dark:bg-card-dark rounded-xl">
+<div class="flex items-center justify-between gap-4 p-4 cursor-pointer min-h-14 hover:bg-black/5 dark:hover:bg-white/5">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center shrink-0 size-10 bg-icon-bg-light dark:bg-icon-bg-dark rounded-lg">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div class="flex flex-col flex-1">
+<p class="text-base font-normal leading-normal truncate">Gündəlik Analiz</p>
+<p class="text-sm font-normal leading-normal text-text-light/60 dark:text-text-dark/60 truncate">Bildiriş Zamanı: 07:00</p>
+</div>
+</div>
+<div class="flex items-center justify-center shrink-0 size-7">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+<hr class="border-gray-200/50 dark:border-gray-700/50 ml-16"/>
+<div class="flex items-center justify-between gap-4 p-4 cursor-pointer min-h-14 hover:bg-black/5 dark:hover:bg-white/5">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center shrink-0 size-10 bg-icon-bg-light dark:bg-icon-bg-dark rounded-lg">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<div class="flex flex-col flex-1">
+<p class="text-base font-normal leading-normal truncate">Ən Çox Satılanlar</p>
+<p class="text-sm font-normal leading-normal text-text-light/60 dark:text-text-dark/60 truncate">Bildiriş Zamanı: 15:00</p>
+</div>
+</div>
+<div class="flex items-center justify-center shrink-0 size-7">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+<hr class="border-gray-200/50 dark:border-gray-700/50 ml-16"/>
+<div class="flex items-center justify-between gap-4 p-4 cursor-pointer min-h-14 hover:bg-black/5 dark:hover:bg-white/5">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center shrink-0 size-10 bg-icon-bg-light dark:bg-icon-bg-dark rounded-lg">
+<span class="material-symbols-outlined">calendar_month</span>
+</div>
+<div class="flex flex-col flex-1">
+<p class="text-base font-normal leading-normal truncate">Həftəlik Müqayisə</p>
+<p class="text-sm font-normal leading-normal text-text-light/60 dark:text-text-dark/60 truncate">Bildiriş Zamanı: 20:00</p>
+</div>
+</div>
+<div class="flex items-center justify-center shrink-0 size-7">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+</div>
+</section>
+<section class="flex flex-col gap-3">
+<h2 class="px-2 text-sm font-semibold tracking-wide uppercase text-text-light/60 dark:text-text-dark/60">AI Tənzimləmələri</h2>
+<div class="flex flex-col gap-4 p-4 overflow-hidden bg-card-light dark:bg-card-dark rounded-xl">
+<div class="flex items-center gap-2">
+<input class="flex-1 w-full px-4 py-2 text-base bg-icon-bg-light dark:bg-icon-bg-dark border-transparent rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-text-light/50 dark:placeholder:text-text-dark/50" placeholder="Groq API Key" type="password"/>
+<button class="flex items-center justify-center text-white transition-colors rounded-lg shrink-0 size-10 bg-primary hover:bg-primary/90">
+<span class="material-symbols-outlined">done</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<input class="flex-1 w-full px-4 py-2 text-base bg-icon-bg-light dark:bg-icon-bg-dark border-transparent rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-text-light/50 dark:placeholder:text-text-dark/50" placeholder="OpenRouter API Key" type="password"/>
+<button class="flex items-center justify-center text-white transition-colors rounded-lg shrink-0 size-10 bg-primary hover:bg-primary/90">
+<span class="material-symbols-outlined">done</span>
+</button>
+</div>
+<div class="flex items-center gap-2">
+<input class="flex-1 w-full px-4 py-2 text-base bg-icon-bg-light dark:bg-icon-bg-dark border-transparent rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent placeholder:text-text-light/50 dark:placeholder:text-text-dark/50" placeholder="Gemini API Key" type="password"/>
+<button class="flex items-center justify-center text-white transition-colors rounded-lg shrink-0 size-10 bg-primary hover:bg-primary/90">
+<span class="material-symbols-outlined">done</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+</div>
+
+</body></html>

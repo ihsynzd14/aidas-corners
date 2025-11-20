@@ -1,5 +1,4 @@
 import React, { useCallback, useRef } from 'react';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { BottomSheetModal, BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { ProductStatisticsUI } from '@/components/statistics/ProductStatisticsUI';
 import { useProductStatistics } from '@/components/statistics/ProductStatisticsLogic';
@@ -7,6 +6,7 @@ import { useProductStatistics } from '@/components/statistics/ProductStatisticsL
 
 export default function ProductStatisticsScreen() {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const dateRangeModalRef = useRef<BottomSheetModal>(null);
   const [shareVisible, setShareVisible] = React.useState(false);
 
   const {
@@ -33,7 +33,8 @@ export default function ProductStatisticsScreen() {
     fetchDailyStats,
     generateExcel,
     generateWhatsAppText,
-    copyToClipboard
+    copyToClipboard,
+    onDateRangeConfirm
   } = useProductStatistics();
 
   const handlePresentModalPress = useCallback(() => {
@@ -63,10 +64,9 @@ export default function ProductStatisticsScreen() {
   }, [viewMode, fetchData, fetchDailyStats]);
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <ProductStatisticsUI
-          loading={loading}
+    <BottomSheetModalProvider>
+      <ProductStatisticsUI
+        loading={loading}
           productStats={productStats}
           startDate={startDate}
           endDate={endDate}
@@ -78,10 +78,12 @@ export default function ProductStatisticsScreen() {
           dailyStats={dailyStats}
           availableBranches={availableBranches}
           bottomSheetModalRef={bottomSheetModalRef}
+          dateRangeModalRef={dateRangeModalRef}
           shareVisible={shareVisible}
           setShareVisible={setShareVisible}
           onStartDateChange={onStartDateChange}
           onEndDateChange={onEndDateChange}
+          onDateRangeConfirm={onDateRangeConfirm}
           setShowStartPicker={setShowStartPicker}
           setShowEndPicker={setShowEndPicker}
           setViewMode={setViewMode}
@@ -93,7 +95,6 @@ export default function ProductStatisticsScreen() {
           generateWhatsAppText={generateWhatsAppText}
           copyToClipboard={copyToClipboard}
         />
-      </BottomSheetModalProvider>
-    </GestureHandlerRootView>
+    </BottomSheetModalProvider>
   );
 }
