@@ -54,9 +54,9 @@ export default function HomeScreen() {
     <View style={[styles.container, { backgroundColor: theme.background, flex: 1 }]}>
       <StatusBar barStyle={isDarkMode ? "light-content" : "dark-content"} />
       
-      <View style={{ flex: 1, paddingTop: insets.top }}>
+      <View style={{ flex: 1, paddingTop: insets.top - 10 }}>
         {/* Header */}
-        <View style={[styles.header, { paddingTop: 12 }]}>
+        <View style={[styles.header, { paddingTop: 10 }]}>
           <View style={styles.headerContent}>
             <View>
               <Text style={[styles.greeting, { color: theme.text }]}>

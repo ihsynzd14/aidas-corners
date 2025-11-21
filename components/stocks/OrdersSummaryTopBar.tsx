@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -24,6 +25,7 @@ interface OrdersSummaryTopBarProps {
 
 export function OrdersSummaryTopBar({ style, selectedDate: propSelectedDate, onDateChange }: OrdersSummaryTopBarProps) {
   const colorScheme = useColorScheme();
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const [showDatePicker, setShowDatePicker] = React.useState(false);
   const [internalDate, setInternalDate] = React.useState(new Date());
@@ -34,6 +36,11 @@ export function OrdersSummaryTopBar({ style, selectedDate: propSelectedDate, onD
   const handleDateChange = (newDate: Date) => {
     setInternalDate(newDate);
     onDateChange?.(newDate);
+  };
+
+  const handleBackPress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    router.back();
   };
 
   const handlePrevDay = () => {
@@ -78,7 +85,18 @@ export function OrdersSummaryTopBar({ style, selectedDate: propSelectedDate, onD
   return (
     <ThemedView style={[styles.container, { paddingTop: insets.top }, style]}>
       <View style={styles.titleSection}>
-        <View style={styles.placeholder} />
+        <TouchableOpacity 
+          onPress={handleBackPress}
+          style={styles.backButton}
+          activeOpacity={0.7}
+          hitSlop={10}
+        >
+          <IconSymbol
+            name="chevron.left"
+            size={24}
+            color={getTextColor()}
+          />
+        </TouchableOpacity>
         <ThemedText type="title" style={styles.title}>
           Sifarişlər Cədvəli
         </ThemedText>
@@ -170,6 +188,12 @@ const styles = StyleSheet.create({
   placeholder: {
     width: 40,
     height: 40,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dateNavigationSection: {
     flexDirection: 'row',

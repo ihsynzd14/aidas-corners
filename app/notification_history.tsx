@@ -8,6 +8,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors, PastryColors } from '@/constants/Colors';
 import { ThemedView } from '@/components/ThemedView';
+import { colorScheme } from '@/constants/colorScheme';
 
 const formatTimeAgo = (timestamp: number): string => {
   const now = Date.now();
@@ -207,6 +208,7 @@ const styles = StyleSheet.create({
   topBar: {
     paddingHorizontal: 24,
     paddingTop: 32,
+    backgroundColor: colorScheme.backgroundLight,
   },
   container: {
     flex: 1,

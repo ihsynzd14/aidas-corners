@@ -40,7 +40,8 @@ Notifications.setNotificationHandler({
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  // Force light mode - always use 'light'
+  const colorScheme = 'light';
 
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -96,7 +97,7 @@ export default function RootLayout() {
   <SafeAreaProvider>
      <View style={{ flex: 1, }}>
           <GestureHandlerRootView style={{ flex: 1,  }}>
-            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <ThemeProvider value={DefaultTheme}>
             <Stack
               screenOptions={{
                 headerShown: false,
@@ -134,7 +135,7 @@ export default function RootLayout() {
               />
             </Stack>
            
-              <StatusBar hidden style={colorScheme === 'dark' ? 'light' : 'dark'} translucent backgroundColor='transparent' />
+              <StatusBar hidden style="dark" translucent backgroundColor='transparent' />
              
               <AppUpdater />
               

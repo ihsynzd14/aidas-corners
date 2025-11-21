@@ -462,18 +462,6 @@ export const PRODUCT_CORRECTIONS: ProductDefinition[] = [
     ]
   },
   {
-    correct: "Matcha",
-    variations: [
-      "matcha",
-      "matça",
-      "macha",
-      "maca",
-      "matcha cake",
-      "matcha tort",
-      "matça tort"
-    ]
-  },
-  {
     correct: "Mango chia",
     variations: [
       "mango chia",

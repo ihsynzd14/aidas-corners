@@ -7,6 +7,7 @@ import { GradientBackground } from './ui/GradientBackground';
 import { PastryColors, Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { useRouter, usePathname } from 'expo-router';
+import { colorScheme } from '@/constants/colorScheme';
 
 type TopBarProps = {
   title: string;
@@ -19,7 +20,7 @@ type TopBarProps = {
 };
 
 export function TopBar({ title, style, rightComponent, leftComponent }: TopBarProps) {
-  const colorScheme = useColorScheme();
+  const isDark = useColorScheme();
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const pathname = usePathname();
@@ -39,8 +40,10 @@ export function TopBar({ title, style, rightComponent, leftComponent }: TopBarPr
   };
 
   return (
-    <ThemedView style={[styles.container, { paddingTop: insets.top }, style]}>
-      <GradientBackground intensity="light" />
+    <ThemedView style={[styles.container, { 
+      paddingTop: insets.top,
+      backgroundColor: colorScheme.backgroundLight 
+    }, style]}>
       {leftComponent ? (
         <Pressable 
           onPress={leftComponent.onPress} 
@@ -53,7 +56,7 @@ export function TopBar({ title, style, rightComponent, leftComponent }: TopBarPr
           <IconSymbol
             name="chevron.left"
             size={32}
-            color={colorScheme === 'dark' ? Colors.dark.icon : Colors.light.icon}
+            color={isDark === 'dark' ? Colors.dark.icon : Colors.light.icon}
           />
         </Pressable>
       ) : (isSettings || isNotificationHistory) ? (
@@ -68,7 +71,7 @@ export function TopBar({ title, style, rightComponent, leftComponent }: TopBarPr
           <IconSymbol
             name="chevron.left"
             size={32}
-            color={colorScheme === 'dark' ? Colors.dark.icon : Colors.light.icon}
+            color={isDark === 'dark' ? Colors.dark.icon : Colors.light.icon}
           />
         </Pressable>
       ) : (
@@ -94,7 +97,7 @@ export function TopBar({ title, style, rightComponent, leftComponent }: TopBarPr
             <IconSymbol
               name="bell.fill"
               size={28}
-              color={colorScheme === 'dark' ? PastryColors.accent : PastryColors.chocolate}
+              color={isDark === 'dark' ? PastryColors.accent : PastryColors.chocolate}
             />
           </Pressable>
 
@@ -109,7 +112,7 @@ export function TopBar({ title, style, rightComponent, leftComponent }: TopBarPr
             <IconSymbol
               name="gearshape.fill"
               size={28}
-              color={colorScheme === 'dark' ? PastryColors.accent : PastryColors.chocolate}
+              color={isDark === 'dark' ? PastryColors.accent : PastryColors.chocolate}
             />
           </Pressable>
         </View>
