@@ -56,6 +56,10 @@ export const ModernBranchSection = ({
     return Object.values(products).reduce((sum, quantity) => sum + parseQuantity(quantity), 0);
   }, [products]);
 
+  const productTypeCount = useMemo(() => {
+    return Object.keys(products).length;
+  }, [products]);
+
   React.useEffect(() => {
     expandAnimation.value = withSpring(isExpanded ? 1 : 0, {
       damping: 15,
@@ -153,6 +157,14 @@ export const ModernBranchSection = ({
               </ThemedText>
               <ThemedText style={[styles.statValue, { color: colorScheme.accentRed }]}>
                 {totalQuantity.toFixed(1)}
+              </ThemedText>
+            </View>
+            <View style={styles.statItem}>
+              <ThemedText style={[styles.statLabel, { color: colorScheme.textSubtleLight }]}>
+                Növ
+              </ThemedText>
+              <ThemedText style={[styles.statValue, { color: colorScheme.accentRed }]}>
+                {productTypeCount}
               </ThemedText>
             </View>
           </View>
