@@ -14,6 +14,8 @@ import Animated, {
   withSpring,
   withTiming,
   interpolate,
+  withSequence,
+  withDelay,
 } from 'react-native-reanimated';
 
 const parseQuantity = (value: any): number => {
@@ -82,6 +84,7 @@ export const ModernBranchSection = ({
       },
     ],
   }));
+
 
   const handleToggle = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -449,12 +452,12 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   branchName: {
-    fontSize: 17,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: '700',
     letterSpacing: 0.3,
     ...Platform.select({
       ios: {
-        fontWeight: '700',
+        fontWeight: '800',
       },
     }),
   },

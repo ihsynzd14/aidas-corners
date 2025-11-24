@@ -124,7 +124,7 @@ export const styles = StyleSheet.create({
     },
     textArea: {
         width: '100%',
-        minHeight: 120,
+        minHeight: 320,
         borderRadius: 12,
         padding: 16,
         fontSize: 16,
