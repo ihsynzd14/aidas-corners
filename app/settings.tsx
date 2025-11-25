@@ -16,6 +16,7 @@ const MaterialIcon = ({ name, size = 24, color }: { name: string; size?: number;
     analytics: '📊',
     trending_up: '📈',
     calendar_month: '📅',
+    share: '📤',
     chevron_right: '›',
     done: '✓',
   };
@@ -238,23 +239,40 @@ export default function SettingsScreen() {
                     <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
                   </View>
                 </TouchableOpacity>
-                <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
-                <TouchableOpacity 
-                  style={styles.settingRow}
-                  onPress={() => router.push('/pages/needs')}
-                >
-                  <View style={styles.settingLeft}>
-                    <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
-                      <MaterialIcon name="local_shipping" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
-                    </View>
-                    <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
-                      Ehtiyaclar
-                    </Text>
-                  </View>
-                  <View style={styles.chevronContainer}>
-                    <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
-                  </View>
-                </TouchableOpacity>
+                 <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
+                 <TouchableOpacity 
+                   style={styles.settingRow}
+                   onPress={() => router.push('/pages/needs')}
+                 >
+                   <View style={styles.settingLeft}>
+                     <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
+                       <MaterialIcon name="local_shipping" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                     </View>
+                     <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+                       Ehtiyaclar
+                     </Text>
+                   </View>
+                   <View style={styles.chevronContainer}>
+                     <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                   </View>
+                 </TouchableOpacity>
+                 <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
+                 <TouchableOpacity 
+                   style={styles.settingRow}
+                   onPress={() => router.push('/pages/manage-custom-share')}
+                 >
+                   <View style={styles.settingLeft}>
+                     <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
+                       <MaterialIcon name="share" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                     </View>
+                     <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+                       Özəl Paylaşım
+                     </Text>
+                   </View>
+                   <View style={styles.chevronContainer}>
+                     <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                   </View>
+                 </TouchableOpacity>
               </View>
             </View>
 

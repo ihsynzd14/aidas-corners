@@ -20,36 +20,34 @@ export interface TopProductsData {
   refetch: () => void;
 }
 
-// Helper function to get current week's Monday and Sunday
-function getCurrentWeekRange(): { startOfWeek: Date; endOfWeek: Date } {
+// Helper function to get current month's first and last day
+function getCurrentMonthRange(): { startOfMonth: Date; endOfMonth: Date } {
   const today = new Date();
-  const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
 
-  // Calculate days since last Monday
-  const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
+  // First day of current month
+  const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - daysSinceMonday);
-  startOfWeek.setHours(0, 0, 0, 0);
+  // Last day of current month
+  const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  endOfMonth.setHours(23, 59, 59, 999);
 
-  const endOfWeek = new Date(startOfWeek);
-  endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
-  endOfWeek.setHours(23, 59, 59, 999);
-
-  return { startOfWeek, endOfWeek };
+  return { startOfMonth, endOfMonth };
 }
 
-// Helper function to get previous week's range
-function getPreviousWeekRange(): { startOfPrevWeek: Date; endOfPrevWeek: Date } {
-  const { startOfWeek } = getCurrentWeekRange();
+// Helper function to get previous month's range
+function getPreviousMonthRange(): { startOfPrevMonth: Date; endOfPrevMonth: Date } {
+  const today = new Date();
 
-  const startOfPrevWeek = new Date(startOfWeek);
-  startOfPrevWeek.setDate(startOfWeek.getDate() - 7);
+  // First day of previous month
+  const startOfPrevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  startOfPrevMonth.setHours(0, 0, 0, 0);
 
-  const endOfPrevWeek = new Date(startOfWeek);
-  endOfPrevWeek.setDate(startOfWeek.getDate() - 1);
+  // Last day of previous month
+  const endOfPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+  endOfPrevMonth.setHours(23, 59, 59, 999);
 
-  return { startOfPrevWeek, endOfPrevWeek };
+  return { startOfPrevMonth, endOfPrevMonth };
 }
 
 // Helper function to calculate product totals from orders data
@@ -99,32 +97,32 @@ export function useTopProductsData(): TopProductsData {
       setLoading(true);
       setError(null);
 
-      const { startOfWeek, endOfWeek } = getCurrentWeekRange();
-      const { startOfPrevWeek, endOfPrevWeek } = getPreviousWeekRange();
+      const { startOfMonth, endOfMonth } = getCurrentMonthRange();
+      const { startOfPrevMonth, endOfPrevMonth } = getPreviousMonthRange();
 
       console.log('Fetching top products data for ranges:', {
-        currentWeek: `${formatDate(startOfWeek)} to ${formatDate(endOfWeek)}`,
-        previousWeek: `${formatDate(startOfPrevWeek)} to ${formatDate(endOfPrevWeek)}`
+        currentMonth: `${formatDate(startOfMonth)} to ${formatDate(endOfMonth)}`,
+        previousMonth: `${formatDate(startOfPrevMonth)} to ${formatDate(endOfPrevMonth)}`
       });
 
-      // Fetch data for current week and previous week
-      const [currentWeekOrders, previousWeekOrders] = await Promise.all([
-        fetchOrdersForDateRange(startOfWeek, endOfWeek),
-        fetchOrdersForDateRange(startOfPrevWeek, endOfPrevWeek)
+      // Fetch data for current month and previous month
+      const [currentMonthOrders, previousMonthOrders] = await Promise.all([
+        fetchOrdersForDateRange(startOfMonth, endOfMonth),
+        fetchOrdersForDateRange(startOfPrevMonth, endOfPrevMonth)
       ]);
 
-      // Calculate product totals for both weeks
-      const currentWeekTotals = calculateProductTotals(currentWeekOrders);
-      const previousWeekTotals = calculateProductTotals(previousWeekOrders);
+      // Calculate product totals for both months
+      const currentMonthTotals = calculateProductTotals(currentMonthOrders);
+      const previousMonthTotals = calculateProductTotals(previousMonthOrders);
 
-      // Get top 3 products for current week
-      const sortedCurrentProducts = Array.from(currentWeekTotals.entries())
+      // Get top 3 products for current month
+      const sortedCurrentProducts = Array.from(currentMonthTotals.entries())
         .sort(([, a], [, b]) => b - a)
         .slice(0, 3);
 
       // Calculate trends and percentages for top products
       const topProductsWithTrends: TopProduct[] = sortedCurrentProducts.map(([productName, currentSales]) => {
-        const previousSales = previousWeekTotals.get(productName) || 0;
+        const previousSales = previousMonthTotals.get(productName) || 0;
         const percentageChange = calculatePercentageChange(currentSales, previousSales);
         const trend = getTrend(percentageChange);
 
@@ -136,32 +134,31 @@ export function useTopProductsData(): TopProductsData {
         };
       });
 
-      // Calculate total weekly sales
-      const currentWeekTotal = Array.from(currentWeekTotals.values()).reduce((sum, count) => sum + count, 0);
-      const previousWeekTotal = Array.from(previousWeekTotals.values()).reduce((sum, count) => sum + count, 0);
+      // Calculate total monthly sales
+      const currentMonthTotal = Array.from(currentMonthTotals.values()).reduce((sum, count) => sum + count, 0);
+      const previousMonthTotal = Array.from(previousMonthTotals.values()).reduce((sum, count) => sum + count, 0);
 
-      // Calculate weekly growth
-      const weeklyGrowthPercentage = calculatePercentageChange(currentWeekTotal, previousWeekTotal);
+      // Calculate monthly growth
+      const monthlyGrowthPercentage = calculatePercentageChange(currentMonthTotal, previousMonthTotal);
 
-      // Calculate days remaining and week progress
+      // Calculate days remaining and month progress
       const today = new Date();
-      const daysInWeek = 7;
-      const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
-      const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-      const daysUntilSunday = 6 - daysSinceMonday;
-      const progressPercentage = ((daysSinceMonday + 1) / daysInWeek) * 100;
+      const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+      const currentDay = today.getDate();
+      const daysUntilMonthEnd = lastDayOfMonth - currentDay;
+      const progressPercentage = (currentDay / lastDayOfMonth) * 100;
 
       setProducts(topProductsWithTrends);
-      setTotalWeeklySales(currentWeekTotal);
-      setWeeklyGrowth(Math.round(weeklyGrowthPercentage * 10) / 10); // Round to 1 decimal place
-      setDaysRemaining(daysUntilSunday);
+      setTotalWeeklySales(currentMonthTotal);
+      setWeeklyGrowth(Math.round(monthlyGrowthPercentage * 10) / 10); // Round to 1 decimal place
+      setDaysRemaining(daysUntilMonthEnd);
       setWeekProgress(Math.round(progressPercentage));
 
       console.log('Top products data fetched successfully:', {
         topProducts: topProductsWithTrends,
-        currentWeekTotal,
-        previousWeekTotal,
-        weeklyGrowth: weeklyGrowthPercentage
+        currentMonthTotal,
+        previousMonthTotal,
+        monthlyGrowth: monthlyGrowthPercentage
       });
 
     } catch (err) {

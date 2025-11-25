@@ -108,7 +108,7 @@ export const StatisticsCard: React.FC<StatisticsCardProps> = ({
         <View style={styles.statsTextContainer}>
           <Text style={[styles.cardTitle, { color: theme.text, fontSize: 18 }]}>Məhsul Statistikası</Text>
           <Text style={[styles.cardSubtitle, { color: theme.textSubtle, marginTop: 4 }]}>
-            Bu həftə ümumi satış: {totalWeeklySales} ədəd {daysRemaining > 0 && `• ${daysRemaining} gün qalıb`}
+            Bu ay ümumi satış: {totalWeeklySales} ədəd {daysRemaining > 0 && `• ${daysRemaining} gün qalıb`}
           </Text>
         </View>
         <View style={[styles.iconContainer, { backgroundColor: `${colors.accentBlue}20` }]}>
@@ -142,9 +142,9 @@ export const StatisticsCard: React.FC<StatisticsCardProps> = ({
                 <TrendIcon trend={product.trend} />
                 <Text style={[
                   styles.trendText,
-                  { 
-                    color: product.trend === 'up' ? colors.accentGreen : 
-                           product.trend === 'down' ? colors.accentRed : theme.textSubtle 
+                  {
+                    color: product.trend === 'up' ? colors.accentGreen :
+                      product.trend === 'down' ? colors.accentRed : theme.textSubtle
                   }
                 ]}>
                   {product.percentage}%
@@ -154,17 +154,17 @@ export const StatisticsCard: React.FC<StatisticsCardProps> = ({
           )) : (
             <View style={styles.noDataContainer}>
               <Text style={[styles.noDataText, { color: theme.textSubtle }]}>
-                Bu həftədə məlumat yoxdur
+                Bu ayda məlumat yoxdur
               </Text>
             </View>
           )}
         </View>
       </View>
 
-      {/* Week Progress with Growth */}
+      {/* Month Progress with Growth */}
       <View style={styles.progressContainer}>
         <View style={styles.progressInfo}>
-          <Text style={[styles.progressLabel, { color: theme.textSubtle }]}>Həftənin sonlanması</Text>
+          <Text style={[styles.progressLabel, { color: theme.textSubtle }]}>Ayın sonlanması</Text>
           <Text style={[
             styles.progressText,
             {
@@ -179,17 +179,16 @@ export const StatisticsCard: React.FC<StatisticsCardProps> = ({
           <View style={[
             styles.progressFill,
             {
-              width: `${weekProgress}%`, // Show actual week progress
+              width: `${weekProgress}%`, // Show actual month progress
               backgroundColor: colors.primary
             }
           ]} />
         </View>
         <Text style={[styles.weeklyGrowthText, {
           color: weeklyGrowth >= 0 ? colors.accentGreen : colors.accentRed,
-          fontSize: 10,
-          marginTop: 2
+          fontSize: 11,
         }]}>
-          Həftəlik dəyişim: {weeklyGrowth >= 0 ? '+' : ''}{weeklyGrowth}%
+          Aylıq dəyişim: {weeklyGrowth >= 0 ? '+' : ''}{weeklyGrowth}%
         </Text>
       </View>
     </TouchableOpacity>
