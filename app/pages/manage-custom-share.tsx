@@ -195,7 +195,7 @@ export default function ManageCustomShareScreen() {
 
           <View style={styles.headerCenter}>
             <Text style={[styles.headerTitle, { color: isDarkMode ? colorScheme.textDark : colorScheme.textLight }]}>
-              Özəl Paylaşım
+              Daxili Bölgü
             </Text>
             <Text style={[styles.headerSubtitle, { color: isDarkMode ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }]}>
               Şablonların idarə edilməsi

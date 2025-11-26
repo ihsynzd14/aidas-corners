@@ -20,7 +20,7 @@ const MaterialIcon = ({ name, size = 24, color }: { name: string; size?: number;
     chevron_right: '›',
     done: '✓',
   };
-  
+
   return (
     <Text style={{ fontSize: size, color, lineHeight: size * 1.2 }}>
       {iconMap[name] || '?'}
@@ -100,7 +100,7 @@ export default function SettingsScreen() {
     try {
       // Save user preference
       await AsyncStorage.setItem('theme_preference', value ? 'dark' : 'light');
-      
+
       // Update state and appearance
       setIsDarkMode(value);
       requestAnimationFrame(() => {
@@ -147,13 +147,13 @@ export default function SettingsScreen() {
   return (
     <View style={[styles.container, { backgroundColor: isDarkMode ? '#211114' : '#f8f6f6' }]}>
       <Stack.Screen options={{ headerShown: false }} />
-      
+
       {/* Main Container - matches HTML w-full max-w-2xl mx-auto */}
       <View style={styles.mainContainer}>
         {/* Header - matches HTML p-4 pt-6 */}
         <View style={[styles.header, { backgroundColor: isDarkMode ? '#211114' : '#f8f6f6' }]}>
           <View style={styles.headerContent}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.backButton}
               onPress={() => router.back()}
             >
@@ -206,7 +206,7 @@ export default function SettingsScreen() {
                 İdarəetmə
               </Text>
               <View style={[styles.card, { backgroundColor: isDarkMode ? '#2c1e20' : '#ffffff' }]}>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.settingRow}
                   onPress={() => router.push('/pages/branches')}
                 >
@@ -223,7 +223,7 @@ export default function SettingsScreen() {
                   </View>
                 </TouchableOpacity>
                 <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={styles.settingRow}
                   onPress={() => router.push('/pages/products_list')}
                 >
@@ -239,40 +239,40 @@ export default function SettingsScreen() {
                     <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
                   </View>
                 </TouchableOpacity>
-                 <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
-                 <TouchableOpacity 
-                   style={styles.settingRow}
-                   onPress={() => router.push('/pages/needs')}
-                 >
-                   <View style={styles.settingLeft}>
-                     <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
-                       <MaterialIcon name="local_shipping" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
-                     </View>
-                     <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
-                       Ehtiyaclar
-                     </Text>
-                   </View>
-                   <View style={styles.chevronContainer}>
-                     <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
-                   </View>
-                 </TouchableOpacity>
-                 <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
-                 <TouchableOpacity 
-                   style={styles.settingRow}
-                   onPress={() => router.push('/pages/manage-custom-share')}
-                 >
-                   <View style={styles.settingLeft}>
-                     <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
-                       <MaterialIcon name="share" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
-                     </View>
-                     <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
-                       Özəl Paylaşım
-                     </Text>
-                   </View>
-                   <View style={styles.chevronContainer}>
-                     <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
-                   </View>
-                 </TouchableOpacity>
+                <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
+                <TouchableOpacity
+                  style={styles.settingRow}
+                  onPress={() => router.push('/pages/needs')}
+                >
+                  <View style={styles.settingLeft}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
+                      <MaterialIcon name="local_shipping" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                    </View>
+                    <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+                      Ehtiyaclar
+                    </Text>
+                  </View>
+                  <View style={styles.chevronContainer}>
+                    <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                  </View>
+                </TouchableOpacity>
+                <View style={[styles.divider, { backgroundColor: isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }]} />
+                <TouchableOpacity
+                  style={styles.settingRow}
+                  onPress={() => router.push('/pages/manage-custom-share')}
+                >
+                  <View style={styles.settingLeft}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
+                      <MaterialIcon name="share" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                    </View>
+                    <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+                      Daxili Bölgü
+                    </Text>
+                  </View>
+                  <View style={styles.chevronContainer}>
+                    <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                  </View>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -284,7 +284,7 @@ export default function SettingsScreen() {
               <View style={[styles.card, { backgroundColor: isDarkMode ? '#2c1e20' : '#ffffff' }]}>
                 {notificationTimes.map((notification, index) => (
                   <View key={notification.type}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.settingRow}
                       onPress={() => {
                         setSelectedType(notification.type);
@@ -293,11 +293,11 @@ export default function SettingsScreen() {
                     >
                       <View style={styles.settingLeft}>
                         <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
-                          <MaterialIcon 
-                            name={notification.type === 'comparison' ? 'calendar_month' : 
-                                  notification.type === 'topSelling' ? 'trending_up' : 'analytics'} 
-                            size={24} 
-                            color={isDarkMode ? '#f8f6f6' : '#1b0e10'} 
+                          <MaterialIcon
+                            name={notification.type === 'comparison' ? 'calendar_month' :
+                              notification.type === 'topSelling' ? 'trending_up' : 'analytics'}
+                            size={24}
+                            color={isDarkMode ? '#f8f6f6' : '#1b0e10'}
                           />
                         </View>
                         <View style={styles.settingTextContainer}>
@@ -329,7 +329,7 @@ export default function SettingsScreen() {
               <View style={[styles.card, { backgroundColor: isDarkMode ? '#2c1e20' : '#ffffff', padding: 16, gap: 16 }]}>
                 <View style={styles.apiKeyRow}>
                   <TextInput
-                    style={[styles.apiKeyInput, { 
+                    style={[styles.apiKeyInput, {
                       backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9',
                       color: isDarkMode ? '#f8f6f6' : '#1b0e10'
                     }]}
@@ -349,7 +349,7 @@ export default function SettingsScreen() {
 
                 <View style={styles.apiKeyRow}>
                   <TextInput
-                    style={[styles.apiKeyInput, { 
+                    style={[styles.apiKeyInput, {
                       backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9',
                       color: isDarkMode ? '#f8f6f6' : '#1b0e10'
                     }]}
@@ -369,7 +369,7 @@ export default function SettingsScreen() {
 
                 <View style={styles.apiKeyRow}>
                   <TextInput
-                    style={[styles.apiKeyInput, { 
+                    style={[styles.apiKeyInput, {
                       backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9',
                       color: isDarkMode ? '#f8f6f6' : '#1b0e10'
                     }]}
