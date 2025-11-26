@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   createSection: {
-    borderRadius: 12,
+    borderRadius: 24,
     marginBottom: 24,
     elevation: 2,
     shadowColor: '#000',
@@ -392,7 +392,7 @@ const styles = StyleSheet.create({
   createIcon: {
     width: 56,
     height: 56,
-    borderRadius: 12,
+    borderRadius: 28,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -427,7 +427,7 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   emptyState: {
-    borderRadius: 12,
+    borderRadius: 24,
     padding: 40,
     alignItems: 'center',
     gap: 12,
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   templateCard: {
-    borderRadius: 12,
+    borderRadius: 24,
     elevation: 2,
     shadowColor: '#130505ff',
     shadowOffset: { width: 0, height: 2 },
@@ -482,14 +482,14 @@ const styles = StyleSheet.create({
   iconActionButton: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
   },
   refreshButton: {
     width: 40,
     height: 40,
-    borderRadius: 8,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: colorScheme.cardLight,

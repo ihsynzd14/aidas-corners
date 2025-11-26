@@ -9,7 +9,7 @@ class OrderCorrectionService {
 
   async getCorrections(): Promise<ProductDefinition[]> {
     const now = Date.now();
-    
+
     // Return cached data if still valid
     if (this.corrections.length > 0 && (now - this.lastFetch) < this.CACHE_DURATION) {
       return this.corrections;
@@ -23,7 +23,7 @@ class OrderCorrectionService {
     // Start loading
     this.isLoading = true;
     this.loadPromise = this.loadCorrections();
-    
+
     try {
       this.corrections = await this.loadPromise;
       this.lastFetch = now;
@@ -58,14 +58,8 @@ class OrderCorrectionService {
     }
   }
 
-  async refreshCorrections(): Promise<void> {
-    console.log('Refreshing product corrections cache...');
-    this.lastFetch = 0; // Force refresh
-    await this.getCorrections();
-  }
-
   // Get corrections as legacy format for backward compatibility
-  async getLegacyCorrections(): Promise<Array<{correct: string, variations: string[], units?: any}>> {
+  async getLegacyCorrections(): Promise<Array<{ correct: string, variations: string[], units?: any }>> {
     const corrections = await this.getCorrections();
     return corrections.map(({ correct, variations, units }) => ({
       correct,
@@ -78,10 +72,10 @@ class OrderCorrectionService {
   async searchCorrections(searchText: string): Promise<ProductDefinition[]> {
     const corrections = await this.getCorrections();
     const searchLower = searchText.toLowerCase().trim();
-    
+
     if (!searchLower) return corrections;
-    
-    return corrections.filter(correction => 
+
+    return corrections.filter(correction =>
       correction.correct.toLowerCase().includes(searchLower) ||
       correction.variations.some(v => v.toLowerCase().includes(searchLower))
     );
@@ -91,8 +85,8 @@ class OrderCorrectionService {
   async getCorrectionByName(productName: string): Promise<ProductDefinition | null> {
     const corrections = await this.getCorrections();
     const searchLower = productName.toLowerCase().trim();
-    
-    return corrections.find(correction => 
+
+    return corrections.find(correction =>
       correction.correct.toLowerCase() === searchLower ||
       correction.variations.some(v => v.toLowerCase() === searchLower)
     ) || null;

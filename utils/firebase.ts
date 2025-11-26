@@ -559,10 +559,22 @@ export async function addProductCorrection(correction: Omit<ProductDefinition, '
 export async function updateProductCorrection(id: string, updates: Partial<ProductDefinition>): Promise<void> {
   try {
     const correctionRef = doc(db, 'productCorrections', id);
-    await updateDoc(correctionRef, {
-      ...updates,
+    
+    // Create update object, filtering out undefined values
+    const updateData: any = {
       updatedAt: new Date()
+    };
+    
+    // Only include fields that are not undefined
+    Object.keys(updates).forEach(key => {
+      const value = (updates as any)[key];
+      if (value !== undefined) {
+        updateData[key] = value;
+      }
     });
+    
+    console.log('Updating product with data:', updateData);
+    await updateDoc(correctionRef, updateData);
     
     clearCache();
   } catch (error) {

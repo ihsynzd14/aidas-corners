@@ -9,11 +9,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import EmptyOrdersState from './EmptyOrderState';
 import { formatWhatsAppMessage, shareViaWhatsApp } from './WPShareText';
 import * as Clipboard from 'expo-clipboard';
-import Animated, { 
-  useAnimatedStyle, 
+import { getActiveTemplates } from '@/services/customShareService';
+import Animated, {
+  useAnimatedStyle,
   withSpring,
   interpolate,
-  useSharedValue 
+  useSharedValue
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
@@ -44,17 +45,17 @@ const normalizeProductName = (name: string): string => {
 };
 
 // Modern Filter Component
-const FilterButton = React.memo(({ 
-  icon, 
-  label, 
-  isActive, 
-  onPress, 
-  isDark 
-}: { 
-  icon: string; 
-  label: string; 
-  isActive: boolean; 
-  onPress: () => void; 
+const FilterButton = React.memo(({
+  icon,
+  label,
+  isActive,
+  onPress,
+  isDark
+}: {
+  icon: string;
+  label: string;
+  isActive: boolean;
+  onPress: () => void;
   isDark: boolean;
 }) => {
   const scaleValue = useSharedValue(1);
@@ -83,7 +84,7 @@ const FilterButton = React.memo(({
           flexDirection: 'row',
           alignItems: 'center',
           gap: 5,
-          backgroundColor: isActive 
+          backgroundColor: isActive
             ? isDark ? PastryColors.chocolate : PastryColors.primary
             : isDark ? 'rgba(255,255,255,0.08)' : 'rgba(74,53,49,0.05)',
           borderWidth: 1.5,
@@ -100,14 +101,14 @@ const FilterButton = React.memo(({
         <MaterialCommunityIcons
           name={icon as any}
           size={15}
-          color={isActive 
+          color={isActive
             ? isDark ? PastryColors.vanilla : '#FFFFFF'
             : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(74,53,49,0.5)'}
         />
         <Text style={{
           fontSize: 11.5,
           fontWeight: isActive ? '700' : '500',
-          color: isActive 
+          color: isActive
             ? isDark ? PastryColors.vanilla : '#FFFFFF'
             : isDark ? 'rgba(255,255,255,0.5)' : 'rgba(74,53,49,0.5)',
         }}>
@@ -119,13 +120,13 @@ const FilterButton = React.memo(({
 });
 
 // ProductItem Component
-const ProductItem = React.memo(({ 
-  product, 
-  total, 
-  isExpanded, 
-  onToggle, 
-  branchQuantities, 
-  isDark 
+const ProductItem = React.memo(({
+  product,
+  total,
+  isExpanded,
+  onToggle,
+  branchQuantities,
+  isDark
 }: ProductItemProps) => {
   const expandAnimation = useSharedValue(0);
 
@@ -153,7 +154,7 @@ const ProductItem = React.memo(({
       borderWidth: 1,
       borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(74,53,49,0.03)',
     }}>
-      <TouchableOpacity 
+      <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -178,7 +179,7 @@ const ProductItem = React.memo(({
             color={isDark ? 'rgba(255,255,255,0.5)' : 'rgba(74,53,49,0.5)'}
           />
         </ThemedView>
-        
+
         <ThemedText style={{
           flex: 1,
           fontSize: 15,
@@ -187,7 +188,7 @@ const ProductItem = React.memo(({
         }}>
           {product}
         </ThemedText>
-        
+
         <ThemedView style={{
           backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74,53,49,0.05)',
           paddingHorizontal: 12,
@@ -279,11 +280,11 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
 
   const calculateTotals = () => {
     const totals: { [key: string]: { normalizedName: string, originalName: string, quantity: number } } = {};
-    
+
     Object.values(ordersData).forEach((branchProducts: any) => {
       Object.entries(branchProducts).forEach(([product, quantity]) => {
         const normalizedName = normalizeProductName(product);
-        
+
         if (!totals[normalizedName]) {
           totals[normalizedName] = {
             normalizedName,
@@ -291,7 +292,7 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
             quantity: 0
           };
         }
-        
+
         totals[normalizedName].quantity += parseFloat(quantity as string);
       });
     });
@@ -300,21 +301,21 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
     Object.values(totals).forEach(({ originalName, quantity }) => {
       finalTotals[originalName] = quantity;
     });
-    
+
     return finalTotals;
   };
 
   if (!ordersData || Object.keys(ordersData).length === 0) {
     return (
-      <ThemedView style={{ 
+      <ThemedView style={{
         flex: 1,
-        backgroundColor: isDark ? PastryColors.chocolate : PastryColors.vanilla 
+        backgroundColor: isDark ? PastryColors.chocolate : PastryColors.vanilla
       }}>
         <EmptyOrdersState />
       </ThemedView>
     );
   }
-  
+
   const totals = calculateTotals();
   const totalProducts = Object.keys(totals).length;
   const totalQuantity = Object.values(totals).reduce((sum, qty) => sum + qty, 0);
@@ -340,6 +341,132 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
       Alert.alert(
         "Xəta",
         "Məlumatları kopyalayarkən xəta baş verdi",
+        [{ text: "OK" }],
+        { cancelable: true }
+      );
+    }
+  };
+
+  const handleCopyByRegions = async () => {
+    try {
+      const templates = await getActiveTemplates();
+
+      if (templates.length === 0) {
+        Alert.alert(
+          "Məlumat",
+          "Heç bir aktiv şablon tapılmadı. Zəhmət olmasa ilk növbədə şablon yaradın.",
+          [{ text: "OK" }],
+          { cancelable: true }
+        );
+        return;
+      }
+
+      let message = `*Aida's Corner - Bölgələrə Görə Sifariş Hesabatı*\n`;
+      message += `📅 ${formatDateString(new Date())}\n\n`;
+
+      // Group products by templates
+      templates.forEach(template => {
+        const templateProducts = template.products.filter(product =>
+          totals.hasOwnProperty(product)
+        );
+
+        if (templateProducts.length > 0) {
+          message += `📍 *${template.name}*\n`;
+          templateProducts.forEach(product => {
+            message += `• ${product}: ${totals[product]} ədəd\n`;
+          });
+          message += '\n';
+        }
+      });
+
+      // Add products not in any template
+      const allTemplateProducts = templates.flatMap(t => t.products);
+      const unassignedProducts = Object.keys(totals).filter(
+        product => !allTemplateProducts.includes(product)
+      );
+
+      if (unassignedProducts.length > 0) {
+        message += `📦 *Digər Məhsullar*\n`;
+        unassignedProducts.forEach(product => {
+          message += `• ${product}: ${totals[product]} ədəd\n`;
+        });
+      }
+
+      Clipboard.setString(message);
+
+      Alert.alert(
+        "Uğurlu",
+        "Məlumatlar bölgələrə görə kopyalandı",
+        [{ text: "OK" }],
+        { cancelable: true }
+      );
+    } catch (error) {
+      Alert.alert(
+        "Xəta",
+        "Məlumatları kopyalayarkən xəta baş verdi",
+        [{ text: "OK" }],
+        { cancelable: true }
+      );
+    }
+  };
+
+  const formatDateString = (date: Date): string => {
+    const day = date.getDate().toString().padStart(2, '0');
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  const handleShareByRegions = async () => {
+    try {
+      const templates = await getActiveTemplates();
+
+      if (templates.length === 0) {
+        Alert.alert(
+          "Məlumat",
+          "Heç bir aktiv şablon tapılmadı. Zəhmət olmasa ilk növbədə şablon yaradın.",
+          [{ text: "OK" }],
+          { cancelable: true }
+        );
+        return;
+      }
+
+      let message = `*Aida's Corner - Bölgələrə Görə Sifariş Hesabatı*\n`;
+      message += `📅 ${formatDateString(new Date())}\n\n`;
+
+      // Group products by templates
+      templates.forEach(template => {
+        const templateProducts = template.products.filter(product =>
+          totals.hasOwnProperty(product)
+        );
+
+        if (templateProducts.length > 0) {
+          message += `📍 *${template.name}*\n`;
+          templateProducts.forEach(product => {
+            message += `• ${product}: ${totals[product]} ədəd\n`;
+          });
+          message += '\n';
+        }
+      });
+
+      // Add products not in any template
+      const allTemplateProducts = templates.flatMap(t => t.products);
+      const unassignedProducts = Object.keys(totals).filter(
+        product => !allTemplateProducts.includes(product)
+      );
+
+      if (unassignedProducts.length > 0) {
+        message += `📦 *Digər Məhsullar*\n`;
+        unassignedProducts.forEach(product => {
+          message += `• ${product}: ${totals[product]} ədəd\n`;
+        });
+      }
+
+      shareViaWhatsApp(encodeURIComponent(message));
+    } catch (error) {
+      Alert.alert(
+        "Xəta",
+        "Məlumatları paylaşarkən xəta baş verdi",
         [{ text: "OK" }],
         { cancelable: true }
       );
@@ -386,13 +513,13 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                   color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
                 />
               </ThemedView>
-              <ThemedView style={{ 
-                backgroundColor: 'transparent', 
+              <ThemedView style={{
+                backgroundColor: 'transparent',
                 gap: 4,
                 flex: 1,
               }}>
-                <ThemedText 
-                  numberOfLines={1} 
+                <ThemedText
+                  numberOfLines={1}
                   style={{
                     fontSize: 20,
                     fontWeight: '600',
@@ -401,23 +528,23 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                 >
                   Ümumi Cəm
                 </ThemedText>
-                <View style={{ 
-                  flexDirection: 'row', 
-                  alignItems: 'center', 
+                <View style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
                   flexWrap: 'wrap',
-                  gap: 8 
+                  gap: 8
                 }}>
-                  <View style={{ 
-                    flexDirection: 'row', 
-                    alignItems: 'center', 
-                    gap: 4 
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4
                   }}>
                     <MaterialCommunityIcons
                       name="package-variant"
                       size={14}
                       color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
                     />
-                    <ThemedText 
+                    <ThemedText
                       numberOfLines={1}
                       style={{
                         fontSize: 13,
@@ -429,17 +556,17 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                     </ThemedText>
                   </View>
 
-                  <View style={{ 
-                    flexDirection: 'row', 
-                    alignItems: 'center', 
-                    gap: 4 
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4
                   }}>
                     <MaterialCommunityIcons
                       name="pound"
                       size={14}
                       color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
                     />
-                    <ThemedText 
+                    <ThemedText
                       numberOfLines={1}
                       style={{
                         fontSize: 13,
@@ -451,17 +578,17 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                     </ThemedText>
                   </View>
 
-                  <View style={{ 
-                    flexDirection: 'row', 
-                    alignItems: 'center', 
-                    gap: 4 
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4
                   }}>
                     <MaterialCommunityIcons
                       name="store"
                       size={14}
                       color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
                     />
-                    <ThemedText 
+                    <ThemedText
                       numberOfLines={1}
                       style={{
                         fontSize: 13,
@@ -519,6 +646,42 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                   color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
                 />
               </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  handleShareByRegions();
+                }}
+                style={{
+                  backgroundColor: '#FFD700',
+                  padding: 8,
+                  borderRadius: 20,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="whatsapp"
+                  size={20}
+                  color="#FFFFFF"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleCopyByRegions}
+                style={{
+                  backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74,53,49,0.07)',
+                  padding: 8,
+                  borderRadius: 20,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="account-group"
+                  size={20}
+                  color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
+                />
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -569,7 +732,7 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
             color={isDark ? 'rgba(255,255,255,0.4)' : 'rgba(74,53,49,0.4)'}
           />
         </TouchableOpacity>
-        
+
         {isFilterOpen && (
           <View style={{
             flexDirection: 'row',
@@ -625,13 +788,13 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
             isDark={isDark}
           />
         )}
-        contentContainerStyle={{ 
+        contentContainerStyle={{
           padding: 12,
           paddingBottom: 30 + insets.bottom
         }}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
-        style={{ 
+        style={{
           maxHeight: SHEET_HEIGHT - 200
         }}
       />

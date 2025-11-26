@@ -1,15 +1,6 @@
 // src/utils/orderCorrection.ts
 
-import { getProductCorrections as getFirebaseCorrections } from './firebase';
-
-interface ProductDefinition {
-  correct: string;
-  variations: string[];
-  units?: {
-    type: 'weight' | 'piece' | 'box';
-    variations: string[];
-  };
-}
+import { getProductCorrections as getFirebaseCorrections, ProductDefinition } from './firebase';
 
 // Export empty array for backward compatibility (will be populated from Firebase)
 export const PRODUCT_CORRECTIONS: ProductDefinition[] = [];
@@ -43,11 +34,11 @@ export async function refreshProductCorrections(): Promise<ProductDefinition[]> 
   console.log('🔄 Refreshing product corrections from Firebase...');
   try {
     const corrections = await orderCorrectionService.refreshCorrections();
-    
+
     // Clear and repopulate array
     PRODUCT_CORRECTIONS.length = 0;
     PRODUCT_CORRECTIONS.push(...corrections);
-    
+
     console.log(`✅ Refreshed ${corrections.length} product corrections from Firebase`);
     return corrections;
   } catch (error) {
@@ -160,7 +151,7 @@ function parseQuantity(quantity: string): { value: number; unit: string } {
 export async function correctOrderText(inputText: string): Promise<string> {
   // Get latest corrections from Firebase
   const corrections = await getProductCorrections();
-  
+
   // Split input into lines and filter empty lines
   const lines = inputText
     .split('\n')
