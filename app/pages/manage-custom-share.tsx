@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { colorScheme } from '@/constants/colorScheme';
 import { addDoc, collection, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '@/utils/firebase';
-import { PRODUCT_CORRECTIONS } from '@/utils/orderCorrection';
+import { getProductCorrections, refreshProductCorrections } from '@/utils/orderCorrection';
 import CreateRegionModal from '../components/CreateRegionModal';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 
@@ -42,6 +42,7 @@ export default function ManageCustomShareScreen() {
   const [regionName, setRegionName] = useState('');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [searchText, setSearchText] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
 
 
@@ -55,10 +56,27 @@ export default function ManageCustomShareScreen() {
     setIsDarkMode(systemColorScheme === 'dark');
   };
 
-  const loadProducts = () => {
-    // orderCorrection.ts'den ürünleri al
-    const productList = PRODUCT_CORRECTIONS.map(product => product.correct);
-    setProducts(productList);
+  const loadProducts = async () => {
+    try {
+      const corrections = await getProductCorrections();
+      const productList = corrections.map(product => product.correct);
+      setProducts(productList);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    }
+  };
+
+  const handleRefresh = async () => {
+    try {
+      setRefreshing(true);
+      await refreshProductCorrections();
+      await loadProducts();
+    } catch (error) {
+      console.error('Error refreshing products:', error);
+      Alert.alert('Xəta', 'Məhsullar yenilənərkən xəta baş verdi');
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const filteredProducts = products.filter(product =>
@@ -144,8 +162,8 @@ export default function ManageCustomShareScreen() {
       `"${templateName}" şablonunu silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz.`,
       [
         { text: 'İmtina', style: 'cancel' },
-        { 
-          text: 'Sil', 
+        {
+          text: 'Sil',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -174,7 +192,7 @@ export default function ManageCustomShareScreen() {
           >
             <IconSymbol name="chevron.left" size={22} color={isDarkMode ? colorScheme.textDark : colorScheme.textLight} />
           </TouchableOpacity>
-          
+
           <View style={styles.headerCenter}>
             <Text style={[styles.headerTitle, { color: isDarkMode ? colorScheme.textDark : colorScheme.textLight }]}>
               Özəl Paylaşım
@@ -183,7 +201,7 @@ export default function ManageCustomShareScreen() {
               Şablonların idarə edilməsi
             </Text>
           </View>
-          
+
           <View style={styles.headerRight}>
             <View style={[styles.templateCount, { backgroundColor: isDarkMode ? colorScheme.cardDark : colorScheme.cardLight }]}>
               <Text style={[styles.countText, { color: isDarkMode ? colorScheme.textDark : colorScheme.textLight }]}>
@@ -214,7 +232,7 @@ export default function ManageCustomShareScreen() {
                 Yeni bölgə şablonu əlavə etmək üçün toxunun
               </Text>
             </View>
-            <CleanIcon name="back" size={16} color={isDarkMode ? colorScheme.textSubtleDark : colorScheme.textSubtleLight} style={{ transform: [{ rotate: '180deg' }] }} />
+            <CleanIcon name="back" size={16} color={isDarkMode ? colorScheme.textSubtleDark : colorScheme.textSubtleLight} />
           </View>
         </TouchableOpacity>
 
@@ -252,7 +270,7 @@ export default function ManageCustomShareScreen() {
                         {template.products.length} məhsul • {template.isActive ? 'Aktiv' : 'Deaktiv'}
                       </Text>
                     </View>
-                    
+
                     <View style={styles.templateActions}>
                       <TouchableOpacity
                         style={[styles.iconActionButton, { backgroundColor: isDarkMode ? colorScheme.accentBlue : colorScheme.slate200 }]}
@@ -434,7 +452,7 @@ const styles = StyleSheet.create({
   templateCard: {
     borderRadius: 12,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: '#130505ff',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -467,5 +485,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  refreshButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colorScheme.cardLight,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });

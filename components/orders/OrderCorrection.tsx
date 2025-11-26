@@ -32,10 +32,16 @@ export function OrderCorrection({
 
   // Debounce the correction to avoid unnecessary processing
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(async () => {
       if (value.trim()) {
-        const correctedText = correctOrderText(value);
-        onCorrectedValueChange(correctedText);
+        try {
+          const correctedText = await correctOrderText(value);
+          onCorrectedValueChange(correctedText);
+        } catch (error) {
+          console.error('Error correcting order text:', error);
+          // Show error message but don't fallback to sync version
+          onCorrectedValueChange('Xəta: Məhsul düzəlişi zamanı xəta baş verdi');
+        }
       }
     }, 500);
 

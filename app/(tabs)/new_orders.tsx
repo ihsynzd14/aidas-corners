@@ -47,6 +47,7 @@ export default function NewOrdersScreen() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [isPreviewExpanded, setIsPreviewExpanded] = useState(false);
+  const [previewProducts, setPreviewProducts] = useState<string[]>([]);
 
   // Animation values
   const animation = useRef(new Animated.Value(0)).current;
@@ -55,6 +56,27 @@ export default function NewOrdersScreen() {
   // Correction modal state (kept from original logic)
   const [correctionModalVisible, setCorrectionModalVisible] = useState(false);
   const [correctedText, setCorrectedText] = useState('');
+
+  // Update preview products when order text changes
+  useEffect(() => {
+    const updatePreview = async () => {
+      if (orderText.trim()) {
+        try {
+          const corrected = await correctOrderText(orderText);
+          const products = corrected.split('\n').filter(l => l.trim());
+          setPreviewProducts(products);
+        } catch (error) {
+          console.error('Error updating preview:', error);
+          setPreviewProducts([]);
+        }
+      } else {
+        setPreviewProducts([]);
+      }
+    };
+
+    const timeoutId = setTimeout(updatePreview, 500);
+    return () => clearTimeout(timeoutId);
+  }, [orderText]);
 
   useEffect(() => {
     const loadBranches = async () => {
@@ -107,7 +129,7 @@ export default function NewOrdersScreen() {
 
     try {
       setIsSaving(true);
-      const corrected = correctOrderText(orderText);
+      const corrected = await correctOrderText(orderText);
 
       const formattedDate = formatDate(selectedDate);
 
@@ -285,7 +307,7 @@ export default function NewOrdersScreen() {
                         {!isPreviewExpanded && (
                           <View style={styles.previewBadge}>
                             <ThemedText style={styles.previewBadgeText}>
-                              {correctOrderText(orderText).split('\n').filter(l => l.trim()).length} məhsul
+                              {previewProducts.length} məhsul
                             </ThemedText>
                           </View>
                         )}
@@ -299,7 +321,7 @@ export default function NewOrdersScreen() {
 
                     {isPreviewExpanded && (
                       <View style={styles.previewContent}>
-                        {correctOrderText(orderText).split('\n').filter(l => l.trim()).map((line, index, array) => {
+                        {previewProducts.map((line, index, array) => {
                           const parts = line.split(' - ');
                           const name = parts[0] || line;
                           const quantity = parts[1] || '';

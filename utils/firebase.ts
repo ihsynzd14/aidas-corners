@@ -39,6 +39,20 @@ interface DailyNeedOrder {
   unit: string;
 }
 
+// Product Correction interfaces
+export interface ProductDefinition {
+  id?: string;
+  correct: string;
+  variations: string[];
+  units?: {
+    type: 'weight' | 'piece' | 'box';
+    variations: string[];
+  };
+  isActive: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
 // Firebase configuration
 const firebaseConfig = {
     apiKey: "AIzaSyCQ6wElMS4yPTNli18cWaPLPFwqo9gfLbU",
@@ -474,4 +488,137 @@ function compareVersions(localVersion: string, remoteVersion: string): boolean {
   
   // If we get here, versions are identical
   return false;
+}
+
+// ===== PRODUCT CORRECTION FUNCTIONS =====
+
+// Get all active product corrections
+export async function getProductCorrections(): Promise<ProductDefinition[]> {
+  const cacheKey = 'product_corrections';
+  const cachedData = getCache(cacheKey);
+  if (cachedData) return cachedData;
+
+  try {
+    const correctionsRef = collection(db, 'productCorrections');
+    // First try with index (will work once index is created)
+    try {
+      const q = query(correctionsRef, where('isActive', '==', true), orderBy('correct', 'asc'));
+      const querySnapshot = await getDocs(q);
+      
+      const corrections = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as ProductDefinition[];
+      
+      setCache(cacheKey, corrections);
+      return corrections;
+    } catch (indexError: any) {
+      // Fallback: Get all documents and filter client-side
+      if (indexError.message && indexError.message.includes('requires an index')) {
+        console.log('⚠️  Index not found, using client-side filtering...');
+        const querySnapshot = await getDocs(correctionsRef);
+        
+        const corrections = querySnapshot.docs
+          .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }) as ProductDefinition)
+          .filter(correction => correction.isActive === true)
+          .sort((a, b) => a.correct.localeCompare(b.correct));
+        
+        setCache(cacheKey, corrections);
+        return corrections;
+      }
+      throw indexError;
+    }
+  } catch (error) {
+    console.error('Error getting product corrections:', error);
+    return [];
+  }
+}
+
+// Add new product correction
+export async function addProductCorrection(correction: Omit<ProductDefinition, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  try {
+    const correctionsRef = collection(db, 'productCorrections');
+    const docRef = await addDoc(correctionsRef, {
+      ...correction,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    });
+    
+    clearCache();
+    return docRef.id;
+  } catch (error) {
+    console.error('Error adding product correction:', error);
+    throw error;
+  }
+}
+
+// Update product correction
+export async function updateProductCorrection(id: string, updates: Partial<ProductDefinition>): Promise<void> {
+  try {
+    const correctionRef = doc(db, 'productCorrections', id);
+    await updateDoc(correctionRef, {
+      ...updates,
+      updatedAt: new Date()
+    });
+    
+    clearCache();
+  } catch (error) {
+    console.error('Error updating product correction:', error);
+    throw error;
+  }
+}
+
+// Delete product correction (soft delete)
+export async function deleteProductCorrection(id: string): Promise<void> {
+  try {
+    const correctionRef = doc(db, 'productCorrections', id);
+    await updateDoc(correctionRef, {
+      isActive: false,
+      updatedAt: new Date()
+    });
+    
+    clearCache();
+  } catch (error) {
+    console.error('Error deleting product correction:', error);
+    throw error;
+  }
+}
+
+// Get single product correction by ID
+export async function getProductCorrection(id: string): Promise<ProductDefinition | null> {
+  try {
+    const correctionRef = doc(db, 'productCorrections', id);
+    const docSnap = await getDocs(query(collection(correctionRef)));
+    
+    if (docSnap.empty) {
+      return null;
+    }
+    
+    return {
+      id: docSnap.docs[0].id,
+      ...docSnap.docs[0].data()
+    } as ProductDefinition;
+  } catch (error) {
+    console.error('Error getting product correction:', error);
+    return null;
+  }
+}
+
+// Search product corrections by text
+export async function searchProductCorrections(searchText: string): Promise<ProductDefinition[]> {
+  try {
+    const corrections = await getProductCorrections();
+    const searchLower = searchText.toLowerCase();
+    
+    return corrections.filter(correction => 
+      correction.correct.toLowerCase().includes(searchLower) ||
+      correction.variations.some(v => v.toLowerCase().includes(searchLower))
+    );
+  } catch (error) {
+    console.error('Error searching product corrections:', error);
+    return [];
+  }
 }

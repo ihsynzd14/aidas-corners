@@ -5,7 +5,7 @@ import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { PastryColors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { PRODUCT_CORRECTIONS } from '@/utils/orderCorrection';
+import { getProductCorrections } from '@/utils/orderCorrection';
 
 export interface EditModalProps {
   visible: boolean;
@@ -26,15 +26,31 @@ export function EditModal({
 }: EditModalProps) {
   const [productName, setProductName] = useState(initialProduct);
   const [quantity, setQuantity] = useState(initialQuantity);
+  const [products, setProducts] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
   const isDark = useColorScheme() === 'dark';
 
-  // Reset form values when the modal becomes visible
+  // Load products when modal becomes visible
   useEffect(() => {
     if (visible) {
+      loadProducts();
       setProductName(initialProduct);
       setQuantity(initialQuantity);
     }
   }, [visible, initialProduct, initialQuantity]);
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      const corrections = await getProductCorrections();
+      const productList = corrections.map(p => p.correct);
+      setProducts(productList);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSave = () => {
     if (!productName.trim() || !quantity.trim()) {
@@ -91,13 +107,14 @@ export function EditModal({
               style={{
                 color: isDark ? '#FFF' : '#000',
               }}
+              enabled={!loading}
             >
               <Picker.Item label="Məhsul seçin" value="" />
-              {PRODUCT_CORRECTIONS.map((product) => (
+              {products.map((product) => (
                 <Picker.Item 
-                  key={product.correct} 
-                  label={product.correct} 
-                  value={product.correct}
+                  key={product} 
+                  label={product} 
+                  value={product}
                 />
               ))}
             </Picker>

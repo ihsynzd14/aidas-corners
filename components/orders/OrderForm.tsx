@@ -82,7 +82,7 @@ export function OrderForm() {
   
     try {
       setIsSaving(true);
-      const corrected = correctOrderText(orderText);
+      const corrected = await correctOrderText(orderText);
       
       // Tarihi formatlayın
       const formattedDate = formatDate(selectedDate);
