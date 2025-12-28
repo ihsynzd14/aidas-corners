@@ -26,10 +26,10 @@ interface OrdersSummaryContentProps {
 
 export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateChange }: OrdersSummaryContentProps) {
   const [internalSelectedDate, setInternalSelectedDate] = useState(new Date());
-  
+
   // Use prop date if provided, otherwise use internal state
   const selectedDate = propSelectedDate || internalSelectedDate;
-  
+
   const handleDateChange = (date: Date) => {
     setInternalSelectedDate(date);
     onDateChange?.(date);
@@ -46,7 +46,7 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
   const isDark = colorScheme === 'dark';
   const insets = useSafeAreaInsets();
   const scrollRef = useRef<RNScrollView | null>(null);
-  
+
   const animation = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -69,14 +69,12 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
       const data = await fetchOrdersByDate(selectedDate);
       console.log('=== OrdersSummaryContent - ordersData ===');
       console.log('Date:', selectedDate);
-      console.log('ordersData keys (imported branch IDs):', Object.keys(data || {}));
-      console.log('Full ordersData:', JSON.stringify(data, null, 2));
       setOrdersData(data);
       setToastMessage('Sifarişlər uğurla yükləndi');
       setShowSuccessToast(true);
     } catch (error: any) {
       const errorMessage = error?.message || 'Sifarişləri yükləyərkən xəta baş verdi';
-      
+
       // Network error detection
       if (errorMessage.includes('network') || errorMessage.includes('Network')) {
         setErrorType('network');
@@ -85,7 +83,7 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
       } else {
         setErrorType('unknown');
       }
-      
+
       setError(errorMessage);
       console.error('Error loading orders:', error);
     }
@@ -122,8 +120,8 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
   if (error) {
     return (
       <ThemedView style={{ flex: 1 }}>
-        <EnhancedErrorState 
-          error={error} 
+        <EnhancedErrorState
+          error={error}
           type={errorType}
           onRetry={handleRetry}
         />
@@ -139,12 +137,12 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
         onHide={() => setShowSuccessToast(false)}
         type="success"
       />
-      
+
       <RNScrollView
         ref={scrollRef}
         style={{ flex: 1 }}
         scrollEventThrottle={16}
-        contentContainerStyle={{ 
+        contentContainerStyle={{
           padding: 16,
           paddingBottom: MIN_SHEET_HEIGHT + insets.bottom
         }}
@@ -161,8 +159,8 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
         }
       >
 
-        <ModernOrdersSummaryTable 
-          ordersData={ordersData} 
+        <ModernOrdersSummaryTable
+          ordersData={ordersData}
           selectedDate={selectedDate}
           onDataChange={loadOrders}
         />
@@ -183,9 +181,9 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
         shadowRadius: 8,
         elevation: 5,
       }, animatedStyle]}>
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={toggleExpanded}
-          style={{ 
+          style={{
             width: '100%',
             padding: 12,
             flexDirection: 'row',
@@ -202,16 +200,16 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
             backgroundColor: isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.2)',
             borderRadius: 2,
           }} />
-          <Ionicons 
-            name={isExpanded ? "chevron-down" : "chevron-up"} 
-            size={20} 
-            color={isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'} 
+          <Ionicons
+            name={isExpanded ? "chevron-down" : "chevron-up"}
+            size={20}
+            color={isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.5)'}
           />
         </TouchableOpacity>
 
         <ThemedView style={{ flex: 1 }}>
-          <OrdersTotalSummary 
-            ordersData={ordersData} 
+          <OrdersTotalSummary
+            ordersData={ordersData}
             SHEET_HEIGHT={EXPANDED_HEIGHT}
             scrollRef={scrollRef}
           />

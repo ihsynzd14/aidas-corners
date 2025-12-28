@@ -27,8 +27,10 @@ interface ProductStatisticsUIProps {
   selectedBranch: string;
   dailyStats: DailyStats[];
   availableBranches: string[];
-  bottomSheetModalRef: React.RefObject<BottomSheetModal | null>;
+  totalEarnings: number;
   dateRangeModalRef: React.RefObject<BottomSheetModal | null>;
+  productSelectionVisible: boolean;
+  setProductSelectionVisible: (visible: boolean) => void;
   onStartDateChange: (event: any, selectedDate?: Date) => void;
   onEndDateChange: (event: any, selectedDate?: Date) => void;
   onDateRangeConfirm: (start: Date, end: Date) => void;
@@ -38,7 +40,6 @@ interface ProductStatisticsUIProps {
   setSelectedProduct: (product: string) => void;
   setSelectedBranch: (branch: string) => void;
   setAvailableBranches: (branches: string[]) => void;
-  handlePresentModalPress: () => void;
   generateExcel: () => void;
   generateWhatsAppText: () => void;
   copyToClipboard: () => void;
@@ -58,8 +59,10 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
   selectedBranch,
   dailyStats,
   availableBranches,
-  bottomSheetModalRef,
+  totalEarnings,
   dateRangeModalRef,
+  productSelectionVisible,
+  setProductSelectionVisible,
   onStartDateChange,
   onEndDateChange,
   onDateRangeConfirm,
@@ -69,7 +72,6 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
   setSelectedProduct,
   setSelectedBranch,
   setAvailableBranches,
-  handlePresentModalPress,
   generateExcel,
   generateWhatsAppText,
   copyToClipboard,
@@ -181,47 +183,82 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
         <View style={styles.statsGrid}>
           <View style={[
             styles.statCard,
+            styles.statCardModern,
             {
               backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
               borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
             }
           ]}>
-            <View style={styles.statCardRow}>
-              <View style={[styles.iconCircle, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(217,166,163,0.1)' }]}>
-                <MaterialIcons name="bar-chart" size={20} color={colorScheme.accentRed} />
+            <View style={styles.statCardHeader}>
+              <View style={[
+                styles.iconCircleModern,
+                { backgroundColor: isDark ? 'rgba(255, 107, 107, 0.15)' : 'rgba(255, 107, 107, 0.12)' }
+              ]}>
+                <MaterialIcons name="bar-chart" size={22} color="#FF6B6B" />
               </View>
-              <View style={styles.statCardContent}>
-                <Text style={[
-                  styles.statLabel,
-                  { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
-                ]}>Satılan Ümumi Məhsul</Text>
-                <Text style={[styles.statValue, { color: textColor }]} adjustsFontSizeToFit={true} minimumFontScale={0.8} numberOfLines={2}>
-                  {totalSold.toLocaleString()}
-                </Text>
-              </View>
+            </View>
+            <View style={styles.statCardFooter}>
+              <Text style={[
+                styles.statLabelModern,
+                { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
+              ]}>Ümumi Məhsul</Text>
+              <Text style={[styles.statValueModern, { color: textColor }]} numberOfLines={1}>
+                {totalSold.toLocaleString()}
+              </Text>
             </View>
           </View>
 
           <View style={[
             styles.statCard,
+            styles.statCardModern,
             {
               backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
               borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
             }
           ]}>
-            <View style={styles.statCardRow}>
-              <View style={[styles.iconCircle, { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(217,166,163,0.1)' }]}>
-                <MaterialIcons name="trending-up" size={20} color={colorScheme.accentRed} />
+            <View style={styles.statCardHeader}>
+              <View style={[
+                styles.iconCircleModern,
+                { backgroundColor: isDark ? 'rgba(78, 205, 196, 0.15)' : 'rgba(78, 205, 196, 0.12)' }
+              ]}>
+                <MaterialIcons name="trending-up" size={22} color="#4ECDC4" />
               </View>
-              <View style={styles.statCardContent}>
-                <Text style={[
-                  styles.statLabel,
-                  { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
-                ]}>Ən Çox Satılan</Text>
-                <Text style={[styles.statValue, { color: textColor }]} adjustsFontSizeToFit={true} minimumFontScale={0.8} numberOfLines={2}>
-                  {topProduct}
-                </Text>
+            </View>
+            <View style={styles.statCardFooter}>
+              <Text style={[
+                styles.statLabelModern,
+                { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
+              ]}>Ən Çox Satılan</Text>
+              <Text style={[styles.statValueModern, { color: textColor }]} numberOfLines={1}>
+                {topProduct}
+              </Text>
+            </View>
+          </View>
+
+          <View style={[
+            styles.statCard,
+            styles.statCardModern,
+            {
+              backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
+              borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
+            }
+          ]}>
+            <View style={styles.statCardHeader}>
+              <View style={[
+                styles.iconCircleModern,
+                { backgroundColor: isDark ? 'rgba(255, 195, 0, 0.15)' : 'rgba(255, 195, 0, 0.12)' }
+              ]}>
+                <MaterialIcons name="payments" size={22} color="#FFC300" />
               </View>
+            </View>
+            <View style={styles.statCardFooter}>
+              <Text style={[
+                styles.statLabelModern,
+                { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
+              ]}>Ümumi Qazanc</Text>
+              <Text style={[styles.statValueModern, { color: textColor }]} numberOfLines={1}>
+                {totalEarnings.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₼
+              </Text>
             </View>
           </View>
         </View>
@@ -238,14 +275,14 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
               selectedProduct={selectedProduct}
               selectedBranch={selectedBranch}
               dailyStats={dailyStats}
-              onSelectionPress={handlePresentModalPress}
+              onSelectionPress={() => setProductSelectionVisible(true)}
             />
           )
         )}
       </View>
 
       <ProductSelectionBottomSheet
-        bottomSheetModalRef={bottomSheetModalRef as React.RefObject<BottomSheetModal>}
+        visible={productSelectionVisible}
         selectedProduct={selectedProduct}
         selectedBranch={selectedBranch}
         productStats={productStats}
@@ -253,6 +290,7 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
         setSelectedProduct={setSelectedProduct}
         setSelectedBranch={setSelectedBranch}
         setAvailableBranches={setAvailableBranches}
+        onClose={() => setProductSelectionVisible(false)}
       />
 
       <DateRangePickerModal
@@ -337,6 +375,21 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: 6, // gap-1.5
   },
+  statCardModern: {
+    padding: 0,
+    overflow: 'hidden',
+    gap: 0,
+  },
+  statCardHeader: {
+    alignItems: 'center',
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.05)',
+  },
+  statCardFooter: {
+    padding: 16,
+    paddingTop: 12,
+  },
   statCardRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -349,6 +402,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
+  iconCircleModern: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   statCardContent: {
     flex: 1,
   },
@@ -356,9 +416,21 @@ const styles = StyleSheet.create({
     fontSize: 12, // text-xs
     fontWeight: '500', // font-medium
   },
+  statLabelModern: {
+    fontSize: 11,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 4,
+  },
   statValue: {
     fontSize: 20, // text-xl
     fontWeight: 'bold', // font-bold
     letterSpacing: -0.5, // tracking-tight
+  },
+  statValueModern: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.5,
   },
 });

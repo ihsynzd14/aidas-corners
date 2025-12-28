@@ -5,9 +5,9 @@ import { useProductStatistics } from '@/components/statistics/ProductStatisticsL
 
 
 export default function ProductStatisticsScreen() {
-  const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const dateRangeModalRef = useRef<BottomSheetModal>(null);
   const [shareVisible, setShareVisible] = React.useState(false);
+  const [productSelectionVisible, setProductSelectionVisible] = React.useState(false);
 
   const {
     loading,
@@ -21,6 +21,7 @@ export default function ProductStatisticsScreen() {
     selectedBranch,
     dailyStats,
     availableBranches,
+    totalEarnings,
     setStartDate,
     setEndDate,
     setShowStartPicker,
@@ -37,9 +38,6 @@ export default function ProductStatisticsScreen() {
     onDateRangeConfirm
   } = useProductStatistics();
 
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
 
   const onStartDateChange = (event: any, selectedDate?: Date) => {
     setShowStartPicker(false);
@@ -67,34 +65,35 @@ export default function ProductStatisticsScreen() {
     <BottomSheetModalProvider>
       <ProductStatisticsUI
         loading={loading}
-          productStats={productStats}
-          startDate={startDate}
-          endDate={endDate}
-          showStartPicker={showStartPicker}
-          showEndPicker={showEndPicker}
-          viewMode={viewMode}
-          selectedProduct={selectedProduct}
-          selectedBranch={selectedBranch}
-          dailyStats={dailyStats}
-          availableBranches={availableBranches}
-          bottomSheetModalRef={bottomSheetModalRef}
-          dateRangeModalRef={dateRangeModalRef}
-          shareVisible={shareVisible}
-          setShareVisible={setShareVisible}
-          onStartDateChange={onStartDateChange}
-          onEndDateChange={onEndDateChange}
-          onDateRangeConfirm={onDateRangeConfirm}
-          setShowStartPicker={setShowStartPicker}
-          setShowEndPicker={setShowEndPicker}
-          setViewMode={setViewMode}
-          setSelectedProduct={setSelectedProduct}
-          setSelectedBranch={setSelectedBranch}
-          setAvailableBranches={setAvailableBranches}
-          handlePresentModalPress={handlePresentModalPress}
-          generateExcel={generateExcel}
-          generateWhatsAppText={generateWhatsAppText}
-          copyToClipboard={copyToClipboard}
-        />
+        productStats={productStats}
+        startDate={startDate}
+        endDate={endDate}
+        showStartPicker={showStartPicker}
+        showEndPicker={showEndPicker}
+        viewMode={viewMode}
+        selectedProduct={selectedProduct}
+        selectedBranch={selectedBranch}
+        dailyStats={dailyStats}
+        availableBranches={availableBranches}
+        totalEarnings={totalEarnings}
+        dateRangeModalRef={dateRangeModalRef}
+        productSelectionVisible={productSelectionVisible}
+        setProductSelectionVisible={setProductSelectionVisible}
+        shareVisible={shareVisible}
+        setShareVisible={setShareVisible}
+        onStartDateChange={onStartDateChange}
+        onEndDateChange={onEndDateChange}
+        onDateRangeConfirm={onDateRangeConfirm}
+        setShowStartPicker={setShowStartPicker}
+        setShowEndPicker={setShowEndPicker}
+        setViewMode={setViewMode}
+        setSelectedProduct={setSelectedProduct}
+        setSelectedBranch={setSelectedBranch}
+        setAvailableBranches={setAvailableBranches}
+        generateExcel={generateExcel}
+        generateWhatsAppText={generateWhatsAppText}
+        copyToClipboard={copyToClipboard}
+      />
     </BottomSheetModalProvider>
   );
 }

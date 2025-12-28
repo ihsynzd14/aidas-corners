@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import { Platform, View, LogBox } from 'react-native';
+import { Platform, View, LogBox, Appearance } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { NotificationService } from '@/services/NotificationService';
 import AppUpdater from '@/components/AppUpdater';
@@ -35,6 +35,9 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
+
+// Force light mode globally - override system theme
+Appearance.setColorScheme('light');
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();

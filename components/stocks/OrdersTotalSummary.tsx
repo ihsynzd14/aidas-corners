@@ -17,7 +17,7 @@ import Animated, {
   useSharedValue
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { getBranches } from '@/utils/firebase';
+import { getBranches, getProductCorrections } from '@/utils/firebase';
 import { Branch } from '@/types/branch';
 
 interface BranchQuantity {
@@ -266,6 +266,8 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [allBranches, setAllBranches] = useState<Branch[]>([]);
   const [missingBranchesExpanded, setMissingBranchesExpanded] = useState(false);
+  const [totalEarnings, setTotalEarnings] = useState<number>(0);
+  const [productPrices, setProductPrices] = useState<Map<string, number>>(new Map());
 
   // Fetch all branches on mount
   useEffect(() => {
@@ -279,6 +281,96 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
     };
     fetchBranches();
   }, []);
+
+  // Fetch product prices and calculate total earnings
+  useEffect(() => {
+    const fetchProductPrices = async () => {
+      try {
+        const productCorrections = await getProductCorrections();
+        const priceMap = new Map<string, number>();
+
+        console.log('=== OrdersTotalSummary - Price Calculation ===');
+        console.log('Total products with prices:', productCorrections.filter(p => p.price !== undefined).length);
+
+        productCorrections.forEach(product => {
+          if (product.price !== undefined) {
+            priceMap.set(product.correct.toLowerCase(), product.price);
+            product.variations.forEach(variation => {
+              priceMap.set(variation.toLowerCase(), product.price);
+            });
+          }
+        });
+        setProductPrices(priceMap);
+
+        console.log('Price Map built with', priceMap.size, 'entries');
+        console.log('Sample prices from map:');
+        let sampleCount = 0;
+        priceMap.forEach((price, name) => {
+          if (sampleCount < 5) {
+            console.log(`  - ${name}: ${price} ₼`);
+            sampleCount++;
+          }
+        });
+
+        // Calculate total earnings from ordersData
+        if (ordersData) {
+          console.log('\nCalculating earnings from ordersData...');
+          let earnings = 0;
+          let productsWithPrice = 0;
+          let productsWithoutPrice = 0;
+          const branchTotals: { [key: string]: number } = {};
+
+          Object.entries(ordersData).forEach(([branchName, branchProducts]: [string, any]) => {
+            console.log(`\n📍 Branch: ${branchName}`);
+            let branchTotal = 0;
+            let branchProductsWithPrice = 0;
+            let branchProductsWithoutPrice = 0;
+
+            Object.entries(branchProducts).forEach(([product, quantity]) => {
+              const normalizedProduct = product.trim().toLowerCase();
+              const productPrice = priceMap.get(normalizedProduct);
+              const qty = parseFloat(quantity as string);
+
+              if (productPrice !== undefined) {
+                const lineTotal = qty * productPrice;
+                branchTotal += lineTotal;
+                earnings += lineTotal;
+                productsWithPrice++;
+                branchProductsWithPrice++;
+                console.log(`  ✅ ${product}: ${qty} × ${productPrice} ₼ = ${lineTotal.toFixed(2)} ₼`);
+              } else {
+                productsWithoutPrice++;
+                branchProductsWithoutPrice++;
+                console.log(`  ❌ ${product}: ${qty} (no price found)`);
+              }
+            });
+
+            branchTotals[branchName] = branchTotal;
+            console.log(`  ━━━━━━━━━━━━━━━━━━━━━━━━`);
+            console.log(`  📦 Branch Total: ${branchTotal.toFixed(2)} ₼ (${branchProductsWithPrice} with price, ${branchProductsWithoutPrice} without)`);
+          });
+
+          console.log('\n=== Branch Totals Summary ===');
+          Object.entries(branchTotals).forEach(([branch, total]) => {
+            console.log(`  📍 ${branch}: ${total.toFixed(2)} ₼`);
+          });
+
+          console.log('\n=== Summary ===');
+          console.log(`Products with price: ${productsWithPrice}`);
+          console.log(`Products without price: ${productsWithoutPrice}`);
+          console.log(`📊 Total Earnings (sum of all branches): ${earnings.toFixed(2)} ₼`);
+
+          setTotalEarnings(earnings);
+        } else {
+          console.log('No ordersData available');
+          setTotalEarnings(0);
+        }
+      } catch (error) {
+        console.error('Error fetching product prices:', error);
+      }
+    };
+    fetchProductPrices();
+  }, [ordersData]);
 
   // Calculate missing branches
   // ordersData keys use format: "Type Name" (e.g., "Coffemania Azadlıq", "Next Mərkəz")
@@ -314,11 +406,6 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
   });
 
   // Debug logging
-  console.log('=== OrdersTotalSummary - Missing Branches Calculation ===');
-  console.log('importedBranchIds:', importedBranchIds);
-  console.log('missingBranches:', missingBranches);
-  console.log('missingBranches count:', missingBranches.length);
-
   const getBranchQuantities = (productName: string): BranchQuantity[] => {
     const quantities: BranchQuantity[] = [];
     Object.entries(ordersData).forEach(([branchName, products]: [string, any]) => {
@@ -656,6 +743,28 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                     </ThemedText>
                   </View>
 
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4
+                  }}>
+                    <MaterialCommunityIcons
+                      name="cash"
+                      size={14}
+                      color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
+                    />
+                    <ThemedText
+                      numberOfLines={1}
+                      style={{
+                        fontSize: 15,
+                        fontWeight: 600,
+                        color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)',
+                      }}
+                    >
+                      {totalEarnings.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₼
+                    </ThemedText>
+                  </View>
+
                   {/* Missing Branches Indicator */}
                   {missingBranches.length > 0 && (
                     <TouchableOpacity
@@ -667,12 +776,9 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                         flexDirection: 'row',
                         alignItems: 'center',
                         gap: 4,
-                        backgroundColor: 'rgba(255, 107, 107, 0.15)',
                         paddingHorizontal: 8,
                         paddingVertical: 4,
                         borderRadius: 8,
-                        borderWidth: 1,
-                        borderColor: 'rgba(255, 107, 107, 0.3)',
                       }}
                       activeOpacity={0.7}
                     >

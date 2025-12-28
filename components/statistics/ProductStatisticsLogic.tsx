@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Alert, Platform } from 'react-native';
-import { formatDate, getCache, setCache, fetchOrdersForDateRange } from '@/utils/firebase';
+import { formatDate, getCache, setCache, fetchOrdersForDateRange, getProductCorrections } from '@/utils/firebase';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import XLSX from 'xlsx';
@@ -47,6 +47,7 @@ export const useProductStatistics = () => {
   const [selectedBranch, setSelectedBranch] = useState('');
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [availableBranches, setAvailableBranches] = useState<string[]>([]);
+  const [totalEarnings, setTotalEarnings] = useState<number>(0);
 
   const dateRangeCacheKey = useMemo(() => {
     return `stats_${formatDate(startDate)}_${formatDate(endDate)}`;
@@ -55,11 +56,12 @@ export const useProductStatistics = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      
+
       const cachedData = getCache(dateRangeCacheKey);
       if (cachedData) {
         console.log('Cache\'den veri alındı:', dateRangeCacheKey);
-        setProductStats(cachedData);
+        setProductStats(cachedData.productStats);
+        setTotalEarnings(cachedData.totalEarnings);
         setLoading(false);
         return;
       }
@@ -68,7 +70,19 @@ export const useProductStatistics = () => {
         startDate: formatDate(startDate),
         endDate: formatDate(endDate)
       });
-      
+
+      // Get product prices from productCorrections
+      const productCorrections = await getProductCorrections();
+      const priceMap = new Map<string, number>();
+      productCorrections.forEach(product => {
+        if (product.price !== undefined) {
+          priceMap.set(product.correct.toLowerCase(), product.price);
+          product.variations.forEach(variation => {
+            priceMap.set(variation.toLowerCase(), product.price);
+          });
+        }
+      });
+
       const ordersData = await fetchOrdersForDateRange(startDate, endDate);
       const stats: { [key: string]: ProductStats } = {};
       
@@ -110,9 +124,19 @@ export const useProductStatistics = () => {
       });
 
       const sortedStats = Object.values(stats).sort((a, b) => b.totalQuantity - a.totalQuantity);
-      
-      setCache(dateRangeCacheKey, sortedStats);
+
+      // Calculate total earnings by summing (quantity × price) for all products
+      let earnings = 0;
+      sortedStats.forEach(stat => {
+        const productPrice = priceMap.get(stat.productName.toLowerCase());
+        if (productPrice !== undefined) {
+          earnings += stat.totalQuantity * productPrice;
+        }
+      });
+
+      setCache(dateRangeCacheKey, { productStats: sortedStats, totalEarnings: earnings });
       setProductStats(sortedStats);
+      setTotalEarnings(earnings);
       setLoading(false);
     } catch (error) {
       console.error('Veri çekme hatası:', error);
@@ -407,6 +431,7 @@ export const useProductStatistics = () => {
     selectedBranch,
     dailyStats,
     availableBranches,
+    totalEarnings,
     setStartDate,
     setEndDate,
     setShowStartPicker,
