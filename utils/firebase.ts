@@ -48,6 +48,7 @@ export interface ProductDefinition {
     type: 'weight' | 'piece' | 'box';
     variations: string[];
   };
+  price?: number;
   isActive: boolean;
   createdAt?: Date;
   updatedAt?: Date;

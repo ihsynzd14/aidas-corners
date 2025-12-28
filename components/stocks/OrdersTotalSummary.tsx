@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { TouchableOpacity, FlatList, View, Alert, Text } from 'react-native';
+import { TouchableOpacity, FlatList, View, Alert, Text, Dimensions } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -17,6 +17,8 @@ import Animated, {
   useSharedValue
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
+import { getBranches } from '@/utils/firebase';
+import { Branch } from '@/types/branch';
 
 interface BranchQuantity {
   branchName: string;
@@ -262,6 +264,60 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
   const [sortType, setSortType] = useState<SortType>('quantity-desc');
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [allBranches, setAllBranches] = useState<Branch[]>([]);
+  const [missingBranchesExpanded, setMissingBranchesExpanded] = useState(false);
+
+  // Fetch all branches on mount
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const branches = await getBranches();
+        setAllBranches(branches);
+      } catch (error) {
+        console.error('Error fetching branches:', error);
+      }
+    };
+    fetchBranches();
+  }, []);
+
+  // Calculate missing branches
+  // ordersData keys use format: "Type Name" (e.g., "Coffemania Azadlıq", "Next Mərkəz")
+  // We need to match by checking if the branch is in the ordersData keys
+  const importedBranchIds = Object.keys(ordersData || {});
+
+  // Branches to exclude from missing count (not required to import daily)
+  const excludedBranchIds = ['Gəncə', 'Sea breeze'];
+
+  const missingBranches = allBranches.filter(branch => {
+    // Skip excluded branches
+    if (excludedBranchIds.includes(branch.id)) {
+      return false;
+    }
+
+    // Try multiple matching patterns
+    const patterns = [
+      `${branch.type} ${branch.name}`,  // "Coffemania Azadlıq"
+      branch.id,                        // "Azadlıq"
+      branch.name,                      // "Azadlıq"
+      `Next ${branch.name}`,            // For Next branches with different format
+      `Coffemania ${branch.name}`,      // For Coffemania branches
+    ];
+
+    // Check if ANY pattern matches an imported branch ID
+    const isImported = patterns.some(pattern =>
+      importedBranchIds.some(importedId =>
+        importedId.toLowerCase() === pattern.toLowerCase()
+      )
+    );
+
+    return !isImported;
+  });
+
+  // Debug logging
+  console.log('=== OrdersTotalSummary - Missing Branches Calculation ===');
+  console.log('importedBranchIds:', importedBranchIds);
+  console.log('missingBranches:', missingBranches);
+  console.log('missingBranches count:', missingBranches.length);
 
   const getBranchQuantities = (productName: string): BranchQuantity[] => {
     const quantities: BranchQuantity[] = [];
@@ -599,6 +655,49 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                       {totalBranches} şöbə
                     </ThemedText>
                   </View>
+
+                  {/* Missing Branches Indicator */}
+                  {missingBranches.length > 0 && (
+                    <TouchableOpacity
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setMissingBranchesExpanded(!missingBranchesExpanded);
+                      }}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 4,
+                        backgroundColor: 'rgba(255, 107, 107, 0.15)',
+                        paddingHorizontal: 8,
+                        paddingVertical: 4,
+                        borderRadius: 8,
+                        borderWidth: 1,
+                        borderColor: 'rgba(255, 107, 107, 0.3)',
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <MaterialCommunityIcons
+                        name="alert-circle"
+                        size={12}
+                        color="#FF6B6B"
+                      />
+                      <ThemedText
+                        numberOfLines={1}
+                        style={{
+                          fontSize: 11,
+                          fontWeight: '600',
+                          color: '#FF6B6B',
+                        }}
+                      >
+                        {missingBranches.length} şöbə qalıb
+                      </ThemedText>
+                      <MaterialCommunityIcons
+                        name={missingBranchesExpanded ? "chevron-up" : "chevron-down"}
+                        size={14}
+                        color="#FF6B6B"
+                      />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </ThemedView>
             </ThemedView>
@@ -628,24 +727,6 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                   color="#FFFFFF"
                 />
               </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={handleCopy}
-                style={{
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74,53,49,0.07)',
-                  padding: 8,
-                  borderRadius: 20,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <MaterialCommunityIcons
-                  name="content-copy"
-                  size={20}
-                  color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
-                />
-              </TouchableOpacity>
               <TouchableOpacity
                 onPress={() => {
                   handleShareByRegions();
@@ -665,27 +746,108 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
                   color="#FFFFFF"
                 />
               </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleCopyByRegions}
-                style={{
-                  backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74,53,49,0.07)',
-                  padding: 8,
-                  borderRadius: 20,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <MaterialCommunityIcons
-                  name="account-group"
-                  size={20}
-                  color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
-                />
-              </TouchableOpacity>
             </View>
           </View>
         </View>
       </ThemedView>
+
+      {/* Missing Branches Expansion */}
+      {missingBranches.length > 0 && missingBranchesExpanded && (
+        <ThemedView style={{
+          marginHorizontal: 12,
+          marginTop: 8,
+          marginBottom: 4,
+          borderRadius: 16,
+          backgroundColor: isDark ? 'rgba(255, 107, 107, 0.08)' : 'rgba(255, 107, 107, 0.05)',
+          borderWidth: 1,
+          borderColor: isDark ? 'rgba(255, 107, 107, 0.2)' : 'rgba(255, 107, 107, 0.15)',
+          overflow: 'hidden',
+        }}>
+          <View style={{
+            paddingVertical: 10,
+            paddingHorizontal: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 10,
+            borderBottomWidth: 1,
+            borderBottomColor: isDark ? 'rgba(255, 107, 107, 0.1)' : 'rgba(255, 107, 107, 0.1)',
+          }}>
+            <MaterialCommunityIcons
+              name="alert-circle"
+              size={18}
+              color="#FF6B6B"
+            />
+            <ThemedText style={{
+              fontSize: 14,
+              fontWeight: '600',
+              color: isDark ? '#FF6B6B' : '#FF4444',
+              flex: 1,
+            }}>
+              Məhsul göndərməyən şöbələr
+            </ThemedText>
+            <View style={{
+              backgroundColor: isDark ? 'rgba(255, 107, 107, 0.2)' : 'rgba(255, 107, 107, 0.15)',
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              borderRadius: 12,
+            }}>
+              <ThemedText style={{
+                fontSize: 12,
+                fontWeight: '700',
+                color: '#FF6B6B',
+              }}>
+                {missingBranches.length}
+              </ThemedText>
+            </View>
+          </View>
+
+          <View style={{
+            paddingVertical: 8,
+            paddingHorizontal: 12,
+            gap: 6,
+          }}>
+            {missingBranches.map((branch) => (
+              <View
+                key={branch.id}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 10,
+                  paddingVertical: 8,
+                  paddingHorizontal: 12,
+                  backgroundColor: isDark ? 'rgba(255, 107, 107, 0.05)' : 'rgba(255, 107, 107, 0.03)',
+                  borderRadius: 10,
+                  borderWidth: 1,
+                  borderColor: isDark ? 'rgba(255, 107, 107, 0.1)' : 'rgba(255, 107, 107, 0.08)',
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="store-remove"
+                  size={16}
+                  color={isDark ? 'rgba(255, 107, 107, 0.7)' : 'rgba(255, 68, 68, 0.7)'}
+                />
+                <ThemedText style={{
+                  flex: 1,
+                  fontSize: 14,
+                  fontWeight: '500',
+                  color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(74, 53, 49, 0.9)',
+                }}>
+                  {branch.name}
+                </ThemedText>
+                <ThemedText style={{
+                  fontSize: 11,
+                  fontWeight: '600',
+                  color: isDark ? 'rgba(255, 107, 107, 0.6)' : 'rgba(255, 68, 68, 0.6)',
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                }}>
+                  {branch.type}
+                </ThemedText>
+              </View>
+            ))}
+          </View>
+        </ThemedView>
+      )}
 
       {/* Filter Component */}
       <ThemedView style={{

@@ -1,15 +1,15 @@
-import { StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, TextInput, useColorScheme, Alert, Animated, Dimensions } from 'react-native';
+import { ScrollView, SafeAreaView, TouchableOpacity, TextInput, useColorScheme, Alert, Animated, Dimensions, View } from 'react-native';
 import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect } from 'react';
 import { TopBar } from '../../components/TopBar';
 import { ThemedView } from '../../components/ThemedView';
 import { ThemedText } from '../../components/ThemedText';
 import { getProductCorrections, refreshProductCorrections } from '../../utils/orderCorrection';
-import { updateProductCorrection, ProductDefinition } from '../../utils/firebase';
+import { updateProductCorrection, addProductCorrection, deleteProductCorrection, ProductDefinition } from '../../utils/firebase';
 import { AntDesign, MaterialCommunityIcons, Ionicons, Feather } from '@expo/vector-icons';
 import { useState, useMemo, useRef } from 'react';
-import { colorScheme as appColorScheme } from '@/constants/colorScheme';
 import { EditProductSheet } from '../components/EditProductSheet';
-
+import { AddProductSheet } from '../components/AddProductSheet';
+import { productsListStyles as styles } from '../../components/ui/styles/productsList.styles';
 import { useRouter } from 'expo-router';
 
 export default function ProductsListScreen() {
@@ -24,6 +24,9 @@ export default function ProductsListScreen() {
   // Edit Sheet State
   const [selectedProduct, setSelectedProduct] = useState<ProductDefinition | null>(null);
   const [editSheetVisible, setEditSheetVisible] = useState(false);
+
+  // Add Product Sheet State
+  const [addSheetVisible, setAddSheetVisible] = useState(false);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const { width } = Dimensions.get('window');
@@ -85,6 +88,11 @@ export default function ProductsListScreen() {
         variations: updatedProduct.variations,
       };
 
+      // Include price if provided
+      if (updatedProduct.price !== undefined) {
+        updateData.price = updatedProduct.price;
+      }
+
       // Explicitly handle units field
       if (updatedProduct.units) {
         updateData.units = updatedProduct.units;
@@ -96,12 +104,55 @@ export default function ProductsListScreen() {
       await updateProductCorrection(updatedProduct.id!, updateData);
 
       // Refresh to ensure sync
-      // await handleRefresh(); 
+      // await handleRefresh();
     } catch (error) {
       console.error('Error updating product:', error);
       Alert.alert('Xəta', 'Məhsul yenilənərkən xəta baş verdi');
       // Revert optimistic update if needed (could be improved)
       loadProducts();
+    }
+  };
+
+  const handleDeleteProduct = async (product: ProductDefinition) => {
+    if (!product.id) return;
+
+    Alert.alert(
+      'Məhsulu Sil',
+      `"${product.correct}" məhsulunu silmək istədiyinizə əminsiniz?`,
+      [
+        {
+          text: 'Ləğv et',
+          style: 'cancel',
+        },
+        {
+          text: 'Sil',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              // Optimistic update - remove from list
+              setProducts(prev => prev.filter(p => p.id !== product.id));
+
+              await deleteProductCorrection(product.id!);
+              Alert.alert('Uğur', 'Məhsul uğurla silindi');
+            } catch (error) {
+              console.error('Error deleting product:', error);
+              Alert.alert('Xəta', 'Məhsul silinərkən xəta baş verdi');
+              loadProducts();
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleAddProduct = async (newProduct: Omit<ProductDefinition, 'id'>) => {
+    try {
+      const docId = await addProductCorrection(newProduct);
+      Alert.alert('Uğur', 'Yeni məhsul uğurla əlavə edildi');
+      loadProducts();
+    } catch (error) {
+      console.error('Error adding product:', error);
+      Alert.alert('Xəta', 'Məhsul əlavə edilərkən xəta baş verdi');
     }
   };
 
@@ -128,21 +179,37 @@ export default function ProductsListScreen() {
             onPress: () => router.back()
           }}
           rightComponent={
-            <TouchableOpacity
-              style={[
-                styles.refreshButton,
-                { opacity: refreshing ? 0.5 : 1 }
-              ]}
-              onPress={handleRefresh}
-              disabled={refreshing}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name="refresh"
-                size={20}
-                color={colorScheme === 'dark' ? '#E0C1BC' : '#4A3531'}
-              />
-            </TouchableOpacity>
+            <View style={styles.topBarActions}>
+              <TouchableOpacity
+                style={[
+                  styles.addButton,
+                  { opacity: refreshing ? 0.5 : 1 }
+                ]}
+                onPress={() => setAddSheetVisible(true)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="add"
+                  size={22}
+                  color={colorScheme === 'dark' ? '#4CAF50' : '#4CAF50'}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.refreshButton,
+                  { opacity: refreshing ? 0.5 : 1 }
+                ]}
+                onPress={handleRefresh}
+                disabled={refreshing}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="refresh"
+                  size={20}
+                  color={colorScheme === 'dark' ? '#E0C1BC' : '#4A3531'}
+                />
+              </TouchableOpacity>
+            </View>
           }
         />
 
@@ -202,67 +269,125 @@ export default function ProductsListScreen() {
                 ]}
               >
                 <ThemedView style={[styles.card, colorScheme === 'dark' && styles.darkCard]}>
+                  {/* Card Gradient Accent */}
+                  <ThemedView style={[styles.cardAccent, colorScheme === 'dark' && styles.darkCardAccent]} />
+
                   <ThemedView style={styles.cardInner}>
-                    <ThemedView style={styles.cardHeader}>
-                      <ThemedView style={styles.iconContainer}>
-                        <MaterialCommunityIcons
-                          name="cookie"
-                          size={28}
-                          color={colorScheme === 'dark' ? '#E0C1BC' : '#4A3531'}
-                        />
+                    {/* Main Product Section */}
+                    <ThemedView style={styles.mainSection}>
+                      {/* Product Icon with Badge */}
+                      <ThemedView style={styles.iconWrapper}>
+                        <ThemedView style={[styles.iconBadge, colorScheme === 'dark' && styles.darkIconBadge]}>
+                          <MaterialCommunityIcons
+                            name="cookie"
+                            size={24}
+                            color={colorScheme === 'dark' ? '#E0C1BC' : '#4A3531'}
+                          />
+                        </ThemedView>
+                        {product.variations.length > 0 && (
+                          <ThemedView style={[styles.variantBadge, colorScheme === 'dark' && styles.darkVariantBadge]}>
+                            <ThemedText style={styles.variantBadgeText}>{product.variations.length}</ThemedText>
+                          </ThemedView>
+                        )}
                       </ThemedView>
+
+                      {/* Product Info */}
                       <ThemedView style={styles.productInfo}>
                         <ThemedText style={[styles.productName, colorScheme === 'dark' && styles.darkProductName]}>
                           {product.correct}
                         </ThemedText>
-                        <ThemedText style={[styles.variationCount, colorScheme === 'dark' && styles.darkVariationCount]}>
-                          {product.variations.length} variant
-                          {product.units && product.units.type && (
-                            <ThemedText style={[styles.unitInfo, colorScheme === 'dark' && styles.darkUnitInfo]}>
-                              {' • '}{product.units.type === 'weight' ? 'Çəki' : product.units.type === 'box' ? 'Qutu' : 'Ədəd'}
-                              {product.units.variations && product.units.variations.length > 0 && ` (${product.units.variations.length})`}
-                            </ThemedText>
+
+                        {/* Meta Info Row */}
+                        <ThemedView style={styles.metaInfoRow}>
+                          {product.price && (
+                            <ThemedView style={[styles.priceTag, colorScheme === 'dark' && styles.darkPriceTag]}>
+                              <Ionicons name="pricetag" size={12} color="#4CAF50" style={styles.priceTagIcon} />
+                              <ThemedText style={[styles.priceText, colorScheme === 'dark' && styles.darkPriceText]}>
+                                {product.price.toFixed(2)} AZN
+                              </ThemedText>
+                            </ThemedView>
                           )}
-                        </ThemedText>
+                          {product.units && product.units.type && (
+                            <ThemedView style={[styles.unitTag, colorScheme === 'dark' && styles.darkUnitTag]}>
+                              <Ionicons
+                                name={product.units.type === 'weight' ? 'scale' : product.units.type === 'box' ? 'cube' : 'apps'}
+                                size={12}
+                                color={colorScheme === 'dark' ? '#E0C1BC' : '#4A3531'}
+                                style={styles.unitTagIcon}
+                              />
+                              <ThemedText style={[styles.unitText, colorScheme === 'dark' && styles.darkUnitText]}>
+                                {product.units.type === 'weight' ? 'Çəki' : product.units.type === 'box' ? 'Qutu' : 'Ədəd'}
+                              </ThemedText>
+                              {product.units.variations && product.units.variations.length > 0 && (
+                                <ThemedText style={[styles.unitCount, colorScheme === 'dark' && styles.darkUnitCount]}>
+                                  ({product.units.variations.length})
+                                </ThemedText>
+                              )}
+                            </ThemedView>
+                          )}
+                        </ThemedView>
                       </ThemedView>
-                      <TouchableOpacity
-                        style={[styles.editButton, colorScheme === 'dark' && styles.darkEditButton]}
-                        onPress={() => handleEditProduct(product)}
-                      >
-                        <AntDesign
-                          name="edit"
-                          size={16}
-                          color={colorScheme === 'dark' ? '#E0C1BC' : '#4A3531'}
-                        />
-                      </TouchableOpacity>
+
+                      {/* Action Buttons */}
+                      <ThemedView style={styles.actionButtons}>
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.editButton, colorScheme === 'dark' && styles.darkEditButton]}
+                          onPress={() => handleEditProduct(product)}
+                          activeOpacity={0.7}
+                        >
+                          <AntDesign
+                            name="edit"
+                            size={18}
+                            color={colorScheme === 'dark' ? '#E0C1BC' : '#4A3531'}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={[styles.actionButton, styles.deleteButton, colorScheme === 'dark' && styles.darkDeleteButton]}
+                          onPress={() => handleDeleteProduct(product)}
+                          activeOpacity={0.7}
+                        >
+                          <Ionicons
+                            name="trash-outline"
+                            size={18}
+                            color={colorScheme === 'dark' ? '#FF6B6B' : '#FF4444'}
+                          />
+                        </TouchableOpacity>
+                      </ThemedView>
                     </ThemedView>
 
-                    <ThemedView style={styles.variationsSection}>
-                      <ThemedView style={styles.variationsHeader}>
-                        <AntDesign
-                          name="exclamation-circle"
-                          size={16}
-                          color={colorScheme === 'dark' ? '#E0C1BC' : '#FF6B6B'}
-                          style={styles.variationsIcon}
-                        />
-                        <ThemedText style={[styles.variationsTitle, colorScheme === 'dark' && styles.darkVariationsTitle]}>
-                          Yanlış Yazımlar ({product.variations.length})
-                        </ThemedText>
-                      </ThemedView>
-                      <ThemedView style={styles.variationsContainer}>
-                        {product.variations.map((variation: string, vIndex: number) => (
-                          <ThemedView
-                            key={vIndex}
-                            style={[styles.variationChip, colorScheme === 'dark' && styles.darkVariationChip]}
-                          >
-                            <ThemedView style={styles.variationDot} />
-                            <ThemedText style={[styles.variationText, colorScheme === 'dark' && styles.darkVariationText]}>
-                              {variation}
-                            </ThemedText>
+                    {/* Variations Section */}
+                    {product.variations.length > 0 && (
+                      <ThemedView style={[styles.variationsSection, colorScheme === 'dark' && styles.darkVariationsSection]}>
+                        <ThemedView style={styles.variationsHeader}>
+                          <ThemedView style={[styles.variationsIconWrapper, colorScheme === 'dark' && styles.darkVariationsIconWrapper]}>
+                            <AntDesign
+                              name="exclamation-circle"
+                              size={14}
+                              color={colorScheme === 'dark' ? '#E0C1BC' : '#FF6B6B'}
+                            />
                           </ThemedView>
-                        ))}
+                          <ThemedText style={[styles.variationsTitle, colorScheme === 'dark' && styles.darkVariationsTitle]}>
+                            Yanlış Yazımlar
+                          </ThemedText>
+                          <ThemedView style={[styles.variationsCountBadge, colorScheme === 'dark' && styles.darkVariationsCountBadge]}>
+                            <ThemedText style={styles.variationsCountText}>{product.variations.length}</ThemedText>
+                          </ThemedView>
+                        </ThemedView>
+                        <ThemedView style={styles.variationsContainer}>
+                          {product.variations.map((variation: string, vIndex: number) => (
+                            <ThemedView
+                              key={vIndex}
+                              style={[styles.variationChip, colorScheme === 'dark' && styles.darkVariationChip]}
+                            >
+                              <ThemedView style={[styles.variationDot, colorScheme === 'dark' && styles.darkVariationDot]} />
+                              <ThemedText style={[styles.variationText, colorScheme === 'dark' && styles.darkVariationText]}>
+                                {variation}
+                              </ThemedText>
+                            </ThemedView>
+                          ))}
+                        </ThemedView>
                       </ThemedView>
-                    </ThemedView>
+                    )}
                   </ThemedView>
                 </ThemedView>
               </Animated.View>
@@ -281,236 +406,13 @@ export default function ProductsListScreen() {
             onSave={handleSaveProduct}
           />
         )}
+
+        <AddProductSheet
+          visible={addSheetVisible}
+          onClose={() => setAddSheetVisible(false)}
+          onSave={handleAddProduct}
+        />
       </ThemedView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-  },
-  topBar: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  searchWrapper: {
-    paddingHorizontal: 20,
-    marginBottom: 8,
-    paddingVertical: 10,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    height: 56,
-    backgroundColor: appColorScheme.backgroundLight,
-    borderRadius: 28,
-    borderWidth: 1,
-    borderColor: appColorScheme.borderRed,
-  },
-  searchIcon: {
-    marginRight: 12,
-  },
-  searchInput: {
-    flex: 1,
-    fontSize: 16,
-    color: appColorScheme.textLight,
-    height: '100%',
-  },
-  clearButton: {
-    padding: 4,
-    marginLeft: 8,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 120,
-  },
-  cardWrapper: {
-    marginBottom: 16,
-  },
-  card: {
-    borderRadius: 24,
-    backgroundColor: appColorScheme.cardLight,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 20,
-    elevation: 8,
-    borderWidth: 1,
-    borderColor: appColorScheme.borderRed,
-  },
-  cardInner: {
-    padding: 24,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  iconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: appColorScheme.lightRed,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 16,
-  },
-  productInfo: {
-    flex: 1,
-  },
-  productName: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: appColorScheme.textLight,
-    marginBottom: 4,
-  },
-  variationCount: {
-    fontSize: 14,
-    color: appColorScheme.textSubtleLight,
-    fontWeight: '500',
-  },
-  editButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: appColorScheme.lightRed,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  variationsSection: {
-    marginTop: 16,
-  },
-  variationsHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  variationsIcon: {
-    marginRight: 8,
-  },
-  variationsTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: appColorScheme.textSubtleLight,
-  },
-  variationsContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginTop: 16,
-  },
-  variationChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(74, 53, 49, 0.06)',
-    borderWidth: 1,
-    borderColor: 'rgba(74, 53, 49, 0.1)',
-  },
-  variationDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#4A3531',
-    marginRight: 8,
-  },
-  variationText: {
-    fontSize: 14,
-    color: '#4A3531',
-    fontWeight: '500',
-  },
-  darkContainer: {
-    backgroundColor: '#121212',
-  },
-  darkSearchContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  darkSearchInput: {
-    color: '#fff',
-  },
-  darkCard: {
-    backgroundColor: '#1E1E1E',
-    shadowColor: '#000',
-    shadowOpacity: 0.6,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 12,
-    elevation: 10,
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-  },
-  darkProductName: {
-    color: '#fff',
-  },
-  darkVariationCount: {
-    color: 'rgba(255, 255, 255, 0.6)',
-  },
-  unitInfo: {
-    fontSize: 12,
-    color: '#888',
-    fontWeight: '400',
-  },
-  darkUnitInfo: {
-    color: 'rgba(255, 255, 255, 0.5)',
-  },
-  darkEditButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-  },
-  darkExpandSection: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-    borderColor: 'rgba(255, 255, 255, 0.12)',
-  },
-  darkVariationsTitle: {
-    color: 'rgba(255, 255, 255, 0.8)',
-  },
-  darkVariationChip: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    borderColor: 'rgba(255, 255, 255, 0.15)',
-  },
-  darkVariationText: {
-    color: 'rgba(255, 255, 255, 0.9)',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-    gap: 16,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 60,
-    gap: 16,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  refreshButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: 'rgba(74, 53, 49, 0.08)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});

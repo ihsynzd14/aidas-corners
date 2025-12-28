@@ -67,6 +67,10 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
     try {
       setError(null);
       const data = await fetchOrdersByDate(selectedDate);
+      console.log('=== OrdersSummaryContent - ordersData ===');
+      console.log('Date:', selectedDate);
+      console.log('ordersData keys (imported branch IDs):', Object.keys(data || {}));
+      console.log('Full ordersData:', JSON.stringify(data, null, 2));
       setOrdersData(data);
       setToastMessage('Sifarişlər uğurla yükləndi');
       setShowSuccessToast(true);

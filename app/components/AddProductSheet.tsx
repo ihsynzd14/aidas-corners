@@ -21,17 +21,15 @@ import * as Haptics from 'expo-haptics';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-interface EditProductSheetProps {
+interface AddProductSheetProps {
     visible: boolean;
     onClose: () => void;
-    product: ProductDefinition | null;
-    onSave: (updatedProduct: ProductDefinition) => Promise<void>;
+    onSave: (newProduct: Omit<ProductDefinition, 'id'>) => Promise<void>;
 }
 
-export const EditProductSheet: React.FC<EditProductSheetProps> = ({
+export const AddProductSheet: React.FC<AddProductSheetProps> = ({
     visible,
     onClose,
-    product,
     onSave,
 }) => {
     const colorScheme = useColorScheme();
@@ -55,21 +53,15 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
     const scaleAnim = useRef(new Animated.Value(0.9)).current;
 
     useEffect(() => {
-        if (visible && product) {
-            setProductName(product.correct);
-            setVariations([...product.variations]);
-
-            // Load price if exists
-            setPrice(product.price ? String(product.price) : '');
-
-            // Load unit data if exists
-            if (product.units) {
-                setUnitType(product.units.type || null);
-                setUnitVariations([...(product.units.variations || [])]);
-            } else {
-                setUnitType(null);
-                setUnitVariations([]);
-            }
+        if (visible) {
+            // Reset form
+            setProductName('');
+            setVariations([]);
+            setNewVariation('');
+            setPrice('');
+            setUnitType(null);
+            setUnitVariations([]);
+            setNewUnitVariation('');
 
             // Reset animations
             slideAnim.setValue(SCREEN_HEIGHT);
@@ -97,7 +89,7 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
                 }),
             ]).start();
         }
-    }, [visible, product]);
+    }, [visible]);
 
     const handleClose = () => {
         Animated.parallel([
@@ -117,36 +109,38 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
     };
 
     const handleSave = async () => {
-        if (!productName.trim()) return;
+        if (!productName.trim()) {
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+            return;
+        }
 
         Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setSaving(true);
         try {
-            const updatedData: any = {
-                ...product,
+            const newProduct: any = {
                 correct: productName.trim(),
                 variations: variations.filter(v => v.trim().length > 0),
+                isActive: true,
             };
 
             // Include price if provided
             if (price.trim()) {
                 const priceValue = parseFloat(price.replace(',', '.'));
                 if (!isNaN(priceValue) && priceValue > 0) {
-                    updatedData.price = priceValue;
+                    newProduct.price = priceValue;
                 }
             }
 
             // Only include units if unitType is not null and there are variations
             if (unitType && unitVariations.filter(v => v.trim().length > 0).length > 0) {
-                updatedData.units = {
+                newProduct.units = {
                     type: unitType,
                     variations: unitVariations.filter(v => v.trim().length > 0),
                 };
             }
-            // Don't include units field at all if it should be null/undefined
 
-            console.log('EditProductSheet saving data:', updatedData);
-            await onSave(updatedData);
+            console.log('AddProductSheet saving data:', newProduct);
+            await onSave(newProduct);
             handleClose();
         } catch (error) {
             Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
@@ -216,7 +210,7 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
         })
     ).current;
 
-    if (!visible || !product) return null;
+    if (!visible) return null;
 
     return (
         <Modal
@@ -264,7 +258,7 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
 
                         {/* Gradient Border Top */}
                         <LinearGradient
-                            colors={isDark ? ['#E0C1BC', 'transparent'] : ['#4A3531', 'transparent']}
+                            colors={isDark ? ['#4CAF50', 'transparent'] : ['#4CAF50', 'transparent']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 0 }}
                             style={styles.gradientBorder}
@@ -280,20 +274,20 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
                             <View style={styles.header}>
                                 <View>
                                     <LinearGradient
-                                        colors={isDark ? ['#E0C1BC', '#B0908A'] : ['#4A3531', '#2C1810']}
+                                        colors={isDark ? ['#4CAF50', '#388E3C'] : ['#4CAF50', '#388E3C']}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 1 }}
                                         style={styles.iconBadge}
                                     >
-                                        <MaterialCommunityIcons name="pencil-outline" size={24} color={isDark ? '#2C1810' : '#FFF'} />
+                                        <MaterialCommunityIcons name="plus" size={24} color="#FFF" />
                                     </LinearGradient>
                                 </View>
                                 <View style={styles.headerTextContainer}>
                                     <Animated.Text style={[styles.title, isDark && styles.darkTitle]}>
-                                        Məhsulu Redaktə Et
+                                        Yeni Məhsul Əlavə Et
                                     </Animated.Text>
                                     <Animated.Text style={[styles.subtitle, isDark && styles.darkSubtitle]}>
-                                        Düzəlişləri və variantları idarə edin
+                                        Məhsul məlumatlarını daxil edin
                                     </Animated.Text>
                                 </View>
                                 <TouchableOpacity
@@ -321,7 +315,7 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
                                             placeholderTextColor={isDark ? '#666' : '#999'}
                                         />
                                         {productName.length > 0 && (
-                                            <Feather name="check-circle" size={18} color={isDark ? '#E0C1BC' : '#4A3531'} />
+                                            <Feather name="check-circle" size={18} color={isDark ? '#4CAF50' : '#4CAF50'} />
                                         )}
                                     </View>
                                 </View>
@@ -377,7 +371,7 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
                                             onPress={addVariation}
                                             disabled={!newVariation.trim()}
                                         >
-                                            <Ionicons name="add" size={20} color={isDark ? '#2C1810' : '#FFF'} />
+                                            <Ionicons name="add" size={20} color="#FFF" />
                                         </TouchableOpacity>
                                     </View>
 
@@ -423,7 +417,7 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
                                                 <MaterialCommunityIcons
                                                     name={type === 'weight' ? 'scale' : type === 'box' ? 'package-variant' : type === 'piece' ? 'puzzle-outline' : 'close-circle-outline'}
                                                     size={20}
-                                                    color={unitType === type ? (isDark ? '#2C1810' : '#FFF') : (isDark ? '#999' : '#666')}
+                                                    color={unitType === type ? '#FFF' : (isDark ? '#999' : '#666')}
                                                 />
                                                 <Animated.Text style={[
                                                     styles.unitTypeText,
@@ -470,7 +464,7 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
                                                     onPress={addUnitVariation}
                                                     disabled={!newUnitVariation.trim()}
                                                 >
-                                                    <Ionicons name="add" size={20} color={isDark ? '#2C1810' : '#FFF'} />
+                                                    <Ionicons name="add" size={20} color="#FFF" />
                                                 </TouchableOpacity>
                                             </View>
 
@@ -514,20 +508,20 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
                                     disabled={saving}
                                 >
                                     <LinearGradient
-                                        colors={isDark ? ['#E0C1BC', '#B0908A'] : ['#4A3531', '#2C1810']}
+                                        colors={['#4CAF50', '#388E3C']}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 0 }}
                                         style={styles.saveGradient}
                                     >
                                         {saving ? (
                                             <Animated.View style={styles.loadingSpinner}>
-                                                <Feather name="loader" size={20} color={isDark ? '#2C1810' : '#FFF'} />
+                                                <Feather name="loader" size={20} color="#FFF" />
                                             </Animated.View>
                                         ) : (
                                             <>
-                                                <Feather name="save" size={18} color={isDark ? '#2C1810' : '#FFF'} style={{ marginRight: 8 }} />
+                                                <Feather name="plus" size={18} color="#FFF" style={{ marginRight: 8 }} />
                                                 <Animated.Text style={[styles.saveButtonText, isDark && styles.darkSaveButtonText]}>
-                                                    Yadda Saxla
+                                                    Əlavə Et
                                                 </Animated.Text>
                                             </>
                                         )}
@@ -726,12 +720,12 @@ const styles = StyleSheet.create({
         width: 44,
         height: 44,
         borderRadius: 12,
-        backgroundColor: '#4A3531',
+        backgroundColor: '#4CAF50',
         alignItems: 'center',
         justifyContent: 'center',
     },
     darkAddButton: {
-        backgroundColor: '#E0C1BC',
+        backgroundColor: '#4CAF50',
     },
     disabledButton: {
         opacity: 0.5,
@@ -744,12 +738,12 @@ const styles = StyleSheet.create({
     variationChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: 'rgba(74, 53, 49, 0.08)',
+        backgroundColor: 'rgba(76, 175, 80, 0.1)',
         paddingVertical: 8,
         paddingHorizontal: 12,
         borderRadius: 12,
         borderWidth: 1,
-        borderColor: 'rgba(74, 53, 49, 0.1)',
+        borderColor: 'rgba(76, 175, 80, 0.2)',
     },
     darkVariationChip: {
         backgroundColor: 'rgba(255, 255, 255, 0.08)',
@@ -804,7 +798,7 @@ const styles = StyleSheet.create({
         flex: 2,
         height: 56,
         borderRadius: 16,
-        shadowColor: '#4A3531',
+        shadowColor: '#4CAF50',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
@@ -826,7 +820,7 @@ const styles = StyleSheet.create({
         color: '#FFF',
     },
     darkSaveButtonText: {
-        color: '#2C1810',
+        color: '#FFF',
     },
     loadingSpinner: {
         transform: [{ rotate: '45deg' }],
@@ -853,12 +847,12 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(255,255,255,0.1)',
     },
     activeUnitTypeButton: {
-        backgroundColor: '#4A3531',
-        borderColor: '#4A3531',
+        backgroundColor: '#4CAF50',
+        borderColor: '#4CAF50',
     },
     darkActiveUnitTypeButton: {
-        backgroundColor: '#E0C1BC',
-        borderColor: '#E0C1BC',
+        backgroundColor: '#4CAF50',
+        borderColor: '#4CAF50',
     },
     unitTypeText: {
         fontSize: 14,
@@ -872,6 +866,6 @@ const styles = StyleSheet.create({
         color: '#FFF',
     },
     darkActiveUnitTypeText: {
-        color: '#2C1810',
+        color: '#FFF',
     },
 });
