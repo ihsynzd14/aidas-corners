@@ -18,6 +18,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { getBranches, getProductCorrections } from '@/utils/firebase';
+import { exportToExcel } from '@/utils/excelExport';
 import { Branch } from '@/types/branch';
 
 interface BranchQuantity {
@@ -560,6 +561,20 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
     return `${day}/${month}/${year}`;
   };
 
+  const handleExportToExcel = async () => {
+    try {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      await exportToExcel(ordersData, productPrices, new Date());
+    } catch (error) {
+      Alert.alert(
+        "Xəta",
+        "Excel faylı yaradılarkən xəta baş verdi",
+        [{ text: "OK" }],
+        { cancelable: true }
+      );
+    }
+  };
+
   const handleShareByRegions = async () => {
     try {
       const templates = await getActiveTemplates();
@@ -848,6 +863,23 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
               >
                 <MaterialCommunityIcons
                   name="whatsapp"
+                  size={20}
+                  color="#FFFFFF"
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleExportToExcel}
+                style={{
+                  backgroundColor: '#1E7E34',
+                  padding: 8,
+                  borderRadius: 20,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                }}
+              >
+                <MaterialCommunityIcons
+                  name="microsoft-excel"
                   size={20}
                   color="#FFFFFF"
                 />

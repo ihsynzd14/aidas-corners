@@ -22,6 +22,7 @@ export default function ProductStatisticsScreen() {
     dailyStats,
     availableBranches,
     totalEarnings,
+    filteredEarnings,
     setStartDate,
     setEndDate,
     setShowStartPicker,
@@ -76,6 +77,7 @@ export default function ProductStatisticsScreen() {
         dailyStats={dailyStats}
         availableBranches={availableBranches}
         totalEarnings={totalEarnings}
+        filteredEarnings={filteredEarnings}
         dateRangeModalRef={dateRangeModalRef}
         productSelectionVisible={productSelectionVisible}
         setProductSelectionVisible={setProductSelectionVisible}

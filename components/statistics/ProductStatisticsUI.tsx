@@ -28,6 +28,7 @@ interface ProductStatisticsUIProps {
   dailyStats: DailyStats[];
   availableBranches: string[];
   totalEarnings: number;
+  filteredEarnings: number;
   dateRangeModalRef: React.RefObject<BottomSheetModal | null>;
   productSelectionVisible: boolean;
   setProductSelectionVisible: (visible: boolean) => void;
@@ -60,6 +61,7 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
   dailyStats,
   availableBranches,
   totalEarnings,
+  filteredEarnings,
   dateRangeModalRef,
   productSelectionVisible,
   setProductSelectionVisible,
@@ -93,14 +95,30 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
   const textColor = isDark ? colorScheme.textDark : colorScheme.textLight;
 
   const totalSold = React.useMemo(() => {
+    // When in daily mode with selection, show filtered quantity
+    if (viewMode === 'daily' && selectedProduct && selectedBranch) {
+      const product = productStats.find(p => p.productName === selectedProduct);
+      return product?.branchStats[selectedBranch]?.quantity || 0;
+    }
+    // Otherwise show total across all products
     return productStats.reduce((acc, curr) => acc + curr.totalQuantity, 0);
-  }, [productStats]);
+  }, [productStats, viewMode, selectedProduct, selectedBranch]);
 
   const topProduct = React.useMemo(() => {
+    // When in daily mode with selection, show the selected product name
+    if (viewMode === 'daily' && selectedProduct && selectedBranch) {
+      return selectedProduct;
+    }
+    // Otherwise show the top selling product
     if (productStats.length === 0) return '-';
     const sorted = [...productStats].sort((a, b) => b.totalQuantity - a.totalQuantity);
     return sorted[0].productName;
-  }, [productStats]);
+  }, [productStats, viewMode, selectedProduct, selectedBranch]);
+
+  // Use filtered earnings when in daily mode with selection, otherwise use total earnings
+  const displayEarnings = (viewMode === 'daily' && selectedProduct && selectedBranch)
+    ? filteredEarnings
+    : totalEarnings;
 
   return (
     <ThemedView style={[styles.container, { backgroundColor: bgColor }]}>
@@ -257,7 +275,7 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
                 { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
               ]}>Ümumi Qazanc</Text>
               <Text style={[styles.statValueModern, { color: textColor }]} numberOfLines={1}>
-                {totalEarnings.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₼
+                {displayEarnings.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₼
               </Text>
             </View>
           </View>

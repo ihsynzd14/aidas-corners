@@ -15,6 +15,7 @@ export interface ProductStats {
     };
   };
   totalQuantity: number;
+  price?: number; // Store price for earnings calculation
   dateRange: {
     startDate: string;
     endDate: string;
@@ -48,6 +49,7 @@ export const useProductStatistics = () => {
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [availableBranches, setAvailableBranches] = useState<string[]>([]);
   const [totalEarnings, setTotalEarnings] = useState<number>(0);
+  const [filteredEarnings, setFilteredEarnings] = useState<number>(0);
 
   const dateRangeCacheKey = useMemo(() => {
     return `stats_${formatDate(startDate)}_${formatDate(endDate)}`;
@@ -85,7 +87,7 @@ export const useProductStatistics = () => {
 
       const ordersData = await fetchOrdersForDateRange(startDate, endDate);
       const stats: { [key: string]: ProductStats } = {};
-      
+
       ordersData.forEach((branchesSnapshot: OrdersSnapshot, date: string) => {
         branchesSnapshot.forEach((branchDoc: BranchSnapshot) => {
           const branchData = branchDoc.data();
@@ -93,12 +95,14 @@ export const useProductStatistics = () => {
 
           Object.entries(branchData).forEach(([product, quantity]) => {
             const normalizedProduct = product.trim();
-            
+            const productPrice = priceMap.get(normalizedProduct.toLowerCase());
+
             if (!stats[normalizedProduct]) {
               stats[normalizedProduct] = {
                 productName: normalizedProduct,
                 branchStats: {},
                 totalQuantity: 0,
+                price: productPrice,
                 dateRange: {
                   startDate: formatDate(startDate),
                   endDate: formatDate(endDate)
@@ -419,6 +423,22 @@ export const useProductStatistics = () => {
     setEndDate(end);
   }, []);
 
+  // Calculate filtered earnings when product/branch is selected
+  useMemo(() => {
+    if (selectedProduct && selectedBranch) {
+      const product = productStats.find(p => p.productName === selectedProduct);
+      if (product) {
+        const branchQuantity = product.branchStats[selectedBranch]?.quantity || 0;
+        const earnings = product.price ? branchQuantity * product.price : 0;
+        setFilteredEarnings(earnings);
+      } else {
+        setFilteredEarnings(0);
+      }
+    } else {
+      setFilteredEarnings(0);
+    }
+  }, [selectedProduct, selectedBranch, productStats]);
+
   return {
     loading,
     productStats,
@@ -432,6 +452,7 @@ export const useProductStatistics = () => {
     dailyStats,
     availableBranches,
     totalEarnings,
+    filteredEarnings,
     setStartDate,
     setEndDate,
     setShowStartPicker,

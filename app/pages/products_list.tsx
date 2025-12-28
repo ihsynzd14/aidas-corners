@@ -1,5 +1,5 @@
 import { ScrollView, SafeAreaView, TouchableOpacity, TextInput, useColorScheme, Alert, Animated, Dimensions, View } from 'react-native';
-import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect } from 'react';
+import { useEffect } from 'react';
 import { TopBar } from '../../components/TopBar';
 import { ThemedView } from '../../components/ThemedView';
 import { ThemedText } from '../../components/ThemedText';

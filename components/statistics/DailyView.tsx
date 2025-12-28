@@ -131,7 +131,14 @@ export const DailyView: React.FC<DailyViewProps> = ({
               ]}>Miqdar</ThemedText>
             </View>
             
-            {dailyStats.map((stat, index) => {
+            {[...dailyStats].sort((a, b) => {
+              // Parse dates in DD.MM.YYYY format for sorting (oldest first)
+              const [aDay, aMonth, aYear] = a.date.split('.').map(Number);
+              const [bDay, bMonth, bYear] = b.date.split('.').map(Number);
+              const dateA = new Date(aYear || 0, (aMonth || 1) - 1, aDay || 1);
+              const dateB = new Date(bYear || 0, (bMonth || 1) - 1, bDay || 1);
+              return dateA.getTime() - dateB.getTime();
+            }).map((stat, index) => {
               const formattedQuantity = formatQuantity(stat.quantity);
               if (!formattedQuantity) return null;
 
