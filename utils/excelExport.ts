@@ -31,7 +31,7 @@ export async function exportToExcel(
     // Create a sheet for each branch
     branchNames.forEach(branchName => {
       const branchProducts = ordersData[branchName];
-      const tableData: (string | number)[][] = [];
+      const tableData: any[][] = [];
 
       // 1. Title Row: "AİDAS CORNERS"
       tableData.push(['AİDAS CORNERS', '', '', '', '']);
@@ -54,22 +54,24 @@ export async function exportToExcel(
 
       // 6. Product Rows
       let orderNumber = 1;
-      let grandTotal = 0;
 
       Object.entries(branchProducts).forEach(([productName, quantity]) => {
         const qty = parseFloat(quantity as string);
         const price = productPrices.get(productName.trim().toLowerCase()) || 0;
-        const totalPrice = qty * price;
+
+        // Current Excel Row (1-based)
+        // tableData currently has title, spacer, info, spacer, header (5 rows)
+        // So first product is at index 5 => Row 6
+        const currentRow = tableData.length + 1;
 
         tableData.push([
           orderNumber,
           productName,
           qty,
-          price.toFixed(2).replace('.', ','),
-          totalPrice.toFixed(2).replace('.', ',')
+          price,
+          { f: `C${currentRow}*D${currentRow}` } // Formula: Quantity * Price
         ]);
 
-        grandTotal += totalPrice;
         orderNumber++;
       });
 
@@ -80,7 +82,17 @@ export async function exportToExcel(
       tableData.push(['', '', '', '', '']);
 
       // 8. Total Row "CƏMİ"
-      tableData.push(['CƏMİ', '', '', '', grandTotal.toFixed(1).replace('.', ',')]);
+      // Data starts at Row 6
+      const firstDataRow = 6;
+      const lastDataRow = lastProductRowIndex + 1;
+
+      tableData.push([
+        'CƏMİ',
+        '',
+        '',
+        '',
+        { f: `SUM(E${firstDataRow}:E${lastDataRow})` }
+      ]);
       const totalRowIndex = tableData.length - 1;
 
       // 9. Spacer Rows
@@ -123,53 +135,60 @@ export async function exportToExcel(
 
       const styles = {
         title: {
-          font: { name: "Arial", sz: 14, bold: true, color: { rgb: "000000" } },
+          font: { name: "Times New Roman", sz: 14, bold: true, color: { rgb: "000000" } },
           alignment: { horizontal: "center", vertical: "center" },
           fill: transparent
         },
         infoLabel: {
-          font: { name: "Arial", sz: 12, bold: true, color: { rgb: "000000" } }, // 'Tarix'
+          font: { name: "Times New Roman", sz: 12, bold: true, color: { rgb: "000000" } }, // 'Tarix'
           alignment: { horizontal: "left", vertical: "center" },
           fill: transparent
         },
         infoValue: {
-          font: { name: "Arial", sz: 11, color: { rgb: "000000" } },
+          font: { name: "Times New Roman", sz: 11, color: { rgb: "000000" } },
           alignment: { horizontal: "left", vertical: "center" },
           fill: transparent
         },
         infoRight: {
-          font: { name: "Arial", sz: 12, bold: false, color: { rgb: "000000" } },
+          font: { name: "Times New Roman", sz: 12, bold: false, color: { rgb: "000000" } },
           alignment: { horizontal: "right", vertical: "center" },
           fill: transparent
         },
         tableHeader: {
-          font: { name: "Arial", sz: 11, bold: true, color: { rgb: "000000" } },
+          font: { name: "Times New Roman", sz: 11, bold: true, color: { rgb: "000000" } },
           alignment: { horizontal: "center", vertical: "center" },
           border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
           fill: { fgColor: { rgb: "FFFFFF" } } // White background as requested ("Black and White")
         },
         cell: {
-          font: { name: "Arial", sz: 11, color: { rgb: "000000" } },
+          font: { name: "Times New Roman", sz: 11, color: { rgb: "000000" } },
           border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
           alignment: { vertical: "center", horizontal: "left" }
         },
         cellCenter: {
-          font: { name: "Arial", sz: 11, color: { rgb: "000000" } },
+          font: { name: "Times New Roman", sz: 11, color: { rgb: "000000" } },
           border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
           alignment: { vertical: "center", horizontal: "center" }
         },
+        currencyCell: {
+          font: { name: "Times New Roman", sz: 11, color: { rgb: "000000" } },
+          border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
+          alignment: { vertical: "center", horizontal: "center" },
+          numFmt: "#,##0.00"
+        },
         totalRowLabel: {
-          font: { name: "Arial", sz: 12, bold: true, color: { rgb: "000000" } }, // Uppercase CƏMİ
+          font: { name: "Times New Roman", sz: 12, bold: true, color: { rgb: "000000" } }, // Uppercase CƏMİ
           border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
           alignment: { horizontal: "left", vertical: "center", indent: 1 }
         },
         totalRowValue: {
-          font: { name: "Arial", sz: 12, bold: true, color: { rgb: "000000" } },
+          font: { name: "Times New Roman", sz: 12, bold: true, color: { rgb: "000000" } },
           border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
-          alignment: { horizontal: "center", vertical: "center" }
+          alignment: { horizontal: "center", vertical: "center" },
+          numFmt: "#,##0.00"
         },
         footerText: {
-          font: { name: "Arial", sz: 11, bold: true, color: { rgb: "000000" } },
+          font: { name: "Times New Roman", sz: 11, bold: true, color: { rgb: "000000" } },
           fill: transparent
         }
       };
@@ -199,9 +218,15 @@ export async function exportToExcel(
           // We strictly want to border only the product rows, NOT the spacer rows.
           else if (R > 4 && R <= lastProductRowIndex) {
             // Cols: 0(N), 1(Adı), 2(Sayı), 3(Qiyməti), 4(Cəmi)
-            // Center N, Sayı, Qiyməti, Cəmi. Left Adı.
-            if (C === 1) worksheet[cell_ref].s = styles.cell;
-            else worksheet[cell_ref].s = styles.cellCenter;
+            if (C === 1) {
+              worksheet[cell_ref].s = styles.cell;
+            } else if (C === 3 || C === 4) {
+              // Price (3) and Total (4) get currency formatting
+              worksheet[cell_ref].s = styles.currencyCell;
+            } else {
+              // N (0) and Quantity (2) get standard center alignment
+              worksheet[cell_ref].s = styles.cellCenter;
+            }
           }
           // 5. Total Row
           else if (R === totalRowIndex) {

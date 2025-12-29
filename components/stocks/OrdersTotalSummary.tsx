@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { TouchableOpacity, FlatList, View, Alert, Text, Dimensions } from 'react-native';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { TouchableOpacity, FlatList, View, Alert, Text, Dimensions, StyleSheet, Platform } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -20,6 +20,205 @@ import * as Haptics from 'expo-haptics';
 import { getBranches, getProductCorrections } from '@/utils/firebase';
 import { exportToExcel } from '@/utils/excelExport';
 import { Branch } from '@/types/branch';
+
+// ============================================================================
+// DESIGN SYSTEM CONSTANTS
+// ============================================================================
+const DESIGN_TOKENS = {
+  spacing: {
+    xs: 3,
+    sm: 6,
+    md: 10,
+    lg: 14,
+    xl: 16,
+    xxl: 20,
+  },
+  typography: {
+    xs: 10,
+    sm: 11,
+    md: 12,
+    lg: 13,
+    xl: 14,
+    xxl: 15,
+    display: 18,
+  },
+  borderRadius: {
+    sm: 6,
+    md: 8,
+    lg: 10,
+    xl: 12,
+    xxl: 16,
+  },
+  opacity: {
+    subtle: 0.4,
+    medium: 0.6,
+    strong: 0.8,
+    full: 1,
+  },
+} as const;
+
+// ============================================================================
+// RESPONSIVE BREAKPOINTS
+// ============================================================================
+const BREAKPOINTS = {
+  small: 320,
+  medium: 375,
+  large: 414,
+  tablet: 768,
+} as const;
+
+// ============================================================================
+// ACCESSIBILITY LABELS
+// ============================================================================
+const ACCESSIBILITY_LABELS = {
+  shareWhatsApp: 'WhatsApp ilə paylaş',
+  shareByRegions: 'Bölgələrə görə WhatsApp ilə paylaş',
+  exportExcel: 'Excel faylı kimi ixrac et',
+  missingBranches: 'Məhsul göndərməyən şöbələri göstər',
+  expandMissing: 'Məhsul göndərməyən şöbələri genişləndir',
+  collapseMissing: 'Məhsul göndərməyən şöbələri yığışdır',
+  filterToggle: 'Sıralama seçimlərini göstər',
+} as const;
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+const getResponsiveValue = (
+  value: number,
+  screenWidth: number
+): number => {
+  const ratio = screenWidth / 375; // Base width (iPhone 12)
+  return Math.max(value * 0.75, Math.min(value * 1.2, value * ratio));
+};
+
+const formatLargeNumber = (num: number, screenWidth: number): string => {
+  const formatted = num.toLocaleString('az-AZ', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+
+  // Truncate for very small screens if needed
+  if (screenWidth < 340 && formatted.length > 12) {
+    return formatted.substring(0, 10) + '...';
+  }
+
+  return formatted;
+};
+
+// ============================================================================
+// STYLES
+// ============================================================================
+const createStyles = (isDark: boolean, screenWidth: number) => {
+  const spacing = DESIGN_TOKENS.spacing;
+  const typography = DESIGN_TOKENS.typography;
+  const borderRadius = DESIGN_TOKENS.borderRadius;
+
+  const responsivePadding = getResponsiveValue(spacing.xl, screenWidth);
+  const responsiveGap = getResponsiveValue(spacing.md, screenWidth);
+  const responsiveTitleSize = getResponsiveValue(typography.display, screenWidth);
+  const responsiveStatSize = getResponsiveValue(typography.md, screenWidth);
+
+  return StyleSheet.create({
+    headerContainer: {
+      backgroundColor: isDark ? PastryColors.chocolate : PastryColors.vanilla,
+      borderBottomWidth: 1,
+      borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
+      paddingBottom: Platform.select({ ios: 2, android: 1 }),
+    },
+    headerInner: {
+      padding: responsivePadding,
+      flexDirection: 'column',
+      gap: responsiveGap,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      justifyContent: 'space-between',
+      width: '100%',
+    },
+    leftSection: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: responsiveGap,
+      backgroundColor: 'transparent',
+      flex: 1,
+      marginRight: spacing.sm,
+    },
+    iconContainer: {
+      backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74,53,49,0.07)',
+      padding: spacing.xs,
+      borderRadius: borderRadius.sm,
+      flexShrink: 0,
+    },
+    titleContainer: {
+      backgroundColor: 'transparent',
+      gap: spacing.xs,
+      flex: 1,
+      minWidth: 0, // Important for text truncation
+    },
+    titleText: {
+      fontSize: responsiveTitleSize,
+      fontWeight: '600' as const,
+      color: isDark ? PastryColors.vanilla : PastryColors.chocolate,
+    },
+    statsContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexWrap: 'wrap' as const,
+      gap: spacing.sm,
+    },
+    statItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+    },
+    statText: {
+      fontSize: responsiveStatSize,
+      fontWeight: '600' as const,
+      color: isDark ? `rgba(255,255,255,${DESIGN_TOKENS.opacity.medium})` : `rgba(74,53,49,${DESIGN_TOKENS.opacity.medium})`,
+    },
+    statTextEarnings: {
+      fontSize: getResponsiveValue(typography.lg, screenWidth),
+      fontWeight: '700' as const,
+    },
+    missingBranchesIndicator: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: spacing.xs,
+      borderRadius: borderRadius.sm,
+    },
+    missingBranchesText: {
+      fontSize: getResponsiveValue(typography.xs, screenWidth),
+      fontWeight: '600' as const,
+      color: '#FF6B6B',
+    },
+    actionButtonsContainer: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      flexShrink: 0,
+    },
+    actionButton: {
+      padding: spacing.xs,
+      borderRadius: borderRadius.xl,
+      flexDirection: 'row' as const,
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: 32,
+      minHeight: 32,
+    },
+    actionButtonWhatsApp: {
+      backgroundColor: '#25D366',
+    },
+    actionButtonRegions: {
+      backgroundColor: '#FFD700',
+    },
+    actionButtonExcel: {
+      backgroundColor: '#1E7E34',
+    },
+  });
+};
 
 interface BranchQuantity {
   branchName: string;
@@ -46,6 +245,352 @@ interface ProductItemProps {
 const normalizeProductName = (name: string): string => {
   return name.trim().toLowerCase();
 };
+
+// ============================================================================
+// RESPONSIVE HEADER COMPONENT
+// ============================================================================
+interface HeaderProps {
+  totalProducts: number;
+  totalQuantity: number;
+  totalBranches: number;
+  totalEarnings: number;
+  missingBranches: Branch[];
+  missingBranchesExpanded: boolean;
+  onToggleMissingBranches: () => void;
+  onShareWhatsApp: () => void;
+  onShareByRegions: () => void;
+  onExportExcel: () => void;
+  isDark: boolean;
+  screenWidth: number;
+}
+
+const HeaderSection = React.memo<HeaderProps>(({
+  totalProducts,
+  totalQuantity,
+  totalBranches,
+  totalEarnings,
+  missingBranches,
+  missingBranchesExpanded,
+  onToggleMissingBranches,
+  onShareWhatsApp,
+  onShareByRegions,
+  onExportExcel,
+  isDark,
+  screenWidth,
+}) => {
+  const styles = useMemo(() => createStyles(isDark, screenWidth), [isDark, screenWidth]);
+  const [dimensions, setDimensions] = useState({ width: screenWidth, height: 0 });
+
+  // Handle screen resize
+  const handleLayout = useCallback((event: any) => {
+    const { width, height } = event.nativeEvent.layout;
+    setDimensions({ width, height });
+  }, []);
+
+  // Determine if we should show compact layout
+  const isCompact = dimensions.width < BREAKPOINTS.small;
+  const showEarningsInline = dimensions.width > BREAKPOINTS.medium;
+
+  return (
+    <ThemedView style={styles.headerContainer} onLayout={handleLayout}>
+      <View style={styles.headerInner}>
+        <View style={styles.headerRow}>
+          {/* Left Section: Title and Stats */}
+          <View style={styles.leftSection}>
+            <View style={styles.iconContainer}>
+              <MaterialCommunityIcons
+                name="chart-box"
+                size={getResponsiveValue(20, screenWidth)}
+                color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
+              />
+            </View>
+            <View style={styles.titleContainer}>
+              <ThemedText
+                numberOfLines={1}
+                style={styles.titleText}
+              >
+                Ümumi Cəm
+              </ThemedText>
+
+              {/* Stats Row */}
+              <View style={styles.statsContainer}>
+                {/* Products Count */}
+                <View style={styles.statItem}>
+                  <MaterialCommunityIcons
+                    name="package-variant"
+                    size={getResponsiveValue(12, screenWidth)}
+                    color={isDark ? `rgba(255,255,255,${DESIGN_TOKENS.opacity.medium})` : `rgba(74,53,49,${DESIGN_TOKENS.opacity.medium})`}
+                  />
+                  <ThemedText
+                    numberOfLines={1}
+                    style={styles.statText}
+                  >
+                    {totalProducts} növ
+                  </ThemedText>
+                </View>
+
+                {/* Quantity Count */}
+                <View style={styles.statItem}>
+                  <MaterialCommunityIcons
+                    name="pound"
+                    size={getResponsiveValue(12, screenWidth)}
+                    color={isDark ? `rgba(255,255,255,${DESIGN_TOKENS.opacity.medium})` : `rgba(74,53,49,${DESIGN_TOKENS.opacity.medium})`}
+                  />
+                  <ThemedText
+                    numberOfLines={1}
+                    style={styles.statText}
+                  >
+                    {totalQuantity.toFixed(2)} ədəd
+                  </ThemedText>
+                </View>
+
+                {/* Branches Count */}
+                <View style={styles.statItem}>
+                  <MaterialCommunityIcons
+                    name="store"
+                    size={getResponsiveValue(12, screenWidth)}
+                    color={isDark ? `rgba(255,255,255,${DESIGN_TOKENS.opacity.medium})` : `rgba(74,53,49,${DESIGN_TOKENS.opacity.medium})`}
+                  />
+                  <ThemedText
+                    numberOfLines={1}
+                    style={styles.statText}
+                  >
+                    {totalBranches} şöbə
+                  </ThemedText>
+                </View>
+
+                {/* Earnings - Conditional Rendering based on screen size */}
+                {showEarningsInline && (
+                  <View style={styles.statItem}>
+                    <MaterialCommunityIcons
+                      name="cash"
+                      size={getResponsiveValue(12, screenWidth)}
+                      color={isDark ? `rgba(255,255,255,${DESIGN_TOKENS.opacity.medium})` : `rgba(74,53,49,${DESIGN_TOKENS.opacity.medium})`}
+                    />
+                    <ThemedText
+                      numberOfLines={1}
+                      style={[styles.statText, styles.statTextEarnings]}
+                    >
+                      {formatLargeNumber(totalEarnings, screenWidth)} ₼
+                    </ThemedText>
+                  </View>
+                )}
+
+                {/* Missing Branches Indicator */}
+                {missingBranches.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      onToggleMissingBranches();
+                    }}
+                    style={styles.missingBranchesIndicator}
+                    activeOpacity={0.7}
+                    accessibilityLabel={missingBranchesExpanded ? ACCESSIBILITY_LABELS.collapseMissing : ACCESSIBILITY_LABELS.expandMissing}
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: missingBranchesExpanded }}
+                  >
+                    <MaterialCommunityIcons
+                      name="alert-circle"
+                      size={getResponsiveValue(10, screenWidth)}
+                      color="#FF6B6B"
+                    />
+                    <ThemedText
+                      numberOfLines={1}
+                      style={styles.missingBranchesText}
+                    >
+                      {missingBranches.length} şöbə qalıb
+                    </ThemedText>
+                    <MaterialCommunityIcons
+                      name={missingBranchesExpanded ? "chevron-up" : "chevron-down"}
+                      size={getResponsiveValue(12, screenWidth)}
+                      color="#FF6B6B"
+                    />
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {/* Earnings shown below stats on small screens */}
+              {!showEarningsInline && (
+                <View style={styles.statItem}>
+                  <MaterialCommunityIcons
+                    name="cash"
+                    size={getResponsiveValue(14, screenWidth)}
+                    color={isDark ? `rgba(255,255,255,${DESIGN_TOKENS.opacity.medium})` : `rgba(74,53,49,${DESIGN_TOKENS.opacity.medium})`}
+                  />
+                  <ThemedText
+                    numberOfLines={1}
+                    style={[styles.statText, styles.statTextEarnings]}
+                  >
+                    {formatLargeNumber(totalEarnings, screenWidth)} ₼
+                  </ThemedText>
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Right Section: Action Buttons */}
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity
+              onPress={onShareWhatsApp}
+              style={[styles.actionButton, styles.actionButtonWhatsApp]}
+              accessibilityLabel={ACCESSIBILITY_LABELS.shareWhatsApp}
+              accessibilityRole="button"
+            >
+              <MaterialCommunityIcons
+                name="whatsapp"
+                size={getResponsiveValue(18, screenWidth)}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onShareByRegions}
+              style={[styles.actionButton, styles.actionButtonRegions]}
+              accessibilityLabel={ACCESSIBILITY_LABELS.shareByRegions}
+              accessibilityRole="button"
+            >
+              <MaterialCommunityIcons
+                name="whatsapp"
+                size={getResponsiveValue(18, screenWidth)}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={onExportExcel}
+              style={[styles.actionButton, styles.actionButtonExcel]}
+              accessibilityLabel={ACCESSIBILITY_LABELS.exportExcel}
+              accessibilityRole="button"
+            >
+              <MaterialCommunityIcons
+                name="microsoft-excel"
+                size={getResponsiveValue(18, screenWidth)}
+                color="#FFFFFF"
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </ThemedView>
+  );
+});
+
+// ============================================================================
+// MISSING BRANCHES EXPANSION COMPONENT
+// ============================================================================
+interface MissingBranchesExpansionProps {
+  missingBranches: Branch[];
+  isExpanded: boolean;
+  isDark: boolean;
+  screenWidth: number;
+}
+
+const MissingBranchesExpansion = React.memo<MissingBranchesExpansionProps>(({
+  missingBranches,
+  isExpanded,
+  isDark,
+  screenWidth,
+}) => {
+  if (!isExpanded || missingBranches.length === 0) return null;
+
+  const spacing = DESIGN_TOKENS.spacing;
+  const borderRadius = DESIGN_TOKENS.borderRadius;
+
+  return (
+    <ThemedView style={{
+      marginHorizontal: getResponsiveValue(spacing.md, screenWidth),
+      marginTop: getResponsiveValue(spacing.sm, screenWidth),
+      marginBottom: getResponsiveValue(spacing.xs, screenWidth),
+      borderRadius: getResponsiveValue(borderRadius.xl, screenWidth),
+      backgroundColor: isDark ? 'rgba(255, 107, 107, 0.08)' : 'rgba(255, 107, 107, 0.05)',
+      borderWidth: 1,
+      borderColor: isDark ? 'rgba(255, 107, 107, 0.2)' : 'rgba(255, 107, 107, 0.15)',
+      overflow: 'hidden',
+    }}>
+      <View style={{
+        paddingVertical: getResponsiveValue(10, screenWidth),
+        paddingHorizontal: getResponsiveValue(14, screenWidth),
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: getResponsiveValue(10, screenWidth),
+        borderBottomWidth: 1,
+        borderBottomColor: isDark ? 'rgba(255, 107, 107, 0.1)' : 'rgba(255, 107, 107, 0.1)',
+      }}>
+        <MaterialCommunityIcons
+          name="alert-circle"
+          size={getResponsiveValue(16, screenWidth)}
+          color="#FF6B6B"
+        />
+        <ThemedText style={{
+          fontSize: getResponsiveValue(DESIGN_TOKENS.typography.lg, screenWidth),
+          fontWeight: '600',
+          color: isDark ? '#FF6B6B' : '#FF4444',
+          flex: 1,
+        }}>
+          Məhsul göndərməyən şöbələr
+        </ThemedText>
+        <View style={{
+          backgroundColor: isDark ? 'rgba(255, 107, 107, 0.2)' : 'rgba(255, 107, 107, 0.15)',
+          paddingHorizontal: getResponsiveValue(10, screenWidth),
+          paddingVertical: 4,
+          borderRadius: getResponsiveValue(12, screenWidth),
+        }}>
+          <ThemedText style={{
+            fontSize: getResponsiveValue(DESIGN_TOKENS.typography.sm, screenWidth),
+            fontWeight: '700',
+            color: '#FF6B6B',
+          }}>
+            {missingBranches.length}
+          </ThemedText>
+        </View>
+      </View>
+
+      <View style={{
+        paddingVertical: getResponsiveValue(8, screenWidth),
+        paddingHorizontal: getResponsiveValue(12, screenWidth),
+        gap: getResponsiveValue(6, screenWidth),
+      }}>
+        {missingBranches.map((branch) => (
+          <View
+            key={branch.id}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: getResponsiveValue(10, screenWidth),
+              paddingVertical: getResponsiveValue(8, screenWidth),
+              paddingHorizontal: getResponsiveValue(12, screenWidth),
+              backgroundColor: isDark ? 'rgba(255, 107, 107, 0.05)' : 'rgba(255, 107, 107, 0.03)',
+              borderRadius: getResponsiveValue(borderRadius.sm, screenWidth),
+              borderWidth: 1,
+              borderColor: isDark ? 'rgba(255, 107, 107, 0.1)' : 'rgba(255, 107, 107, 0.08)',
+            }}
+          >
+            <MaterialCommunityIcons
+              name="store-remove"
+              size={getResponsiveValue(14, screenWidth)}
+              color={isDark ? 'rgba(255, 107, 107, 0.7)' : 'rgba(255, 68, 68, 0.7)'}
+            />
+            <ThemedText style={{
+              flex: 1,
+              fontSize: getResponsiveValue(DESIGN_TOKENS.typography.lg, screenWidth),
+              fontWeight: '500',
+              color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(74, 53, 49, 0.9)',
+            }}>
+              {branch.name}
+            </ThemedText>
+            <ThemedText style={{
+              fontSize: getResponsiveValue(DESIGN_TOKENS.typography.xs, screenWidth),
+              fontWeight: '600',
+              color: isDark ? 'rgba(255, 107, 107, 0.6)' : 'rgba(255, 68, 68, 0.6)',
+              textTransform: 'uppercase',
+              letterSpacing: 0.5,
+            }}>
+              {branch.type}
+            </ThemedText>
+          </View>
+        ))}
+      </View>
+    </ThemedView>
+  );
+});
 
 // Modern Filter Component
 const FilterButton = React.memo(({
@@ -297,7 +842,9 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
           if (product.price !== undefined) {
             priceMap.set(product.correct.toLowerCase(), product.price);
             product.variations.forEach(variation => {
-              priceMap.set(variation.toLowerCase(), product.price);
+              if (variation && product.price !== undefined) {
+                priceMap.set(variation.toLowerCase(), product.price);
+              }
             });
           }
         });
@@ -631,361 +1178,37 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
     }
   };
 
+  // Get screen width for responsive calculations
+  const screenWidth = Dimensions.get('window').width;
+
   return (
     <ThemedView style={{ flex: 1 }}>
-      {/* Header Section */}
-      <ThemedView style={{
-        backgroundColor: isDark ? PastryColors.chocolate : PastryColors.vanilla,
-        borderBottomWidth: 1,
-        borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)',
-        paddingBottom: 2
-      }}>
-        <View style={{
-          padding: 20,
-          flexDirection: 'column',
-          gap: 12,
-        }}>
-          <View style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%',
-          }}>
-            <ThemedView style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 12,
-              backgroundColor: 'transparent',
-              flex: 1,
-              marginRight: 12,
-            }}>
-              <ThemedView style={{
-                backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74,53,49,0.07)',
-                padding: 8,
-                borderRadius: 10,
-                flexShrink: 0,
-              }}>
-                <MaterialCommunityIcons
-                  name="chart-box"
-                  size={24}
-                  color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
-                />
-              </ThemedView>
-              <ThemedView style={{
-                backgroundColor: 'transparent',
-                gap: 4,
-                flex: 1,
-              }}>
-                <ThemedText
-                  numberOfLines={1}
-                  style={{
-                    fontSize: 20,
-                    fontWeight: '600',
-                    color: isDark ? PastryColors.vanilla : PastryColors.chocolate
-                  }}
-                >
-                  Ümumi Cəm
-                </ThemedText>
-                <View style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  flexWrap: 'wrap',
-                  gap: 8
-                }}>
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 4
-                  }}>
-                    <MaterialCommunityIcons
-                      name="package-variant"
-                      size={14}
-                      color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
-                    />
-                    <ThemedText
-                      numberOfLines={1}
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)',
-                      }}
-                    >
-                      {totalProducts} növ
-                    </ThemedText>
-                  </View>
-
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 4
-                  }}>
-                    <MaterialCommunityIcons
-                      name="pound"
-                      size={14}
-                      color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
-                    />
-                    <ThemedText
-                      numberOfLines={1}
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)',
-                      }}
-                    >
-                      {totalQuantity} ədəd
-                    </ThemedText>
-                  </View>
-
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 4
-                  }}>
-                    <MaterialCommunityIcons
-                      name="store"
-                      size={14}
-                      color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
-                    />
-                    <ThemedText
-                      numberOfLines={1}
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 600,
-                        color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)',
-                      }}
-                    >
-                      {totalBranches} şöbə
-                    </ThemedText>
-                  </View>
-
-                  <View style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 4
-                  }}>
-                    <MaterialCommunityIcons
-                      name="cash"
-                      size={14}
-                      color={isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)'}
-                    />
-                    <ThemedText
-                      numberOfLines={1}
-                      style={{
-                        fontSize: 15,
-                        fontWeight: 600,
-                        color: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(74,53,49,0.6)',
-                      }}
-                    >
-                      {totalEarnings.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₼
-                    </ThemedText>
-                  </View>
-
-                  {/* Missing Branches Indicator */}
-                  {missingBranches.length > 0 && (
-                    <TouchableOpacity
-                      onPress={() => {
-                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                        setMissingBranchesExpanded(!missingBranchesExpanded);
-                      }}
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 4,
-                        paddingHorizontal: 8,
-                        paddingVertical: 4,
-                        borderRadius: 8,
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <MaterialCommunityIcons
-                        name="alert-circle"
-                        size={12}
-                        color="#FF6B6B"
-                      />
-                      <ThemedText
-                        numberOfLines={1}
-                        style={{
-                          fontSize: 11,
-                          fontWeight: '600',
-                          color: '#FF6B6B',
-                        }}
-                      >
-                        {missingBranches.length} şöbə qalıb
-                      </ThemedText>
-                      <MaterialCommunityIcons
-                        name={missingBranchesExpanded ? "chevron-up" : "chevron-down"}
-                        size={14}
-                        color="#FF6B6B"
-                      />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </ThemedView>
-            </ThemedView>
-
-            <View style={{
-              flexDirection: 'row',
-              gap: 8,
-              flexShrink: 0,
-            }}>
-              <TouchableOpacity
-                onPress={() => {
-                  const message = formatWhatsAppMessage(totals, totalProducts, totalQuantity, totalBranches);
-                  shareViaWhatsApp(message);
-                }}
-                style={{
-                  backgroundColor: '#25D366',
-                  padding: 8,
-                  borderRadius: 20,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <MaterialCommunityIcons
-                  name="whatsapp"
-                  size={20}
-                  color="#FFFFFF"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  handleShareByRegions();
-                }}
-                style={{
-                  backgroundColor: '#FFD700',
-                  padding: 8,
-                  borderRadius: 20,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <MaterialCommunityIcons
-                  name="whatsapp"
-                  size={20}
-                  color="#FFFFFF"
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleExportToExcel}
-                style={{
-                  backgroundColor: '#1E7E34',
-                  padding: 8,
-                  borderRadius: 20,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 4,
-                }}
-              >
-                <MaterialCommunityIcons
-                  name="microsoft-excel"
-                  size={20}
-                  color="#FFFFFF"
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </ThemedView>
+      {/* Responsive Header Section */}
+      <HeaderSection
+        totalProducts={totalProducts}
+        totalQuantity={totalQuantity}
+        totalBranches={totalBranches}
+        totalEarnings={totalEarnings}
+        missingBranches={missingBranches}
+        missingBranchesExpanded={missingBranchesExpanded}
+        onToggleMissingBranches={() => setMissingBranchesExpanded(!missingBranchesExpanded)}
+        onShareWhatsApp={() => {
+          const message = formatWhatsAppMessage(totals, totalProducts, totalQuantity, totalBranches);
+          shareViaWhatsApp(message);
+        }}
+        onShareByRegions={handleShareByRegions}
+        onExportExcel={handleExportToExcel}
+        isDark={isDark}
+        screenWidth={screenWidth}
+      />
 
       {/* Missing Branches Expansion */}
-      {missingBranches.length > 0 && missingBranchesExpanded && (
-        <ThemedView style={{
-          marginHorizontal: 12,
-          marginTop: 8,
-          marginBottom: 4,
-          borderRadius: 16,
-          backgroundColor: isDark ? 'rgba(255, 107, 107, 0.08)' : 'rgba(255, 107, 107, 0.05)',
-          borderWidth: 1,
-          borderColor: isDark ? 'rgba(255, 107, 107, 0.2)' : 'rgba(255, 107, 107, 0.15)',
-          overflow: 'hidden',
-        }}>
-          <View style={{
-            paddingVertical: 10,
-            paddingHorizontal: 14,
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 10,
-            borderBottomWidth: 1,
-            borderBottomColor: isDark ? 'rgba(255, 107, 107, 0.1)' : 'rgba(255, 107, 107, 0.1)',
-          }}>
-            <MaterialCommunityIcons
-              name="alert-circle"
-              size={18}
-              color="#FF6B6B"
-            />
-            <ThemedText style={{
-              fontSize: 14,
-              fontWeight: '600',
-              color: isDark ? '#FF6B6B' : '#FF4444',
-              flex: 1,
-            }}>
-              Məhsul göndərməyən şöbələr
-            </ThemedText>
-            <View style={{
-              backgroundColor: isDark ? 'rgba(255, 107, 107, 0.2)' : 'rgba(255, 107, 107, 0.15)',
-              paddingHorizontal: 10,
-              paddingVertical: 4,
-              borderRadius: 12,
-            }}>
-              <ThemedText style={{
-                fontSize: 12,
-                fontWeight: '700',
-                color: '#FF6B6B',
-              }}>
-                {missingBranches.length}
-              </ThemedText>
-            </View>
-          </View>
-
-          <View style={{
-            paddingVertical: 8,
-            paddingHorizontal: 12,
-            gap: 6,
-          }}>
-            {missingBranches.map((branch) => (
-              <View
-                key={branch.id}
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 10,
-                  paddingVertical: 8,
-                  paddingHorizontal: 12,
-                  backgroundColor: isDark ? 'rgba(255, 107, 107, 0.05)' : 'rgba(255, 107, 107, 0.03)',
-                  borderRadius: 10,
-                  borderWidth: 1,
-                  borderColor: isDark ? 'rgba(255, 107, 107, 0.1)' : 'rgba(255, 107, 107, 0.08)',
-                }}
-              >
-                <MaterialCommunityIcons
-                  name="store-remove"
-                  size={16}
-                  color={isDark ? 'rgba(255, 107, 107, 0.7)' : 'rgba(255, 68, 68, 0.7)'}
-                />
-                <ThemedText style={{
-                  flex: 1,
-                  fontSize: 14,
-                  fontWeight: '500',
-                  color: isDark ? 'rgba(255, 255, 255, 0.9)' : 'rgba(74, 53, 49, 0.9)',
-                }}>
-                  {branch.name}
-                </ThemedText>
-                <ThemedText style={{
-                  fontSize: 11,
-                  fontWeight: '600',
-                  color: isDark ? 'rgba(255, 107, 107, 0.6)' : 'rgba(255, 68, 68, 0.6)',
-                  textTransform: 'uppercase',
-                  letterSpacing: 0.5,
-                }}>
-                  {branch.type}
-                </ThemedText>
-              </View>
-            ))}
-          </View>
-        </ThemedView>
-      )}
+      <MissingBranchesExpansion
+        missingBranches={missingBranches}
+        isExpanded={missingBranchesExpanded}
+        isDark={isDark}
+        screenWidth={screenWidth}
+      />
 
       {/* Filter Component */}
       <ThemedView style={{
@@ -1081,7 +1304,7 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
         renderItem={({ item: [product, total] }) => (
           <ProductItem
             product={product}
-            total={total}
+            total={parseFloat(total.toFixed(2))}
             isExpanded={expandedProduct === product}
             onToggle={() => setExpandedProduct(expandedProduct === product ? null : product)}
             branchQuantities={getBranchQuantities(product)}
