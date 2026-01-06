@@ -36,6 +36,7 @@ interface ModernBranchSectionProps {
   onAddProduct: () => void;
   onEditProduct: (productName: string, quantity: string) => void;
   onDeleteProduct: (productName: string) => void;
+  productPrices?: Map<string, number>;
 }
 
 export const ModernBranchSection = ({
@@ -47,6 +48,7 @@ export const ModernBranchSection = ({
   onAddProduct,
   onEditProduct,
   onDeleteProduct,
+  productPrices,
 }: ModernBranchSectionProps) => {
   // Force light mode colors for consistency
   const isDark = false;
@@ -61,6 +63,19 @@ export const ModernBranchSection = ({
   const productTypeCount = useMemo(() => {
     return Object.keys(products).length;
   }, [products]);
+
+  const totalBranchPrice = useMemo(() => {
+    if (!productPrices) return 0;
+    let total = 0;
+    Object.entries(products).forEach(([productName, quantity]) => {
+      const normalizedProduct = productName.trim().toLowerCase();
+      const productPrice = productPrices.get(normalizedProduct);
+      if (productPrice !== undefined) {
+        total += parseQuantity(quantity) * productPrice;
+      }
+    });
+    return total;
+  }, [products, productPrices]);
 
   React.useEffect(() => {
     expandAnimation.value = withSpring(isExpanded ? 1 : 0, {
@@ -137,69 +152,84 @@ export const ModernBranchSection = ({
           style={styles.headerTouchable}
           activeOpacity={0.7}
         >
-        <View style={[styles.headerContent, { backgroundColor: 'transparent' }]}>
-          <ThemedView style={styles.branchInfo}>
-            <ThemedText
-              numberOfLines={2}
-              ellipsizeMode="tail"
-              style={[
-                styles.branchName,
-                {
-                  color: colorScheme.textLight,
-                },
-              ]}
-            >
-              {branchName}
-            </ThemedText>
-          </ThemedView>
+          <View style={[styles.headerContent, { backgroundColor: 'transparent' }]}>
+            <ThemedView style={styles.branchInfo}>
+              <ThemedText
+                numberOfLines={2}
+                ellipsizeMode="tail"
+                style={[
+                  styles.branchName,
+                  {
+                    color: colorScheme.textLight,
+                  },
+                ]}
+              >
+                {branchName}
+              </ThemedText>
+            </ThemedView>
 
-          <View style={styles.statsContainer}>
-            <View style={styles.statItem}>
-              <ThemedText style={[styles.statLabel, { color: colorScheme.textSubtleLight }]}>
-                Toplam
-              </ThemedText>
-              <ThemedText style={[styles.statValue, { color: colorScheme.accentRed }]}>
-                {totalQuantity.toFixed(1)}
-              </ThemedText>
-            </View>
-            <View style={styles.statItem}>
-              <ThemedText style={[styles.statLabel, { color: colorScheme.textSubtleLight }]}>
-                Növ
-              </ThemedText>
-              <ThemedText style={[styles.statValue, { color: colorScheme.accentRed }]}>
-                {productTypeCount}
-              </ThemedText>
+            <View style={styles.rightSection}>
+              <View style={styles.metaContainer}>
+                <View style={styles.statsContainer}>
+                  <View style={styles.statItem}>
+                    <ThemedText style={[styles.statLabel, { color: colorScheme.textSubtleLight }]}>
+                      Toplam
+                    </ThemedText>
+                    <ThemedText style={[styles.statValue, { color: colorScheme.accentRed }]}>
+                      {totalQuantity.toFixed(1)}
+                    </ThemedText>
+                  </View>
+                  <View style={styles.statItem}>
+                    <ThemedText style={[styles.statLabel, { color: colorScheme.textSubtleLight }]}>
+                      Növ
+                    </ThemedText>
+                    <ThemedText style={[styles.statValue, { color: colorScheme.accentRed }]}>
+                      {productTypeCount}
+                    </ThemedText>
+                  </View>
+                </View>
+
+                {productPrices && totalBranchPrice > 0 && (
+                  <View style={styles.priceRow}>
+                    <ThemedText style={[styles.statLabel, { color: colorScheme.textSubtleLight }]}>
+                      Qiymət
+                    </ThemedText>
+                    <ThemedText style={[styles.statValue, { color: colorScheme.accentRed }]}>
+                      {totalBranchPrice.toFixed(2)} ₼
+                    </ThemedText>
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.actions}>
+                <Animated.View style={[styles.expandButton, iconRotation]}>
+                  <Feather
+                    name="chevron-down"
+                    size={20}
+                    color={colorScheme.textLight}
+                  />
+                </Animated.View>
+
+                <TouchableOpacity
+                  onPress={handleMenuPress}
+                  style={[
+                    styles.actionButton,
+                    {
+                      backgroundColor: colorScheme.lightRed,
+                    },
+                  ]}
+                  activeOpacity={0.7}
+                >
+                  <Feather
+                    name="more-vertical"
+                    size={18}
+                    color={colorScheme.accentRed}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-
-          <View style={styles.actions}>
-            <Animated.View style={[styles.expandButton, iconRotation]}>
-              <Feather
-                name="chevron-down"
-                size={20}
-                color={colorScheme.textLight}
-              />
-            </Animated.View>
-
-            <TouchableOpacity
-              onPress={handleMenuPress}
-              style={[
-                styles.actionButton,
-                {
-                  backgroundColor: colorScheme.lightRed,
-                },
-              ]}
-              activeOpacity={0.7}
-            >
-              <Feather
-                name="more-vertical"
-                size={18}
-                color={colorScheme.accentRed}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-          </TouchableOpacity>
+        </TouchableOpacity>
       </Animated.View>
 
       {isExpanded && (
@@ -227,30 +257,30 @@ export const ModernBranchSection = ({
         >
           <View style={styles.backdrop}>
             {Platform.OS === 'ios' || Platform.OS === 'android' ? (
-              <BlurView 
-                style={StyleSheet.absoluteFill} 
+              <BlurView
+                style={StyleSheet.absoluteFill}
                 intensity={15}
                 tint="dark"
               />
             ) : null}
           </View>
-          
+
           <Pressable style={StyleSheet.absoluteFill} onPress={closeMenu} />
-          
+
           <View style={[styles.actionMenu, { top: '50%', marginTop: -100 }]}>
-            <View style={[styles.menuHeader, { 
-              borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' 
+            <View style={[styles.menuHeader, {
+              borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'
             }]}>
               <ThemedText style={styles.menuTitle}>Filial Əməliyyatları</ThemedText>
               <TouchableOpacity onPress={closeMenu} style={styles.closeButton}>
-                <Feather 
-                  name="x" 
-                  size={20} 
-                  color={isDark ? PastryColors.vanilla : PastryColors.chocolate} 
+                <Feather
+                  name="x"
+                  size={20}
+                  color={isDark ? PastryColors.vanilla : PastryColors.chocolate}
                 />
               </TouchableOpacity>
             </View>
-            
+
             <TouchableOpacity
               style={styles.menuOption}
               onPress={handleAddPress}
@@ -279,9 +309,9 @@ export const ModernBranchSection = ({
           </View>
         </Modal>
       )}
-      
+
     </ThemedView>
-    
+
   );
 };
 
@@ -441,18 +471,37 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   headerContent: {
+    flexDirection: 'column',
+    gap: 12,
+    backgroundColor: 'transparent',
+  },
+  rightSection: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    width: '100%',
+    flexShrink: 0,
+  },
+  metaContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     backgroundColor: 'transparent',
+    flexShrink: 0,
   },
   branchInfo: {
-    flex: 1,
+    width: '100%',
     backgroundColor: 'transparent',
-    minWidth: 0,
   },
   branchName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     letterSpacing: 0.3,
     ...Platform.select({
@@ -464,11 +513,10 @@ const styles = StyleSheet.create({
   statsContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 20,
+    gap: 16,
     flexShrink: 0,
   },
   statItem: {
-    minWidth: 60,
     flexDirection: 'row',
     gap: 6,
     alignItems: 'center',
@@ -476,7 +524,7 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   statValue: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: colorScheme.accentRed,
   },
@@ -610,7 +658,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor:'rgba(255,255,255,0.1)' ,
+    backgroundColor: 'rgba(255,255,255,0.1)',
   },
   menuOption: {
     flexDirection: 'row',

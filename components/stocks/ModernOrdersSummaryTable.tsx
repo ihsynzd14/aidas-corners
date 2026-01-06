@@ -10,12 +10,14 @@ interface ModernOrdersSummaryTableProps {
   ordersData: Record<string, Record<string, number>>;
   selectedDate: Date;
   onDataChange: () => void;
+  productPrices?: Map<string, number>;
 }
 
-export function ModernOrdersSummaryTable({ 
-  ordersData, 
-  selectedDate, 
-  onDataChange 
+export function ModernOrdersSummaryTable({
+  ordersData,
+  selectedDate,
+  onDataChange,
+  productPrices
 }: ModernOrdersSummaryTableProps) {
   const [expandedBranches, setExpandedBranches] = useState<Set<string>>(new Set());
   const [editModalVisible, setEditModalVisible] = useState(false);
@@ -100,7 +102,7 @@ export function ModernOrdersSummaryTable({
 
   const handleSaveEdit = async (newProductName: string, newQuantity: string) => {
     if (!editingProduct) return;
-    
+
     try {
       await updateProduct(
         selectedDate,
@@ -135,12 +137,13 @@ export function ModernOrdersSummaryTable({
           onToggleExpand={() => toggleBranchExpansion(branchName)}
           onDeleteBranch={() => handleDeleteBranch(branchName)}
           onAddProduct={() => handleAddProduct(branchName)}
-          onEditProduct={(productName, quantity) => 
+          onEditProduct={(productName, quantity) =>
             handleEditProduct(branchName, productName, quantity)
           }
-          onDeleteProduct={(productName) => 
+          onDeleteProduct={(productName) =>
             handleDeleteProduct(branchName, productName)
           }
+          productPrices={productPrices}
         />
       ))}
 

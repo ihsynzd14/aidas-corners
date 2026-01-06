@@ -14,6 +14,7 @@ import { EnhancedErrorState } from './EnhancedErrorState';
 import { SuccessToast } from './FeedbackComponents';
 import { Ionicons } from '@expo/vector-icons';
 import { PastryColors } from '@/constants/Colors';
+import { getProductCorrections } from '@/utils/firebase';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const MIN_SHEET_HEIGHT = 250;
@@ -42,6 +43,7 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [productPrices, setProductPrices] = useState<Map<string, number>>(new Map());
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const insets = useSafeAreaInsets();
@@ -107,6 +109,31 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
     loadOrders().finally(() => setLoading(false));
   }, [selectedDate]);
 
+  // Fetch product prices
+  useEffect(() => {
+    const fetchProductPrices = async () => {
+      try {
+        const productCorrections = await getProductCorrections();
+        const priceMap = new Map<string, number>();
+
+        productCorrections.forEach(product => {
+          if (product.price !== undefined) {
+            priceMap.set(product.correct.toLowerCase(), product.price);
+            product.variations.forEach(variation => {
+              if (variation && product.price !== undefined) {
+                priceMap.set(variation.toLowerCase(), product.price);
+              }
+            });
+          }
+        });
+        setProductPrices(priceMap);
+      } catch (error) {
+        console.error('Error fetching product prices:', error);
+      }
+    };
+    fetchProductPrices();
+  }, []);
+
   if (loading) {
     return (
       <ThemedView style={{ flex: 1 }}>
@@ -163,6 +190,7 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
           ordersData={ordersData}
           selectedDate={selectedDate}
           onDataChange={loadOrders}
+          productPrices={productPrices}
         />
       </RNScrollView>
 

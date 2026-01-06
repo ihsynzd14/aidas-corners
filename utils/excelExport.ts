@@ -56,7 +56,18 @@ export async function exportToExcel(
       let orderNumber = 1;
 
       Object.entries(branchProducts).forEach(([productName, quantity]) => {
-        const qty = parseFloat(quantity as string);
+        // Robust parsing matching app logic
+        let qty = 0;
+        const val = quantity as string | number;
+        if (typeof val === 'number') {
+          qty = val;
+        } else if (typeof val === 'string') {
+          // Handle potential comma decimals if present in string input, though app seems to use dots
+          const normalized = val.replace(',', '.');
+          const numMatch = normalized.match(/[\d.]+/);
+          qty = numMatch ? parseFloat(numMatch[0]) : 0;
+        }
+
         const price = productPrices.get(productName.trim().toLowerCase()) || 0;
 
         // Current Excel Row (1-based)
@@ -176,6 +187,12 @@ export async function exportToExcel(
           alignment: { vertical: "center", horizontal: "center" },
           numFmt: "#,##0.00"
         },
+        quantityCell: {
+          font: { name: "Times New Roman", sz: 11, color: { rgb: "000000" } },
+          border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
+          alignment: { vertical: "center", horizontal: "center" },
+          numFmt: "0.00"
+        },
         totalRowLabel: {
           font: { name: "Times New Roman", sz: 12, bold: true, color: { rgb: "000000" } }, // Uppercase CƏMİ
           border: { top: borderStyle, bottom: borderStyle, left: borderStyle, right: borderStyle },
@@ -220,11 +237,14 @@ export async function exportToExcel(
             // Cols: 0(N), 1(Adı), 2(Sayı), 3(Qiyməti), 4(Cəmi)
             if (C === 1) {
               worksheet[cell_ref].s = styles.cell;
+            } else if (C === 2) {
+              // Quantity gets 0.00 format
+              worksheet[cell_ref].s = styles.quantityCell;
             } else if (C === 3 || C === 4) {
               // Price (3) and Total (4) get currency formatting
               worksheet[cell_ref].s = styles.currencyCell;
             } else {
-              // N (0) and Quantity (2) get standard center alignment
+              // N (0) gets standard center alignment
               worksheet[cell_ref].s = styles.cellCenter;
             }
           }
