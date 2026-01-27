@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Dispatch, SetStateAction } from 'react';
 import { StyleSheet, TouchableOpacity, ActivityIndicator, useColorScheme as useNativeColorScheme, Text, View, Platform, StatusBar } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -7,7 +7,6 @@ import { DateRangePickerModal } from '@/components/statistics/DateRangePickerMod
 import { ViewSwitcher } from '@/components/statistics/ViewSwitcher';
 import { SummaryView } from '@/components/statistics/SummaryView';
 import { DailyView } from '@/components/statistics/DailyView';
-import { ProductSelectionBottomSheet } from '@/components/statistics/ProductSelectionBottomSheet';
 import { ShareBottomSheet } from '@/components/statistics/ShareBottomSheet';
 import { BottomSheetModal } from '@gorhom/bottom-sheet';
 import { ProductStats, DailyStats } from './ProductStatisticsLogic';
@@ -23,23 +22,21 @@ interface ProductStatisticsUIProps {
   showStartPicker: boolean;
   showEndPicker: boolean;
   viewMode: 'summary' | 'daily';
-  selectedProduct: string;
-  selectedBranch: string;
+  selectedProducts: string[];
+  selectedBranches: string[];
   dailyStats: DailyStats[];
   availableBranches: string[];
   totalEarnings: number;
   filteredEarnings: number;
   dateRangeModalRef: React.RefObject<BottomSheetModal | null>;
-  productSelectionVisible: boolean;
-  setProductSelectionVisible: (visible: boolean) => void;
   onStartDateChange: (event: any, selectedDate?: Date) => void;
   onEndDateChange: (event: any, selectedDate?: Date) => void;
   onDateRangeConfirm: (start: Date, end: Date) => void;
   setShowStartPicker: (show: boolean) => void;
   setShowEndPicker: (show: boolean) => void;
   setViewMode: (mode: 'summary' | 'daily') => void;
-  setSelectedProduct: (product: string) => void;
-  setSelectedBranch: (branch: string) => void;
+  setSelectedProducts: Dispatch<SetStateAction<string[]>>;
+  setSelectedBranches: Dispatch<SetStateAction<string[]>>;
   setAvailableBranches: (branches: string[]) => void;
   generateExcel: () => void;
   generateWhatsAppText: () => void;
@@ -56,23 +53,21 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
   showStartPicker,
   showEndPicker,
   viewMode,
-  selectedProduct,
-  selectedBranch,
+  selectedProducts,
+  selectedBranches,
   dailyStats,
   availableBranches,
   totalEarnings,
   filteredEarnings,
   dateRangeModalRef,
-  productSelectionVisible,
-  setProductSelectionVisible,
   onStartDateChange,
   onEndDateChange,
   onDateRangeConfirm,
   setShowStartPicker,
   setShowEndPicker,
   setViewMode,
-  setSelectedProduct,
-  setSelectedBranch,
+  setSelectedProducts,
+  setSelectedBranches,
   setAvailableBranches,
   generateExcel,
   generateWhatsAppText,
@@ -96,27 +91,36 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
 
   const totalSold = React.useMemo(() => {
     // When in daily mode with selection, show filtered quantity
-    if (viewMode === 'daily' && selectedProduct && selectedBranch) {
-      const product = productStats.find(p => p.productName === selectedProduct);
-      return product?.branchStats[selectedBranch]?.quantity || 0;
+    if (viewMode === 'daily' && selectedBranches?.length > 0) {
+      let total = 0;
+      const productsToSum = selectedProducts?.length > 0 ? selectedProducts : productStats.map(p => p.productName);
+      productsToSum.forEach(productName => {
+        const product = productStats.find(p => p.productName === productName);
+        if (product) {
+          selectedBranches.forEach(branchName => {
+            total += product.branchStats[branchName]?.quantity || 0;
+          });
+        }
+      });
+      return total;
     }
     // Otherwise show total across all products
     return productStats.reduce((acc, curr) => acc + curr.totalQuantity, 0);
-  }, [productStats, viewMode, selectedProduct, selectedBranch]);
+  }, [productStats, viewMode, selectedProducts, selectedBranches]);
 
   const topProduct = React.useMemo(() => {
     // When in daily mode with selection, show the selected product name
-    if (viewMode === 'daily' && selectedProduct && selectedBranch) {
-      return selectedProduct;
+    if (viewMode === 'daily' && selectedProducts?.length > 0) {
+      return selectedProducts.length === 1 ? selectedProducts[0] : `${selectedProducts.length} Məhsul`;
     }
     // Otherwise show the top selling product
     if (productStats.length === 0) return '-';
     const sorted = [...productStats].sort((a, b) => b.totalQuantity - a.totalQuantity);
     return sorted[0].productName;
-  }, [productStats, viewMode, selectedProduct, selectedBranch]);
+  }, [productStats, viewMode, selectedProducts]);
 
   // Use filtered earnings when in daily mode with selection, otherwise use total earnings
-  const displayEarnings = (viewMode === 'daily' && selectedProduct && selectedBranch)
+  const displayEarnings = (viewMode === 'daily' && selectedBranches?.length > 0)
     ? filteredEarnings
     : totalEarnings;
 
@@ -198,88 +202,90 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
           onPress={() => dateRangeModalRef.current?.present()}
         />
 
-        <View style={styles.statsGrid}>
-          <View style={[
-            styles.statCard,
-            styles.statCardModern,
-            {
-              backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
-              borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
-            }
-          ]}>
-            <View style={styles.statCardHeader}>
-              <View style={[
-                styles.iconCircleModern,
-                { backgroundColor: isDark ? 'rgba(255, 107, 107, 0.15)' : 'rgba(255, 107, 107, 0.12)' }
-              ]}>
-                <MaterialIcons name="bar-chart" size={22} color="#FF6B6B" />
+        {viewMode === 'summary' && (
+          <View style={styles.statsGrid}>
+            <View style={[
+              styles.statCard,
+              styles.statCardModern,
+              {
+                backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
+                borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
+              }
+            ]}>
+              <View style={styles.statCardHeader}>
+                <View style={[
+                  styles.iconCircleModern,
+                  { backgroundColor: isDark ? 'rgba(255, 107, 107, 0.15)' : 'rgba(255, 107, 107, 0.12)' }
+                ]}>
+                  <MaterialIcons name="bar-chart" size={22} color="#FF6B6B" />
+                </View>
+              </View>
+              <View style={styles.statCardFooter}>
+                <Text style={[
+                  styles.statLabelModern,
+                  { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
+                ]}>Ümumi Məhsul</Text>
+                <Text style={[styles.statValueModern, { color: textColor }]} numberOfLines={1}>
+                  {totalSold.toLocaleString()}
+                </Text>
               </View>
             </View>
-            <View style={styles.statCardFooter}>
-              <Text style={[
-                styles.statLabelModern,
-                { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
-              ]}>Ümumi Məhsul</Text>
-              <Text style={[styles.statValueModern, { color: textColor }]} numberOfLines={1}>
-                {totalSold.toLocaleString()}
-              </Text>
-            </View>
-          </View>
 
-          <View style={[
-            styles.statCard,
-            styles.statCardModern,
-            {
-              backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
-              borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
-            }
-          ]}>
-            <View style={styles.statCardHeader}>
-              <View style={[
-                styles.iconCircleModern,
-                { backgroundColor: isDark ? 'rgba(78, 205, 196, 0.15)' : 'rgba(78, 205, 196, 0.12)' }
-              ]}>
-                <MaterialIcons name="trending-up" size={22} color="#4ECDC4" />
+            <View style={[
+              styles.statCard,
+              styles.statCardModern,
+              {
+                backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
+                borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
+              }
+            ]}>
+              <View style={styles.statCardHeader}>
+                <View style={[
+                  styles.iconCircleModern,
+                  { backgroundColor: isDark ? 'rgba(78, 205, 196, 0.15)' : 'rgba(78, 205, 196, 0.12)' }
+                ]}>
+                  <MaterialIcons name="trending-up" size={22} color="#4ECDC4" />
+                </View>
+              </View>
+              <View style={styles.statCardFooter}>
+                <Text style={[
+                  styles.statLabelModern,
+                  { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
+                ]}>Ən Çox Satılan</Text>
+                <Text style={[styles.statValueModern, { color: textColor }]} numberOfLines={1}>
+                  {topProduct}
+                </Text>
               </View>
             </View>
-            <View style={styles.statCardFooter}>
-              <Text style={[
-                styles.statLabelModern,
-                { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
-              ]}>Ən Çox Satılan</Text>
-              <Text style={[styles.statValueModern, { color: textColor }]} numberOfLines={1}>
-                {topProduct}
-              </Text>
-            </View>
-          </View>
 
-          <View style={[
-            styles.statCard,
-            styles.statCardModern,
-            {
-              backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
-              borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
-            }
-          ]}>
-            <View style={styles.statCardHeader}>
-              <View style={[
-                styles.iconCircleModern,
-                { backgroundColor: isDark ? 'rgba(255, 195, 0, 0.15)' : 'rgba(255, 195, 0, 0.12)' }
-              ]}>
-                <MaterialIcons name="payments" size={22} color="#FFC300" />
+            <View style={[
+              styles.statCard,
+              styles.statCardModern,
+              {
+                backgroundColor: isDark ? colorScheme.cardDark : colorScheme.cardLight,
+                borderColor: isDark ? colorScheme.borderRed : colorScheme.borderRed,
+              }
+            ]}>
+              <View style={styles.statCardHeader}>
+                <View style={[
+                  styles.iconCircleModern,
+                  { backgroundColor: isDark ? 'rgba(255, 195, 0, 0.15)' : 'rgba(255, 195, 0, 0.12)' }
+                ]}>
+                  <MaterialIcons name="payments" size={22} color="#FFC300" />
+                </View>
+              </View>
+              <View style={styles.statCardFooter}>
+                <Text style={[
+                  styles.statLabelModern,
+                  { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
+                ]}>Ümumi Qazanc</Text>
+                <Text style={[styles.statValueModern, { color: textColor }]} numberOfLines={1}>
+                  {displayEarnings.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₼
+                </Text>
               </View>
             </View>
-            <View style={styles.statCardFooter}>
-              <Text style={[
-                styles.statLabelModern,
-                { color: isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight }
-              ]}>Ümumi Qazanc</Text>
-              <Text style={[styles.statValueModern, { color: textColor }]} numberOfLines={1}>
-                {displayEarnings.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₼
-              </Text>
-            </View>
           </View>
-        </View>
+        )}
 
         {loading ? (
           <View style={styles.loadingContainer}>
@@ -290,26 +296,16 @@ export const ProductStatisticsUI: React.FC<ProductStatisticsUIProps> = ({
             <SummaryView productStats={productStats} />
           ) : (
             <DailyView
-              selectedProduct={selectedProduct}
-              selectedBranch={selectedBranch}
+              selectedProducts={selectedProducts}
+              selectedBranches={selectedBranches}
+              productStats={productStats}
               dailyStats={dailyStats}
-              onSelectionPress={() => setProductSelectionVisible(true)}
+              setSelectedProducts={setSelectedProducts}
+              setSelectedBranches={setSelectedBranches}
             />
           )
         )}
       </View>
-
-      <ProductSelectionBottomSheet
-        visible={productSelectionVisible}
-        selectedProduct={selectedProduct}
-        selectedBranch={selectedBranch}
-        productStats={productStats}
-        availableBranches={availableBranches}
-        setSelectedProduct={setSelectedProduct}
-        setSelectedBranch={setSelectedBranch}
-        setAvailableBranches={setAvailableBranches}
-        onClose={() => setProductSelectionVisible(false)}
-      />
 
       <DateRangePickerModal
         bottomSheetRef={dateRangeModalRef as React.RefObject<BottomSheetModal>}

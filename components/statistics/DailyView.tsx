@@ -1,28 +1,48 @@
-import React from 'react';
+import React, { useState, Dispatch, SetStateAction } from 'react';
 import { StyleSheet, ScrollView, TouchableOpacity, View } from 'react-native';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
-import { AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons, MaterialIcons, Ionicons } from '@expo/vector-icons';
 import { colorScheme } from '@/constants/colorScheme';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { MultiSelectBottomSheet } from './MultiSelectBottomSheet';
 
 interface DailyStats {
   date: string;
+  productName: string;
+  branchName: string;
   quantity: number;
+  price?: number;
+}
+
+interface ProductStats {
+  productName: string;
+  branchStats: {
+    [key: string]: {
+      quantity: number;
+      dates: { [date: string]: number };
+    };
+  };
+  totalQuantity: number;
+  price?: number;
 }
 
 interface DailyViewProps {
-  selectedProduct: string;
-  selectedBranch: string;
+  selectedProducts: string[];
+  selectedBranches: string[];
+  productStats: ProductStats[];
   dailyStats: DailyStats[];
-  onSelectionPress: () => void;
+  setSelectedProducts: Dispatch<SetStateAction<string[]>>;
+  setSelectedBranches: Dispatch<SetStateAction<string[]>>;
 }
 
 export const DailyView: React.FC<DailyViewProps> = ({
-  selectedProduct,
-  selectedBranch,
+  selectedProducts,
+  selectedBranches,
+  productStats,
   dailyStats,
-  onSelectionPress,
+  setSelectedProducts,
+  setSelectedBranches,
 }) => {
   const isDark = useColorScheme() === 'dark';
   const cardBg = isDark ? colorScheme.cardDark : colorScheme.cardLight;
@@ -30,140 +50,284 @@ export const DailyView: React.FC<DailyViewProps> = ({
   const secondaryTextColor = isDark ? colorScheme.textSubtleDark : colorScheme.textSubtleLight;
   const borderColor = isDark ? colorScheme.borderRed : colorScheme.borderRed;
   const shadowColor = colorScheme.accentRed;
-  
+  const activeColor = colorScheme.primary; 
+  const inactiveBg = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)';
+
+  const [branchSheetVisible, setBranchSheetVisible] = useState(false);
+  const [productSheetVisible, setProductSheetVisible] = useState(false);
+  const [expandedBranches, setExpandedBranches] = useState<Set<string>>(new Set());
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
+
+  const toggleBranchExpand = (key: string) => {
+    setExpandedBranches(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleDateExpand = (date: string) => {
+    setExpandedDates(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(date)) {
+        newSet.delete(date);
+      } else {
+        newSet.add(date);
+      }
+      return newSet;
+    });
+  };
+
   const formatQuantity = (quantity: number) => {
     if (!quantity || quantity === 0) return null;
     return quantity % 1 === 0 ? Math.round(quantity).toString() : quantity.toFixed(1);
   };
 
+  // Get all unique branches
+  const uniqueBranches = React.useMemo(() => {
+    return Array.from(productStats.reduce((acc, stat) => {
+      Object.keys(stat.branchStats).forEach(branch => acc.add(branch));
+      return acc;
+    }, new Set<string>()));
+  }, [productStats]);
+
+  const branchOptions = uniqueBranches.map(branch => ({ id: branch, label: branch }));
+  const productOptions = productStats.map(product => ({ id: product.productName, label: product.productName }));
+
   return (
-    <ScrollView style={styles.scrollView}>
-      <TouchableOpacity 
-        style={[
-          styles.selectionButton,
-          { 
-            backgroundColor: cardBg,
-            shadowColor: shadowColor,
-            borderColor: borderColor,
-            borderWidth: 1,
-          }
-        ]} 
-        onPress={onSelectionPress}
-      >
-        <View style={styles.selectionButtonContent}>
-          <View style={[
-            styles.iconContainer,
-            { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(217, 166, 163, 0.1)' }
-          ]}>
-            <MaterialCommunityIcons
-              name="calendar-today"
-              size={24}
-              color={colorScheme.accentRedlight}
-            />
+    <ScrollView style={styles.scrollView} contentContainerStyle={{ paddingBottom: 150 }}>
+      {/* Filters Section */}
+      <View style={{ marginBottom: 24, flexDirection: 'row', gap: 12 }}>
+        
+        {/* Branch Selection Button */}
+        <TouchableOpacity 
+          style={[styles.filterButton, { backgroundColor: cardBg, borderColor: borderColor }]}
+          onPress={() => setBranchSheetVisible(true)}
+        >
+          <View style={styles.filterIconContainer}>
+            <MaterialCommunityIcons name="store" size={20} color={colorScheme.primary} />
           </View>
-          <View style={styles.selectionTextContainer}>
-            <ThemedText style={[
-              styles.selectionButtonText,
-              { color: textColor }
-            ]}>
-              {selectedProduct && selectedBranch 
-                ? `${selectedProduct} - ${selectedBranch}` 
-                : 'Məhsul və Filial seçin'}
-            </ThemedText>
-            <ThemedText style={[
-              styles.selectionSubText,
-              { color: secondaryTextColor }
-            ]}>
-              {selectedProduct && selectedBranch ? 'Günlük statistika' : 'Seçim etmək üçün toxunun'}
+          <View style={{ flex: 1 }}>
+            <ThemedText style={[styles.filterLabel, { color: secondaryTextColor }]}>FİLİALLAR</ThemedText>
+            <ThemedText style={[styles.filterValue, { color: textColor }]} numberOfLines={1}>
+              {selectedBranches?.length > 0 
+                ? `${selectedBranches.length} filial seçilib` 
+                : 'Filial seçin'}
             </ThemedText>
           </View>
-          <AntDesign 
-            name="down" 
-            size={20} 
-            color={secondaryTextColor} 
-          />
-        </View>
-      </TouchableOpacity>
+          <Ionicons name="chevron-down" size={16} color={secondaryTextColor} />
+        </TouchableOpacity>
 
-      {selectedProduct && selectedBranch && (
-        <View style={[
-          styles.productCard,
-          { 
-            backgroundColor: cardBg,
-            shadowColor: shadowColor,
-            borderColor: borderColor,
-            borderWidth: 1,
-          }
-        ]}>
-          <View style={styles.cardHeader}>
-            <View style={[
-              styles.iconContainer,
-              { backgroundColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(217, 166, 163, 0.1)' }
-            ]}>
-              <MaterialCommunityIcons
-                name="chart-line"
-                size={24}
-                color={colorScheme.accentRedlight}
-              />
-            </View>
-            <View style={styles.cardHeaderText}>
-              <ThemedText style={[styles.cardTitle, { color: textColor }]}>
-                Günlük Statistika
+        {/* Product Selection Button */}
+        <TouchableOpacity 
+          style={[styles.filterButton, { backgroundColor: cardBg, borderColor: borderColor }]}
+          onPress={() => setProductSheetVisible(true)}
+        >
+          <View style={styles.filterIconContainer}>
+            <MaterialCommunityIcons name="tag" size={20} color={colorScheme.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <ThemedText style={[styles.filterLabel, { color: secondaryTextColor }]}>MƏHSULLAR</ThemedText>
+            <ThemedText style={[styles.filterValue, { color: textColor }]} numberOfLines={1}>
+              {selectedProducts?.length > 0 
+                ? `${selectedProducts.length} məhsul seçilib` 
+                : 'Hamsı'}
+            </ThemedText>
+          </View>
+          <Ionicons name="chevron-down" size={16} color={secondaryTextColor} />
+        </TouchableOpacity>
+      </View>
+
+      <MultiSelectBottomSheet
+        visible={branchSheetVisible}
+        title="Filial Seçimi"
+        options={branchOptions}
+        selectedValues={selectedBranches}
+        onConfirm={setSelectedBranches}
+        onClose={() => setBranchSheetVisible(false)}
+      />
+
+      <MultiSelectBottomSheet
+        visible={productSheetVisible}
+        title="Məhsul Seçimi"
+        options={productOptions}
+        selectedValues={selectedProducts}
+        onConfirm={setSelectedProducts}
+        onClose={() => setProductSheetVisible(false)}
+      />
+
+      {/* Results Section */}
+      {selectedBranches?.length > 0 && (
+        <View style={{ marginTop: 8 }}>
+          <View style={{ marginBottom: 16, paddingHorizontal: 4 }}>
+            <ThemedText style={[styles.sectionTitleModern, { color: secondaryTextColor, marginBottom: 4 }]}>
+              GÜNLÜK STATİSTİKA
+            </ThemedText>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <ThemedText style={{ fontSize: 13, color: secondaryTextColor }}>
+                {dailyStats.filter(stat => formatQuantity(stat.quantity)).length} məlumat tapıldı
               </ThemedText>
-              <ThemedText style={[styles.cardSubTitle, { color: secondaryTextColor }]}>
-                {dailyStats.filter(stat => formatQuantity(stat.quantity)).length} gün üzrə məlumat
+              <ThemedText style={{ fontSize: 14, fontWeight: '700', color: colorScheme.primary }}>
+                Ümumi: {dailyStats.reduce((sum, s) => sum + (s.price ? s.quantity * s.price : 0), 0).toFixed(2)} ₼
               </ThemedText>
             </View>
           </View>
 
-          <View style={styles.tableContainer}>
-            <View style={[
-              styles.tableHeader,
-              { borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(74,53,49,0.1)' }
-            ]}>
-              <ThemedText style={[
-                styles.columnHeader,
-                { color: textColor }
-              ]}>Tarix</ThemedText>
-              <ThemedText style={[
-                styles.columnHeader,
-                { color: textColor }
-              ]}>Miqdar</ThemedText>
-            </View>
-            
-            {[...dailyStats].sort((a, b) => {
-              // Parse dates in DD.MM.YYYY format for sorting (oldest first)
-              const [aDay, aMonth, aYear] = a.date.split('.').map(Number);
-              const [bDay, bMonth, bYear] = b.date.split('.').map(Number);
-              const dateA = new Date(aYear || 0, (aMonth || 1) - 1, aDay || 1);
-              const dateB = new Date(bYear || 0, (bMonth || 1) - 1, bDay || 1);
-              return dateA.getTime() - dateB.getTime();
-            }).map((stat, index) => {
-              const formattedQuantity = formatQuantity(stat.quantity);
-              if (!formattedQuantity) return null;
+          {(() => {
+            // Group stats by date -> branch
+            const groupedStats = dailyStats.reduce((acc, stat) => {
+              if (!acc[stat.date]) {
+                acc[stat.date] = {};
+              }
+              if (!acc[stat.date][stat.branchName]) {
+                acc[stat.date][stat.branchName] = [];
+              }
+              acc[stat.date][stat.branchName].push(stat);
+              return acc;
+            }, {} as { [date: string]: { [branch: string]: DailyStats[] } });
+
+            // Sort dates (newest first)
+            const sortedDates = Object.keys(groupedStats).sort((a, b) => {
+              const [aDay, aMonth, aYear] = a.split('.').map(Number);
+              const [bDay, bMonth, bYear] = b.split('.').map(Number);
+              return new Date(bYear, bMonth - 1, bDay).getTime() - new Date(aYear, aMonth - 1, aDay).getTime();
+            });
+
+            return sortedDates.map((date) => {
+              const dateBranches = groupedStats[date];
+              const sortedBranches = Object.keys(dateBranches).sort(); // Sort branches alphabetically
+              const isDateExpanded = expandedDates.has(date);
+
+              // Calculate Date Totals
+              let dateTotalEarnings = 0;
+              let dateTotalQuantity = 0;
+
+              sortedBranches.forEach(branch => {
+                dateBranches[branch].forEach(s => {
+                  dateTotalEarnings += (s.price ? s.quantity * s.price : 0);
+                  dateTotalQuantity += s.quantity;
+                });
+              });
 
               return (
-                <View 
-                  key={index} 
-                  style={[
-                    styles.tableRow,
-                    index % 2 === 0 
-                      ? { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(74,53,49,0.03)' }
-                      : { backgroundColor: isDark ? 'transparent' : '#fff' }
-                  ]}
-                >
-                  <ThemedText style={[
-                    styles.date,
-                    { color: isDark ? 'rgba(255,255,255,0.8)' : 'rgba(74,53,49,0.8)' }
-                  ]}>{stat.date}</ThemedText>
-                  <ThemedText style={[
-                    styles.quantity,
-                    { color: textColor }
-                  ]}>{formattedQuantity}</ThemedText>
+                <View key={date} style={[
+                  styles.dayCard,
+                  { 
+                    backgroundColor: cardBg,
+                    borderColor: borderColor,
+                    borderWidth: 1,
+                    marginBottom: 16 // Explicit margin between cards
+                  }
+                ]}>
+                  {/* Day Header */}
+                  <TouchableOpacity 
+                    style={[
+                      styles.dayHeader, 
+                      { borderBottomColor: isDateExpanded ? (isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)') : 'transparent' }
+                    ]}
+                    onPress={() => toggleDateExpand(date)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <MaterialCommunityIcons 
+                        name={isDateExpanded ? "chevron-down" : "chevron-right"} 
+                        size={22} 
+                        color={colorScheme.accentRedlight} 
+                      />
+                      <ThemedText style={{ fontWeight: '700', fontSize: 16, color: textColor }}>{date}</ThemedText>
+                    </View>
+                    <View>
+                      <ThemedText style={{ fontSize: 14, fontWeight: '700', color: colorScheme.primary, textAlign: 'right' }}>
+                        {dateTotalEarnings.toFixed(2)} ₼
+                      </ThemedText>
+                      <ThemedText style={{ fontSize: 12, color: secondaryTextColor, textAlign: 'right' }}>
+                        {formatQuantity(dateTotalQuantity)} ədəd
+                      </ThemedText>
+                    </View>
+                  </TouchableOpacity>
+
+                  {/* Branches List */}
+                  {isDateExpanded && (
+                    <View style={styles.dayContent}>
+                      {sortedBranches.map((branch, branchIndex) => {
+                        const branchStats = dateBranches[branch];
+                        const branchTotalEarnings = branchStats.reduce((sum, s) => sum + (s.price ? s.quantity * s.price : 0), 0);
+                        const branchTotalQuantity = branchStats.reduce((sum, s) => sum + s.quantity, 0);
+                        const collapseKey = `${date}-${branch}`;
+                        const isBranchExpanded = expandedBranches.has(collapseKey);
+                        
+                        return (
+                          <View key={branch} style={{ marginBottom: branchIndex === sortedBranches.length - 1 ? 0 : 16 }}>
+                            {/* Branch Header */}
+                            <TouchableOpacity 
+                              onPress={() => toggleBranchExpand(collapseKey)}
+                              activeOpacity={0.7}
+                              style={[
+                                styles.branchHeader, 
+                                { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)' }
+                              ]}
+                            >
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                                <MaterialCommunityIcons 
+                                  name={isBranchExpanded ? "chevron-down" : "chevron-right"} 
+                                  size={20} 
+                                  color={secondaryTextColor} 
+                                />
+                                <MaterialCommunityIcons name="store" size={16} color={secondaryTextColor} />
+                                <ThemedText style={{ fontSize: 13, fontWeight: '600', color: textColor }}>
+                                  {branch}
+                                </ThemedText>
+                              </View>
+                              <ThemedText style={{ fontSize: 13, fontWeight: '600', color: textColor }}>
+                                {branchTotalEarnings.toFixed(2)} ₼
+                              </ThemedText>
+                            </TouchableOpacity>
+
+                            {/* Products in Branch */}
+                            {isBranchExpanded && (
+                              <View style={styles.branchContent}>
+                                {branchStats.map((stat, index) => {
+                                  const itemEarnings = stat.price ? stat.quantity * stat.price : 0;
+                                  return (
+                                    <View key={index} style={[
+                                      styles.itemRow,
+                                      index !== branchStats.length - 1 && { 
+                                        borderBottomWidth: 1, 
+                                        borderBottomColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)' 
+                                      }
+                                    ]}>
+                                      <View style={{ flex: 1 }}>
+                                        <ThemedText style={{ fontSize: 14, fontWeight: '500', color: textColor }}>
+                                          {stat.productName}
+                                        </ThemedText>
+                                      </View>
+                                      
+                                      <View style={{ alignItems: 'flex-end' }}>
+                                        <ThemedText style={{ fontSize: 13, fontWeight: '500', color: secondaryTextColor }}>
+                                          {formatQuantity(stat.quantity)} x {stat.price ? stat.price.toFixed(2) : '-'}
+                                        </ThemedText>
+                                        <ThemedText style={{ fontSize: 13, fontWeight: '600', color: isDark ? '#4ade80' : '#16a34a' }}>
+                                          {itemEarnings.toFixed(2)} ₼
+                                        </ThemedText>
+                                      </View>
+                                    </View>
+                                  );
+                                })}
+                              </View>
+                            )}
+                          </View>
+                        );
+                      })}
+                    </View>
+                  )}
                 </View>
               );
-            })}
-          </View>
+            });
+          })()}
         </View>
       )}
     </ScrollView>
@@ -176,23 +340,38 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 150,
   },
-  selectionButton: {
-    marginBottom: 12,
-    borderRadius: 12,
-    padding: 16,
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    borderWidth: 0,
+  sectionTitleModern: {
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
   },
-  selectionButtonContent: {
+  filterButton: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 8,
+  },
+  filterIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 107, 107, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    marginBottom: 2,
+    letterSpacing: 0.5,
+  },
+  filterValue: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   iconContainer: {
     width: 48,
@@ -201,18 +380,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  selectionTextContainer: {
-    flex: 1,
-  },
-  selectionButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  selectionSubText: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginTop: 2,
-  },
+
+
   productCard: {
     borderRadius: 12,
     shadowOffset: {
@@ -244,38 +413,40 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     marginTop: 2,
   },
-  tableContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+  dayCard: {
+    marginBottom: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
   },
-  tableHeader: {
+  dayHeader: {
     flexDirection: 'row',
-    paddingVertical: 10,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
     borderBottomWidth: 1,
+  },
+  dayContent: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+  },
+  branchHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 8,
+    borderRadius: 8,
     marginBottom: 8,
   },
-  columnHeader: {
-    flex: 1,
-    fontWeight: '600',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  tableRow: {
-    flexDirection: 'row',
-    paddingVertical: 10,
+  branchContent: {
     paddingHorizontal: 8,
-    alignItems: 'center',
-    borderRadius: 6,
-    marginVertical: 2,
   },
-  date: {
-    flex: 1,
-    fontSize: 14,
-    textAlign: 'center',
+  itemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
   },
-  quantity: {
-    flex: 1,
-    fontSize: 14,
+  cell: {
+    fontSize: 13,
     textAlign: 'center',
   },
 });

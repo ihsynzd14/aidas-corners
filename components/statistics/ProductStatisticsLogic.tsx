@@ -24,7 +24,10 @@ export interface ProductStats {
 
 export interface DailyStats {
   date: string;
+  productName: string;
+  branchName: string;
   quantity: number;
+  price?: number;
 }
 
 interface BranchSnapshot {
@@ -44,8 +47,8 @@ export const useProductStatistics = () => {
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
   const [viewMode, setViewMode] = useState<'summary' | 'daily'>('summary');
-  const [selectedProduct, setSelectedProduct] = useState('');
-  const [selectedBranch, setSelectedBranch] = useState('');
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [selectedBranches, setSelectedBranches] = useState<string[]>([]);
   const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
   const [availableBranches, setAvailableBranches] = useState<string[]>([]);
   const [totalEarnings, setTotalEarnings] = useState<number>(0);
@@ -149,14 +152,15 @@ export const useProductStatistics = () => {
   }, [startDate, endDate, dateRangeCacheKey]);
 
   const fetchDailyStats = useCallback(async () => {
-    if (!selectedProduct || !selectedBranch) return;
+    if (!selectedBranches?.length) return;
 
     try {
       setLoading(true);
-      
-      const dailyCacheKey = `daily_${selectedProduct}_${selectedBranch}_${formatDate(startDate)}_${formatDate(endDate)}`;
+
+      const productsToFetch = selectedProducts?.length > 0 ? selectedProducts : productStats.map(p => p.productName);
+      const dailyCacheKey = `daily_${productsToFetch.join('_')}_${selectedBranches.join('_')}_${formatDate(startDate)}_${formatDate(endDate)}`;
       const cachedDailyData = getCache(dailyCacheKey);
-      
+
       if (cachedDailyData) {
         setDailyStats(cachedDailyData);
         setLoading(false);
@@ -168,15 +172,26 @@ export const useProductStatistics = () => {
 
       ordersData.forEach((snapshot: OrdersSnapshot, date: string) => {
         snapshot.forEach((doc: BranchSnapshot) => {
-          if (doc.id === selectedBranch) {
+          if (selectedBranches.includes(doc.id)) {
             const data = doc.data();
-            const matchingProduct = Object.entries(data).find(([key]) => 
-              key.trim() === selectedProduct.trim()
-            );
-            
-            dailyData.push({
-              date,
-              quantity: matchingProduct ? parseFloat(matchingProduct[1] as string) : 0
+
+            productsToFetch.forEach(product => {
+              const matchingProduct = Object.entries(data).find(([key]) =>
+                key.trim() === product.trim()
+              );
+
+              if (matchingProduct) {
+                const quantity = parseFloat(matchingProduct[1] as string);
+                const productPrice = productStats.find(p => p.productName === product)?.price;
+
+                dailyData.push({
+                  date,
+                  productName: product,
+                  branchName: doc.id,
+                  quantity,
+                  price: productPrice
+                });
+              }
             });
           }
         });
@@ -189,7 +204,7 @@ export const useProductStatistics = () => {
       console.error('Daily stats çekme hatası:', error);
       setLoading(false);
     }
-  }, [startDate, endDate, selectedProduct, selectedBranch]);
+  }, [startDate, endDate, selectedProducts, selectedBranches, productStats]);
 
   const generateDetailedText = () => {
     const date = new Date();
@@ -423,21 +438,23 @@ export const useProductStatistics = () => {
     setEndDate(end);
   }, []);
 
-  // Calculate filtered earnings when product/branch is selected
   useMemo(() => {
-    if (selectedProduct && selectedBranch) {
-      const product = productStats.find(p => p.productName === selectedProduct);
-      if (product) {
-        const branchQuantity = product.branchStats[selectedBranch]?.quantity || 0;
-        const earnings = product.price ? branchQuantity * product.price : 0;
-        setFilteredEarnings(earnings);
-      } else {
-        setFilteredEarnings(0);
-      }
+    if (selectedProducts?.length > 0 && selectedBranches?.length > 0) {
+      let earnings = 0;
+      selectedProducts.forEach(productName => {
+        const product = productStats.find(p => p.productName === productName);
+        if (product && product.price) {
+          selectedBranches.forEach(branchName => {
+            const branchQuantity = product.branchStats[branchName]?.quantity || 0;
+            earnings += branchQuantity * product.price;
+          });
+        }
+      });
+      setFilteredEarnings(earnings);
     } else {
       setFilteredEarnings(0);
     }
-  }, [selectedProduct, selectedBranch, productStats]);
+  }, [selectedProducts, selectedBranches, productStats]);
 
   return {
     loading,
@@ -447,8 +464,8 @@ export const useProductStatistics = () => {
     showStartPicker,
     showEndPicker,
     viewMode,
-    selectedProduct,
-    selectedBranch,
+    selectedProducts,
+    selectedBranches,
     dailyStats,
     availableBranches,
     totalEarnings,
@@ -458,8 +475,8 @@ export const useProductStatistics = () => {
     setShowStartPicker,
     setShowEndPicker,
     setViewMode,
-    setSelectedProduct,
-    setSelectedBranch,
+    setSelectedProducts,
+    setSelectedBranches,
     setAvailableBranches,
     fetchData,
     fetchDailyStats,

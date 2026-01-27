@@ -17,8 +17,8 @@ export default function ProductStatisticsScreen() {
     showStartPicker,
     showEndPicker,
     viewMode,
-    selectedProduct,
-    selectedBranch,
+    selectedProducts,
+    selectedBranches,
     dailyStats,
     availableBranches,
     totalEarnings,
@@ -28,8 +28,8 @@ export default function ProductStatisticsScreen() {
     setShowStartPicker,
     setShowEndPicker,
     setViewMode,
-    setSelectedProduct,
-    setSelectedBranch,
+    setSelectedProducts,
+    setSelectedBranches,
     setAvailableBranches,
     fetchData,
     fetchDailyStats,
@@ -72,15 +72,13 @@ export default function ProductStatisticsScreen() {
         showStartPicker={showStartPicker}
         showEndPicker={showEndPicker}
         viewMode={viewMode}
-        selectedProduct={selectedProduct}
-        selectedBranch={selectedBranch}
+        selectedProducts={selectedProducts}
+        selectedBranches={selectedBranches}
         dailyStats={dailyStats}
         availableBranches={availableBranches}
         totalEarnings={totalEarnings}
         filteredEarnings={filteredEarnings}
         dateRangeModalRef={dateRangeModalRef}
-        productSelectionVisible={productSelectionVisible}
-        setProductSelectionVisible={setProductSelectionVisible}
         shareVisible={shareVisible}
         setShareVisible={setShareVisible}
         onStartDateChange={onStartDateChange}
@@ -89,8 +87,8 @@ export default function ProductStatisticsScreen() {
         setShowStartPicker={setShowStartPicker}
         setShowEndPicker={setShowEndPicker}
         setViewMode={setViewMode}
-        setSelectedProduct={setSelectedProduct}
-        setSelectedBranch={setSelectedBranch}
+        setSelectedProducts={setSelectedProducts}
+        setSelectedBranches={setSelectedBranches}
         setAvailableBranches={setAvailableBranches}
         generateExcel={generateExcel}
         generateWhatsAppText={generateWhatsAppText}

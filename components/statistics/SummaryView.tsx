@@ -15,6 +15,7 @@ interface ProductStats {
     };
   };
   totalQuantity: number;
+  price?: number;
   dateRange: {
     startDate: string;
     endDate: string;
@@ -93,9 +94,16 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ productStats }) => {
                       <Text style={[styles.productName, { color: textColor }]} adjustsFontSizeToFit={true} minimumFontScale={0.8} numberOfLines={2}>
                         {stat.productName}
                       </Text>
-                      <Text style={[styles.totalQuantityText, { color: secondaryTextColor }]}>
-                        {formatQuantity(stat.totalQuantity)} ədəd
-                      </Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                        <Text style={[styles.totalQuantityText, { color: secondaryTextColor }]}>
+                          {formatQuantity(stat.totalQuantity)} ədəd
+                        </Text>
+                        {stat.price && (
+                          <Text style={[styles.totalQuantityText, { color: secondaryTextColor }]}>
+                            • {(stat.totalQuantity * stat.price).toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₼
+                          </Text>
+                        )}
+                      </View>
                     </View>
                     
                     <MaterialIcons
@@ -147,6 +155,10 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ productStats }) => {
                       <ThemedText style={[
                         styles.columnHeader,
                         { color: textColor }
+                      ]}>Qazanc</ThemedText>
+                      <ThemedText style={[
+                        styles.columnHeader,
+                        { color: textColor }
                       ]}>%</ThemedText>
                     </ThemedView>
 
@@ -170,6 +182,14 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ productStats }) => {
                             styles.quantity,
                             { color: textColor }
                           ]}>{formatQuantity(branchStat.quantity)}</ThemedText>
+                          <ThemedText style={[
+                            styles.quantity,
+                            { color: textColor }
+                          ]}>
+                            {stat.price 
+                              ? (branchStat.quantity * stat.price).toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₼'
+                              : '-'}
+                          </ThemedText>
                           <ThemedText style={[
                             styles.percentage,
                             { color: textColor }

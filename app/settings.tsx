@@ -5,6 +5,8 @@ import { NotificationService } from '@/services/NotificationService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { YearRangePicker } from '@/app/components/YearRangePicker';
+import { generateAnnualReport } from '@/utils/annualReport';
 
 // Material Symbols Outlined Icons
 const MaterialIcon = ({ name, size = 24, color }: { name: string; size?: number; color: string }) => {
@@ -39,6 +41,7 @@ export default function SettingsScreen() {
   const [groqApiKey, setGroqApiKey] = useState('');
   const [openrouterApiKey, setOpenrouterApiKey] = useState('');
   const [geminiApiKey, setGeminiApiKey] = useState('');
+  const [showYearPicker, setShowYearPicker] = useState(false);
 
   useEffect(() => {
     loadApiKeys();
@@ -276,6 +279,31 @@ export default function SettingsScreen() {
               </View>
             </View>
 
+            {/* Hesabatlar Section */}
+            <View style={styles.sectionContainer}>
+              <Text style={[styles.sectionTitle, { color: isDarkMode ? '#f8f6f6' : '#1b0e10', opacity: 0.6 }]}>
+                Hesabatlar
+              </Text>
+              <View style={[styles.card, { backgroundColor: isDarkMode ? '#2c1e20' : '#ffffff' }]}>
+                <TouchableOpacity
+                  style={styles.settingRow}
+                  onPress={() => setShowYearPicker(true)}
+                >
+                  <View style={styles.settingLeft}>
+                    <View style={[styles.iconContainer, { backgroundColor: isDarkMode ? '#3a282b' : '#f3e7e9' }]}>
+                      <MaterialIcon name="analytics" size={24} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                    </View>
+                    <Text style={[styles.settingText, { color: isDarkMode ? '#f8f6f6' : '#1b0e10' }]}>
+                      İllik Hesabat
+                    </Text>
+                  </View>
+                  <View style={styles.chevronContainer}>
+                    <MaterialIcon name="chevron_right" size={28} color={isDarkMode ? '#f8f6f6' : '#1b0e10'} />
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+
             {/* Bildiriş Zamanları Section */}
             <View style={styles.sectionContainer}>
               <Text style={[styles.sectionTitle, { color: isDarkMode ? '#f8f6f6' : '#1b0e10', opacity: 0.6 }]}>
@@ -407,6 +435,12 @@ export default function SettingsScreen() {
                 }}
               />
             )}
+
+            <YearRangePicker
+              visible={showYearPicker}
+              onClose={() => setShowYearPicker(false)}
+              onGenerate={generateAnnualReport}
+            />
           </View>
         </ScrollView>
       </View>
