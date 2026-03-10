@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { ProductDefinition } from '../../utils/firebase';
+import { ProductDefinition, PriceHistoryEntry } from '../../utils/firebase';
 import {
     StyleSheet,
     Modal,
@@ -133,6 +133,26 @@ export const EditProductSheet: React.FC<EditProductSheetProps> = ({
                 const priceValue = parseFloat(price.replace(',', '.'));
                 if (!isNaN(priceValue) && priceValue > 0) {
                     updatedData.price = priceValue;
+
+                    // priceHistory idarəsi — qiymət dəyişibsə yeni giriş əlavə et
+                    const oldPrice = product?.price;
+                    if (oldPrice !== priceValue) {
+                        const now = new Date();
+                        let currentHistory: PriceHistoryEntry[] = [];
+
+                        if (product?.priceHistory && product.priceHistory.length > 0) {
+                            currentHistory = [...product.priceHistory];
+                        } else if (oldPrice !== undefined) {
+                            // priceHistory yoxdur amma köhnə qiymət var — əvvəlcə köhnə qiyməti əlavə et
+                            currentHistory = [{
+                                price: oldPrice,
+                                effectiveFrom: product?.createdAt || new Date('2024-01-01')
+                            }];
+                        }
+
+                        currentHistory.push({ price: priceValue, effectiveFrom: now });
+                        updatedData.priceHistory = currentHistory;
+                    }
                 }
             }
 

@@ -17,7 +17,7 @@ import Animated, {
   useSharedValue
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
-import { getBranches, getProductCorrections } from '@/utils/firebase';
+import { getBranches, getProductCorrections, buildPriceHistoryMap, getEffectivePrice } from '@/utils/firebase';
 import { exportToExcel } from '@/utils/excelExport';
 import { Branch } from '@/types/branch';
 
@@ -229,6 +229,7 @@ interface OrdersTotalSummaryProps {
   ordersData: any;
   SHEET_HEIGHT: number;
   scrollRef: React.RefObject<any>;
+  selectedDate?: Date;
 }
 
 type SortType = 'alpha-asc' | 'alpha-desc' | 'quantity-asc' | 'quantity-desc';
@@ -804,7 +805,7 @@ const ProductItem = React.memo(({
 });
 
 // Main Component
-export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: OrdersTotalSummaryProps) {
+export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef, selectedDate }: OrdersTotalSummaryProps) {
   const isDark = useColorScheme() === 'dark';
   const insets = useSafeAreaInsets();
   const [expandedProduct, setExpandedProduct] = useState<string | null>(null);
@@ -828,89 +829,49 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
     fetchBranches();
   }, []);
 
-  // Fetch product prices and calculate total earnings
+  // Fetch product prices (date-aware) and calculate total earnings
   useEffect(() => {
     const fetchProductPrices = async () => {
       try {
         const productCorrections = await getProductCorrections();
+        const priceHistoryMap = buildPriceHistoryMap(productCorrections);
+        // Tarix konteksti: seçilmiş tarix və ya bugün
+        const orderDate = selectedDate || new Date();
+
+        // Tarix üçün effektiv qiymət xəritəsi yarat
         const priceMap = new Map<string, number>();
 
-        console.log('=== OrdersTotalSummary - Price Calculation ===');
-        console.log('Total products with prices:', productCorrections.filter(p => p.price !== undefined).length);
+        console.log('=== OrdersTotalSummary - Price Calculation (date-aware) ===');
+        console.log('Order date:', orderDate.toISOString());
 
-        productCorrections.forEach(product => {
-          if (product.price !== undefined) {
-            priceMap.set(product.correct.toLowerCase(), product.price);
-            product.variations.forEach(variation => {
-              if (variation && product.price !== undefined) {
-                priceMap.set(variation.toLowerCase(), product.price);
-              }
-            });
+        priceHistoryMap.forEach((history, productName) => {
+          const effectivePrice = getEffectivePrice(history, orderDate);
+          if (effectivePrice !== undefined) {
+            priceMap.set(productName, effectivePrice);
           }
         });
         setProductPrices(priceMap);
 
         console.log('Price Map built with', priceMap.size, 'entries');
-        console.log('Sample prices from map:');
-        let sampleCount = 0;
-        priceMap.forEach((price, name) => {
-          if (sampleCount < 5) {
-            console.log(`  - ${name}: ${price} ₼`);
-            sampleCount++;
-          }
-        });
 
         // Calculate total earnings from ordersData
         if (ordersData) {
-          console.log('\nCalculating earnings from ordersData...');
           let earnings = 0;
-          let productsWithPrice = 0;
-          let productsWithoutPrice = 0;
-          const branchTotals: { [key: string]: number } = {};
 
           Object.entries(ordersData).forEach(([branchName, branchProducts]: [string, any]) => {
-            console.log(`\n📍 Branch: ${branchName}`);
-            let branchTotal = 0;
-            let branchProductsWithPrice = 0;
-            let branchProductsWithoutPrice = 0;
-
             Object.entries(branchProducts).forEach(([product, quantity]) => {
               const normalizedProduct = product.trim().toLowerCase();
               const productPrice = priceMap.get(normalizedProduct);
               const qty = parseFloat(quantity as string);
 
               if (productPrice !== undefined) {
-                const lineTotal = qty * productPrice;
-                branchTotal += lineTotal;
-                earnings += lineTotal;
-                productsWithPrice++;
-                branchProductsWithPrice++;
-                console.log(`  ✅ ${product}: ${qty} × ${productPrice} ₼ = ${lineTotal.toFixed(2)} ₼`);
-              } else {
-                productsWithoutPrice++;
-                branchProductsWithoutPrice++;
-                console.log(`  ❌ ${product}: ${qty} (no price found)`);
+                earnings += qty * productPrice;
               }
             });
-
-            branchTotals[branchName] = branchTotal;
-            console.log(`  ━━━━━━━━━━━━━━━━━━━━━━━━`);
-            console.log(`  📦 Branch Total: ${branchTotal.toFixed(2)} ₼ (${branchProductsWithPrice} with price, ${branchProductsWithoutPrice} without)`);
           });
-
-          console.log('\n=== Branch Totals Summary ===');
-          Object.entries(branchTotals).forEach(([branch, total]) => {
-            console.log(`  📍 ${branch}: ${total.toFixed(2)} ₼`);
-          });
-
-          console.log('\n=== Summary ===');
-          console.log(`Products with price: ${productsWithPrice}`);
-          console.log(`Products without price: ${productsWithoutPrice}`);
-          console.log(`📊 Total Earnings (sum of all branches): ${earnings.toFixed(2)} ₼`);
 
           setTotalEarnings(earnings);
         } else {
-          console.log('No ordersData available');
           setTotalEarnings(0);
         }
       } catch (error) {
@@ -918,7 +879,7 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
       }
     };
     fetchProductPrices();
-  }, [ordersData]);
+  }, [ordersData, selectedDate]);
 
   // Calculate missing branches
   // ordersData keys use format: "Type Name" (e.g., "Coffemania Azadlıq", "Next Mərkəz")
@@ -1111,7 +1072,7 @@ export function OrdersTotalSummary({ ordersData, SHEET_HEIGHT, scrollRef }: Orde
   const handleExportToExcel = async () => {
     try {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      await exportToExcel(ordersData, productPrices, new Date());
+      await exportToExcel(ordersData, productPrices, selectedDate || new Date());
     } catch (error) {
       Alert.alert(
         "Xəta",

@@ -14,7 +14,7 @@ import { EnhancedErrorState } from './EnhancedErrorState';
 import { SuccessToast } from './FeedbackComponents';
 import { Ionicons } from '@expo/vector-icons';
 import { PastryColors } from '@/constants/Colors';
-import { getProductCorrections } from '@/utils/firebase';
+import { getProductCorrections, buildPriceHistoryMap, getEffectivePrice } from '@/utils/firebase';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const MIN_SHEET_HEIGHT = 250;
@@ -109,21 +109,19 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
     loadOrders().finally(() => setLoading(false));
   }, [selectedDate]);
 
-  // Fetch product prices
+  // Fetch product prices (date-aware)
   useEffect(() => {
     const fetchProductPrices = async () => {
       try {
         const productCorrections = await getProductCorrections();
+        const priceHistoryMap = buildPriceHistoryMap(productCorrections);
+        const orderDate = selectedDate || new Date();
         const priceMap = new Map<string, number>();
 
-        productCorrections.forEach(product => {
-          if (product.price !== undefined) {
-            priceMap.set(product.correct.toLowerCase(), product.price);
-            product.variations.forEach(variation => {
-              if (variation && product.price !== undefined) {
-                priceMap.set(variation.toLowerCase(), product.price);
-              }
-            });
+        priceHistoryMap.forEach((history, productName) => {
+          const effectivePrice = getEffectivePrice(history, orderDate);
+          if (effectivePrice !== undefined) {
+            priceMap.set(productName, effectivePrice);
           }
         });
         setProductPrices(priceMap);
@@ -132,7 +130,7 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
       }
     };
     fetchProductPrices();
-  }, []);
+  }, [selectedDate]);
 
   if (loading) {
     return (
@@ -240,6 +238,7 @@ export function OrdersSummaryContent({ selectedDate: propSelectedDate, onDateCha
             ordersData={ordersData}
             SHEET_HEIGHT={EXPANDED_HEIGHT}
             scrollRef={scrollRef}
+            selectedDate={selectedDate}
           />
         </ThemedView>
       </Animated.View>

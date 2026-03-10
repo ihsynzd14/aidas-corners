@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Alert, Platform } from 'react-native';
-import { formatDate, getCache, setCache, fetchOrdersForDateRange, getProductCorrections } from '@/utils/firebase';
+import { formatDate, getCache, setCache, fetchOrdersForDateRange, getProductCorrections, buildPriceHistoryMap, getEffectivePrice, parseDateString } from '@/utils/firebase';
 import * as FileSystem from 'expo-file-system';
 import * as Clipboard from 'expo-clipboard';
 import XLSX from 'xlsx';
@@ -11,11 +11,13 @@ export interface ProductStats {
   branchStats: {
     [key: string]: {
       quantity: number;
+      earnings: number; // Tarixə uyğun qazanc
       dates: { [date: string]: number };
     };
   };
   totalQuantity: number;
-  price?: number; // Store price for earnings calculation
+  totalEarnings: number; // Tarixə uyğun ümumi qazanc
+  price?: number; // Cari qiymət (geriyə uyğunluq üçün)
   dateRange: {
     startDate: string;
     endDate: string;
@@ -27,7 +29,7 @@ export interface DailyStats {
   productName: string;
   branchName: string;
   quantity: number;
-  price?: number;
+  price?: number; // Həmin tarixdəki effektiv qiymət
 }
 
 interface BranchSnapshot {
@@ -76,14 +78,17 @@ export const useProductStatistics = () => {
         endDate: formatDate(endDate)
       });
 
-      // Get product prices from productCorrections
+      // Qiymət tarixçəsi xəritəsini al
       const productCorrections = await getProductCorrections();
-      const priceMap = new Map<string, number>();
+      const priceHistoryMap = buildPriceHistoryMap(productCorrections);
+
+      // Cari qiymət xəritəsi (geriyə uyğunluq üçün)
+      const currentPriceMap = new Map<string, number>();
       productCorrections.forEach(product => {
         if (product.price !== undefined) {
-          priceMap.set(product.correct.toLowerCase(), product.price);
+          currentPriceMap.set(product.correct.toLowerCase(), product.price);
           product.variations.forEach(variation => {
-            priceMap.set(variation.toLowerCase(), product.price);
+            currentPriceMap.set(variation.toLowerCase(), product.price!);
           });
         }
       });
@@ -92,20 +97,29 @@ export const useProductStatistics = () => {
       const stats: { [key: string]: ProductStats } = {};
 
       ordersData.forEach((branchesSnapshot: OrdersSnapshot, date: string) => {
+        // DD.MM.YYYY formatından Date obyektinə çevir
+        const orderDate = parseDateString(date);
+
         branchesSnapshot.forEach((branchDoc: BranchSnapshot) => {
           const branchData = branchDoc.data();
           const branchName = branchDoc.id;
 
           Object.entries(branchData).forEach(([product, quantity]) => {
             const normalizedProduct = product.trim();
-            const productPrice = priceMap.get(normalizedProduct.toLowerCase());
+            const normalizedLower = normalizedProduct.toLowerCase();
+            
+            // Tarixə uyğun effektiv qiyməti tap
+            const priceHistory = priceHistoryMap.get(normalizedLower);
+            const effectivePrice = priceHistory ? getEffectivePrice(priceHistory, orderDate) : undefined;
+            const currentPrice = currentPriceMap.get(normalizedLower);
 
             if (!stats[normalizedProduct]) {
               stats[normalizedProduct] = {
                 productName: normalizedProduct,
                 branchStats: {},
                 totalQuantity: 0,
-                price: productPrice,
+                totalEarnings: 0,
+                price: currentPrice,
                 dateRange: {
                   startDate: formatDate(startDate),
                   endDate: formatDate(endDate)
@@ -114,32 +128,30 @@ export const useProductStatistics = () => {
             }
 
             const numericQuantity = parseFloat(quantity as string);
+            const lineEarnings = effectivePrice !== undefined ? numericQuantity * effectivePrice : 0;
             
             if (!stats[normalizedProduct].branchStats[branchName]) {
               stats[normalizedProduct].branchStats[branchName] = {
                 quantity: 0,
+                earnings: 0,
                 dates: {}
               };
             }
 
             stats[normalizedProduct].branchStats[branchName].quantity += numericQuantity;
+            stats[normalizedProduct].branchStats[branchName].earnings += lineEarnings;
             stats[normalizedProduct].branchStats[branchName].dates[date] = 
               (stats[normalizedProduct].branchStats[branchName].dates[date] || 0) + numericQuantity;
             stats[normalizedProduct].totalQuantity += numericQuantity;
+            stats[normalizedProduct].totalEarnings += lineEarnings;
           });
         });
       });
 
       const sortedStats = Object.values(stats).sort((a, b) => b.totalQuantity - a.totalQuantity);
 
-      // Calculate total earnings by summing (quantity × price) for all products
-      let earnings = 0;
-      sortedStats.forEach(stat => {
-        const productPrice = priceMap.get(stat.productName.toLowerCase());
-        if (productPrice !== undefined) {
-          earnings += stat.totalQuantity * productPrice;
-        }
-      });
+      // Ümumi qazancı hesabla
+      const earnings = sortedStats.reduce((sum, stat) => sum + stat.totalEarnings, 0);
 
       setCache(dateRangeCacheKey, { productStats: sortedStats, totalEarnings: earnings });
       setProductStats(sortedStats);
@@ -167,10 +179,16 @@ export const useProductStatistics = () => {
         return;
       }
 
+      // Qiymət tarixçəsi xəritəsini al
+      const productCorrections = await getProductCorrections();
+      const priceHistoryMap = buildPriceHistoryMap(productCorrections);
+
       const ordersData = await fetchOrdersForDateRange(startDate, endDate);
       const dailyData: DailyStats[] = [];
 
       ordersData.forEach((snapshot: OrdersSnapshot, date: string) => {
+        const orderDate = parseDateString(date);
+
         snapshot.forEach((doc: BranchSnapshot) => {
           if (selectedBranches.includes(doc.id)) {
             const data = doc.data();
@@ -182,14 +200,16 @@ export const useProductStatistics = () => {
 
               if (matchingProduct) {
                 const quantity = parseFloat(matchingProduct[1] as string);
-                const productPrice = productStats.find(p => p.productName === product)?.price;
+                // Tarixə uyğun qiyməti tap
+                const priceHistory = priceHistoryMap.get(product.trim().toLowerCase());
+                const effectivePrice = priceHistory ? getEffectivePrice(priceHistory, orderDate) : undefined;
 
                 dailyData.push({
                   date,
                   productName: product,
                   branchName: doc.id,
                   quantity,
-                  price: productPrice
+                  price: effectivePrice
                 });
               }
             });
@@ -443,10 +463,10 @@ export const useProductStatistics = () => {
       let earnings = 0;
       selectedProducts.forEach(productName => {
         const product = productStats.find(p => p.productName === productName);
-        if (product && product.price) {
+        if (product) {
           selectedBranches.forEach(branchName => {
-            const branchQuantity = product.branchStats[branchName]?.quantity || 0;
-            earnings += branchQuantity * product.price;
+            const branchEarnings = product.branchStats[branchName]?.earnings || 0;
+            earnings += branchEarnings;
           });
         }
       });

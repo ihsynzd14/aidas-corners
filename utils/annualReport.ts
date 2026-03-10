@@ -2,7 +2,7 @@ import XLSX from 'xlsx-js-style';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system/legacy';
 import { Platform } from 'react-native';
-import { getBranches, fetchOrdersForDateRange, formatDate, getProductCorrections } from './firebase';
+import { getBranches, fetchOrdersForDateRange, formatDate, getProductCorrections, buildPriceHistoryMap, getEffectivePrice } from './firebase';
 import { Branch } from '@/types/branch';
 
 const MONTHS_AZ = [
@@ -16,10 +16,11 @@ const REPORT_MONTHS_ORDER = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
 export const generateAnnualReport = async (startYear: number, endYear: number) => {
     try {
         // 1. Fetch Basic Data
-        const [branches, productsMap] = await Promise.all([
+        const [branches, productCorrections] = await Promise.all([
             getBranches(),
-            getProductPriceMap()
+            getProductCorrections()
         ]);
+        const priceHistoryMap = buildPriceHistoryMap(productCorrections);
 
         // 2. Define Date Range (Jan 1st startYear to Dec 31st endYear)
         const startDate = new Date(startYear, 0, 1);
@@ -110,7 +111,9 @@ export const generateAnnualReport = async (startYear: number, endYear: number) =
                 let dailyTotal = 0;
 
                 Object.entries(data).forEach(([productName, quantityStr]) => {
-                    const price = productsMap.get(productName);
+                    const normalizedName = productName.trim().toLowerCase();
+                    const history = priceHistoryMap.get(normalizedName);
+                    const price = getEffectivePrice(history, date);
                     const quantity = parseFloat(quantityStr as string);
 
                     if (price && !isNaN(quantity)) {
@@ -263,13 +266,4 @@ function bufferToBase64(buffer: any): string {
     return btoa(binary);
 }
 
-async function getProductPriceMap(): Promise<Map<string, number>> {
-    const products = await getProductCorrections();
-    const map = new Map<string, number>();
-    products.forEach(p => {
-        if (p.price) {
-            map.set(p.correct, p.price);
-        }
-    });
-    return map;
-}
+// getProductPriceMap əvəz edildi: buildPriceHistoryMap + getEffectivePrice istifadə olunur

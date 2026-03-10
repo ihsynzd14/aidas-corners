@@ -5,22 +5,7 @@ import { colorScheme } from '@/constants/colorScheme';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MaterialIcons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { ThemedText } from '../ThemedText';
-
-interface ProductStats {
-  productName: string;
-  branchStats: {
-    [key: string]: {
-      quantity: number;
-      dates: { [date: string]: number };
-    };
-  };
-  totalQuantity: number;
-  price?: number;
-  dateRange: {
-    startDate: string;
-    endDate: string;
-  };
-}
+import { ProductStats } from './ProductStatisticsLogic';
 
 interface SummaryViewProps {
   productStats: ProductStats[];
@@ -98,9 +83,9 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ productStats }) => {
                         <Text style={[styles.totalQuantityText, { color: secondaryTextColor }]}>
                           {formatQuantity(stat.totalQuantity)} ədəd
                         </Text>
-                        {stat.price && (
+                        {stat.totalEarnings > 0 && (
                           <Text style={[styles.totalQuantityText, { color: secondaryTextColor }]}>
-                            • {(stat.totalQuantity * stat.price).toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₼
+                            • {stat.totalEarnings.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₼
                           </Text>
                         )}
                       </View>
@@ -186,8 +171,8 @@ export const SummaryView: React.FC<SummaryViewProps> = ({ productStats }) => {
                             styles.quantity,
                             { color: textColor }
                           ]}>
-                            {stat.price 
-                              ? (branchStat.quantity * stat.price).toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₼'
+                            {branchStat.earnings > 0
+                              ? branchStat.earnings.toLocaleString('az-AZ', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₼'
                               : '-'}
                           </ThemedText>
                           <ThemedText style={[

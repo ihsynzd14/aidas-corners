@@ -128,6 +128,8 @@ export const AddProductSheet: React.FC<AddProductSheetProps> = ({
                 const priceValue = parseFloat(price.replace(',', '.'));
                 if (!isNaN(priceValue) && priceValue > 0) {
                     newProduct.price = priceValue;
+                    // priceHistory-ni yeni məhsul üçün başlat
+                    newProduct.priceHistory = [{ price: priceValue, effectiveFrom: new Date() }];
                 }
             }
 

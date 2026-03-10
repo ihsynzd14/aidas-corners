@@ -133,6 +133,7 @@ export function OrdersSummaryContent() {
           ordersData={ordersData} 
           SHEET_HEIGHT={EXPANDED_HEIGHT}
           scrollRef={scrollRef}
+          selectedDate={selectedDate}
         />
       </ModernBottomSheet>
     </ThemedView>

@@ -6,26 +6,7 @@ import { MaterialCommunityIcons, MaterialIcons, Ionicons } from '@expo/vector-ic
 import { colorScheme } from '@/constants/colorScheme';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { MultiSelectBottomSheet } from './MultiSelectBottomSheet';
-
-interface DailyStats {
-  date: string;
-  productName: string;
-  branchName: string;
-  quantity: number;
-  price?: number;
-}
-
-interface ProductStats {
-  productName: string;
-  branchStats: {
-    [key: string]: {
-      quantity: number;
-      dates: { [date: string]: number };
-    };
-  };
-  totalQuantity: number;
-  price?: number;
-}
+import { ProductStats, DailyStats } from './ProductStatisticsLogic';
 
 interface DailyViewProps {
   selectedProducts: string[];

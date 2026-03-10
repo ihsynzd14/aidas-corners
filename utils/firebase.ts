@@ -13,6 +13,8 @@ import {
   orderBy,
   limit,
   writeBatch,
+  addDoc,
+  Timestamp,
   QueryDocumentSnapshot,
 } from 'firebase/firestore';
 import { Branch } from '@/types/branch';
@@ -39,6 +41,12 @@ interface DailyNeedOrder {
   unit: string;
 }
 
+// Price history entry - her qiymət dəyişikliyi üçün bir giriş
+export interface PriceHistoryEntry {
+  price: number;
+  effectiveFrom: Date;
+}
+
 // Product Correction interfaces
 export interface ProductDefinition {
   id?: string;
@@ -49,9 +57,80 @@ export interface ProductDefinition {
     variations: string[];
   };
   price?: number;
+  priceHistory?: PriceHistoryEntry[];
   isActive: boolean;
   createdAt?: Date;
   updatedAt?: Date;
+}
+
+/**
+ * Verilən tarix üçün effektiv qiyməti tapır.
+ * priceHistory massivini effectiveFrom-a görə sıralayır və verilən tarixdə
+ * və ya ondan əvvəl olan ən son girişi qaytarır.
+ * Heç bir uyğun giriş tapılmazsa undefined qaytarır.
+ */
+export function getEffectivePrice(priceHistory: PriceHistoryEntry[] | undefined, date: Date): number | undefined {
+  if (!priceHistory || priceHistory.length === 0) return undefined;
+
+  // effectiveFrom-a görə azalan sıralama (ən yeni əvvəlcə)
+  const sorted = [...priceHistory].sort((a, b) => {
+    const dateA = a.effectiveFrom instanceof Date ? a.effectiveFrom : new Date(a.effectiveFrom);
+    const dateB = b.effectiveFrom instanceof Date ? b.effectiveFrom : new Date(b.effectiveFrom);
+    return dateB.getTime() - dateA.getTime();
+  });
+
+  // Tarixdən əvvəl və ya ona bərabər olan ilk girişi tap
+  const targetTime = date.getTime();
+  for (const entry of sorted) {
+    const entryDate = entry.effectiveFrom instanceof Date ? entry.effectiveFrom : new Date(entry.effectiveFrom);
+    if (entryDate.getTime() <= targetTime) {
+      return entry.price;
+    }
+  }
+
+  // Heç bir giriş verilən tarixdən əvvəl deyilsə, ən erkən qiyməti qaytar
+  // (yəni bütün tarix tarixçası verilən tarixdən sonradır — köhnə sifarişlər üçün ilk qiyməti istifadə et)
+  return sorted[sorted.length - 1].price;
+}
+
+/**
+ * Məhsullar siyahısından qiymət tarixçəsi xəritəsi yaradır.
+ * Açar: məhsul adı (kiçik hərflə), Dəyər: PriceHistoryEntry[]
+ * Həm correct adı, həm də bütün variations-ı xəritəyə əlavə edir.
+ */
+export function buildPriceHistoryMap(products: ProductDefinition[]): Map<string, PriceHistoryEntry[]> {
+  const map = new Map<string, PriceHistoryEntry[]>();
+  products.forEach(product => {
+    if (product.priceHistory && product.priceHistory.length > 0) {
+      map.set(product.correct.toLowerCase(), product.priceHistory);
+      product.variations.forEach(variation => {
+        if (variation) {
+          map.set(variation.toLowerCase(), product.priceHistory!);
+        }
+      });
+    } else if (product.price !== undefined) {
+      // Fallback: priceHistory yoxdursa, cari qiymətdən bir giriş yarat
+      const fallbackHistory: PriceHistoryEntry[] = [{
+        price: product.price,
+        effectiveFrom: product.createdAt || new Date('2024-01-01')
+      }];
+      map.set(product.correct.toLowerCase(), fallbackHistory);
+      product.variations.forEach(variation => {
+        if (variation) {
+          map.set(variation.toLowerCase(), fallbackHistory);
+        }
+      });
+    }
+  });
+  return map;
+}
+
+/**
+ * DD.MM.YYYY formatındakı tarix sətirini Date obyektinə çevirir.
+ */
+export function parseDateString(dateStr: string): Date {
+  const [day, month, year] = dateStr.split('.').map(Number);
+  return new Date(year, month - 1, day);
 }
 
 // Firebase configuration
@@ -493,6 +572,30 @@ function compareVersions(localVersion: string, remoteVersion: string): boolean {
 
 // ===== PRODUCT CORRECTION FUNCTIONS =====
 
+/**
+ * Firestore Timestamp-ı JS Date-ə çevirir.
+ * Əgər artıq Date-dirsə və ya null/undefined-dirsə, uyğun şəkildə idarə edir.
+ */
+function toDate(value: any): Date | undefined {
+  if (!value) return undefined;
+  if (value instanceof Date) return value;
+  if (value instanceof Timestamp) return value.toDate();
+  if (typeof value === 'object' && typeof value.toDate === 'function') return value.toDate();
+  if (typeof value === 'string') return new Date(value);
+  if (typeof value === 'number') return new Date(value);
+  return undefined;
+}
+
+/**
+ * Firestore-dan gələn xam priceHistory massivini düzgün PriceHistoryEntry[] formatına çevirir.
+ */
+function parsePriceHistory(raw: any[]): PriceHistoryEntry[] {
+  return raw.map(entry => ({
+    price: entry.price,
+    effectiveFrom: toDate(entry.effectiveFrom) || new Date('2024-01-01')
+  }));
+}
+
 // Get all active product corrections
 export async function getProductCorrections(): Promise<ProductDefinition[]> {
   const cacheKey = 'product_corrections';
@@ -501,37 +604,79 @@ export async function getProductCorrections(): Promise<ProductDefinition[]> {
 
   try {
     const correctionsRef = collection(db, 'productCorrections');
+    let corrections: ProductDefinition[] = [];
+
     // First try with index (will work once index is created)
     try {
       const q = query(correctionsRef, where('isActive', '==', true), orderBy('correct', 'asc'));
       const querySnapshot = await getDocs(q);
       
-      const corrections = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as ProductDefinition[];
-      
-      setCache(cacheKey, corrections);
-      return corrections;
+      corrections = querySnapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          ...data,
+          createdAt: toDate(data.createdAt),
+          updatedAt: toDate(data.updatedAt),
+          priceHistory: data.priceHistory ? parsePriceHistory(data.priceHistory) : undefined,
+        } as ProductDefinition;
+      });
     } catch (indexError: any) {
       // Fallback: Get all documents and filter client-side
       if (indexError.message && indexError.message.includes('requires an index')) {
         console.log('⚠️  Index not found, using client-side filtering...');
         const querySnapshot = await getDocs(correctionsRef);
         
-        const corrections = querySnapshot.docs
-          .map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }) as ProductDefinition)
+        corrections = querySnapshot.docs
+          .map(docSnap => {
+            const data = docSnap.data();
+            return {
+              id: docSnap.id,
+              ...data,
+              createdAt: toDate(data.createdAt),
+              updatedAt: toDate(data.updatedAt),
+              priceHistory: data.priceHistory ? parsePriceHistory(data.priceHistory) : undefined,
+            } as ProductDefinition;
+          })
           .filter(correction => correction.isActive === true)
           .sort((a, b) => a.correct.localeCompare(b.correct));
-        
-        setCache(cacheKey, corrections);
-        return corrections;
+      } else {
+        throw indexError;
       }
-      throw indexError;
     }
+
+    // Auto-migration: priceHistory olmayan məhsullar üçün priceHistory yaradılır
+    const migrationPromises: Promise<void>[] = [];
+    corrections.forEach(product => {
+      if (product.price !== undefined && (!product.priceHistory || product.priceHistory.length === 0)) {
+        const effectiveFrom = product.createdAt || new Date('2024-01-01');
+        const priceHistory: PriceHistoryEntry[] = [{ price: product.price, effectiveFrom }];
+        product.priceHistory = priceHistory;
+
+        // Firestore-a yaz (background-da)
+        if (product.id) {
+          const correctionRef = doc(db, 'productCorrections', product.id);
+          migrationPromises.push(
+            updateDoc(correctionRef, { priceHistory }).catch(err => {
+              console.warn(`priceHistory migration failed for ${product.correct}:`, err);
+            })
+          );
+        }
+      }
+    });
+
+    // Migration-ları background-da yerinə yetir (gözləmə olmadan)
+    if (migrationPromises.length > 0) {
+      console.log(`Migrating priceHistory for ${migrationPromises.length} products...`);
+      Promise.all(migrationPromises).then(() => {
+        console.log('priceHistory migration completed');
+      }).catch(err => {
+        console.warn('Some priceHistory migrations failed:', err);
+      });
+    }
+
+    setCache(cacheKey, corrections);
+    return corrections;
   } catch (error) {
     console.error('Error getting product corrections:', error);
     return [];
@@ -542,11 +687,20 @@ export async function getProductCorrections(): Promise<ProductDefinition[]> {
 export async function addProductCorrection(correction: Omit<ProductDefinition, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
   try {
     const correctionsRef = collection(db, 'productCorrections');
-    const docRef = await addDoc(correctionsRef, {
+    const now = new Date();
+
+    // priceHistory-ni avtomatik yaradırıq əgər qiymət varsa
+    const dataToSave: any = {
       ...correction,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    if (correction.price !== undefined && (!correction.priceHistory || correction.priceHistory.length === 0)) {
+      dataToSave.priceHistory = [{ price: correction.price, effectiveFrom: now }];
+    }
+
+    const docRef = await addDoc(correctionsRef, dataToSave);
     
     clearCache();
     return docRef.id;

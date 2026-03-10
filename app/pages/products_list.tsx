@@ -93,6 +93,11 @@ export default function ProductsListScreen() {
         updateData.price = updatedProduct.price;
       }
 
+      // Include priceHistory if provided
+      if (updatedProduct.priceHistory) {
+        updateData.priceHistory = updatedProduct.priceHistory;
+      }
+
       // Explicitly handle units field
       if (updatedProduct.units) {
         updateData.units = updatedProduct.units;
